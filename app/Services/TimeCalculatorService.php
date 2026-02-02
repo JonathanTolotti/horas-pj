@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Project;
+use App\Models\Setting;
 use App\Models\TimeEntry;
 use Carbon\Carbon;
 
@@ -24,24 +26,65 @@ class TimeCalculatorService
             ->sum('hours');
     }
 
-    public function getHourlyRate(): float
+    public function getHourlyRate(int $userId): float
     {
-        return (float) config('pj.hourly_rate', 150);
+        $settings = Setting::forUser($userId);
+        return (float) $settings->hourly_rate;
     }
 
-    public function getExtraHomeOffice(): float
+    public function getExtraValue(int $userId): float
     {
-        return (float) config('pj.extra_home_office', 0);
+        $settings = Setting::forUser($userId);
+        return (float) $settings->extra_value;
     }
 
-    public function calculateTotalRevenue(float $totalHours): float
+    public function calculateTotalRevenue(float $totalHours, float $hourlyRate): float
     {
-        return round($totalHours * $this->getHourlyRate(), 2);
+        return round($totalHours * $hourlyRate, 2);
     }
 
-    public function calculateRevenuePerCnpj(float $totalRevenueWithExtra): float
+    public function getProjects(int $userId): array
     {
-        return round($totalRevenueWithExtra / 3, 2);
+        return Project::forUser($userId)
+            ->active()
+            ->orderBy('name')
+            ->get()
+            ->toArray();
+    }
+
+    public function getProjectsStats(int $userId, string $monthReference): array
+    {
+        $projects = Project::forUser($userId)->active()->get();
+        $stats = [];
+
+        foreach ($projects as $project) {
+            $hours = TimeEntry::forUser($userId)
+                ->forMonth($monthReference)
+                ->where('project_id', $project->id)
+                ->sum('hours');
+
+            $stats[$project->id] = [
+                'id' => $project->id,
+                'name' => $project->name,
+                'hours' => $hours,
+            ];
+        }
+
+        // Lançamentos sem projeto
+        $unassignedHours = TimeEntry::forUser($userId)
+            ->forMonth($monthReference)
+            ->whereNull('project_id')
+            ->sum('hours');
+
+        if ($unassignedHours > 0) {
+            $stats['unassigned'] = [
+                'id' => null,
+                'name' => 'Sem Projeto',
+                'hours' => $unassignedHours,
+            ];
+        }
+
+        return $stats;
     }
 
     public function getCnpjs(): array
@@ -49,20 +92,25 @@ class TimeCalculatorService
         return config('pj.cnpjs', []);
     }
 
+    public function calculateRevenuePerCnpj(float $totalRevenueWithExtra): float
+    {
+        return round($totalRevenueWithExtra / 3, 2);
+    }
+
     public function getMonthlyStats(int $userId, string $monthReference): array
     {
         $totalHours = $this->getTotalHoursForMonth($userId, $monthReference);
-        $hourlyRate = $this->getHourlyRate();
-        $extraHomeOffice = $this->getExtraHomeOffice();
-        $totalRevenue = $this->calculateTotalRevenue($totalHours);
-        $totalWithExtra = $totalRevenue + $extraHomeOffice;
+        $hourlyRate = $this->getHourlyRate($userId);
+        $extraValue = $this->getExtraValue($userId);
+        $totalRevenue = $this->calculateTotalRevenue($totalHours, $hourlyRate);
+        $totalWithExtra = $totalRevenue + $extraValue;
         $revenuePerCnpj = $this->calculateRevenuePerCnpj($totalWithExtra);
         $cnpjs = $this->getCnpjs();
 
         return [
             'total_hours' => $totalHours,
             'hourly_rate' => $hourlyRate,
-            'extra_home_office' => $extraHomeOffice,
+            'extra_value' => $extraValue,
             'total_revenue' => $totalRevenue,
             'total_with_extra' => $totalWithExtra,
             'revenue_per_cnpj' => $revenuePerCnpj,

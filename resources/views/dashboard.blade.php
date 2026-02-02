@@ -1,17 +1,45 @@
 <x-app-layout>
-    <div class="max-w-7xl mx-auto p-6 space-y-6">
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Modal de Confirmacao -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-red-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white" id="confirm-title">Confirmar</h3>
+            </div>
+            <p class="text-gray-400 mb-6" id="confirm-message">Deseja realmente realizar esta acao?</p>
+            <div class="flex gap-3 justify-end">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
 
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-white mb-1">Controle de Horas</h1>
-                <p class="text-gray-400">Gestao de tempo e faturamento PJ</p>
+                <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">Controle de Horas</h1>
+                <p class="text-gray-400 text-sm sm:text-base">Gestao de tempo e faturamento PJ</p>
             </div>
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 sm:gap-6">
                 <!-- Month Filter -->
                 <div>
                     <select id="month-filter" onchange="changeMonth(this.value)"
-                        class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                        class="bg-gray-800 border border-gray-700 rounded-lg pl-3 pr-8 sm:pl-4 sm:pr-10 py-2 text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none bg-no-repeat bg-right"
+                        style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239ca3af%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-position: right 0.5rem center; background-size: 1.25rem;">
                         @foreach($months as $month)
                             <option value="{{ $month['value'] }}" {{ $currentMonth === $month['value'] ? 'selected' : '' }}>
                                 {{ $month['label'] }}
@@ -20,9 +48,9 @@
                     </select>
                 </div>
                 <div class="text-right">
-                    <p class="text-sm text-gray-400">Hoje</p>
-                    <p class="text-2xl font-semibold text-white" id="current-date"></p>
-                    <p class="text-lg text-cyan-400 font-mono" id="current-time"></p>
+                    <p class="text-xs sm:text-sm text-gray-400">Hoje</p>
+                    <p class="text-base sm:text-2xl font-semibold text-white" id="current-date"></p>
+                    <p class="text-sm sm:text-lg text-cyan-400 font-mono" id="current-time"></p>
                 </div>
             </div>
         </div>
@@ -73,17 +101,17 @@
                 <p class="text-xs text-gray-500 mt-1">{{ number_format($stats['total_hours'], 2, ',', '.') }}h x R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</p>
             </div>
 
-            <!-- Extra Home Office -->
+            <!-- Valor Extra -->
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-orange-500/50 transition-all">
                 <div class="flex items-center justify-between mb-4">
                     <div class="bg-orange-500/10 p-3 rounded-lg">
                         <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold text-white" id="extra-home-office">R$ {{ number_format($stats['extra_home_office'], 2, ',', '.') }}</span>
+                    <span class="text-3xl font-bold text-white" id="extra-value">R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</span>
                 </div>
-                <p class="text-gray-400 text-sm">Extra Home Office</p>
+                <p class="text-gray-400 text-sm">Valor Extra</p>
                 <p class="text-xs text-gray-500 mt-1">Valor fixo mensal</p>
             </div>
         </div>
@@ -93,7 +121,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-400 text-sm">Total Geral do Mes</p>
-                    <p class="text-xs text-gray-500 mt-1">Horas + Extra Home Office</p>
+                    <p class="text-xs text-gray-500 mt-1">Horas + Valor Extra</p>
                 </div>
                 <span class="text-4xl font-bold text-white" id="total-with-extra">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>
             </div>
@@ -105,11 +133,11 @@
                 <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
-                Novo Lancamento
+                Novo Lançamento
             </h2>
 
             <form id="entry-form" onsubmit="return false;">
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Data</label>
                         <input type="date" id="entry-date" name="date"
@@ -128,6 +156,19 @@
                             class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Projeto</label>
+                        <select id="entry-project" name="project_id"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                            <option value="">Sem projeto</option>
+                            @foreach($projects as $project)
+                                <option value="{{ $project->id }}" {{ $defaultProjectId == $project->id ? 'selected' : '' }}>
+                                    {{ $project->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Descricao</label>
                         <input type="text" id="entry-description" name="description" placeholder="Ex: Desenvolvimento de features"
@@ -135,13 +176,13 @@
                     </div>
                 </div>
 
-                <div class="mt-4 flex gap-3">
+                <div class="mt-4 flex flex-wrap gap-3">
                     <button type="button" onclick="addEntry()"
                         class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/30">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
-                        Adicionar Lancamento
+                        Adicionar
                     </button>
 
                     <button type="button" onclick="toggleTracking()" id="track-btn"
@@ -158,40 +199,47 @@
 
         <!-- Tabela de Lancamentos -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-            <div class="p-6 border-b border-gray-800">
-                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+            <div class="p-4 sm:p-6 border-b border-gray-800">
+                <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
                     <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
-                    Lancamentos do Mes
+                    Últimos lançamentos
                 </h2>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-800/50">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Inicio</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fim</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horas</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descricao</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acoes</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horario</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horas</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Projeto</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descricao</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acoes</th>
                         </tr>
                     </thead>
                     <tbody id="entries-table" class="divide-y divide-gray-800">
                         @forelse($entries as $entry)
                             <tr class="hover:bg-gray-800/50 transition-colors" data-entry-id="{{ $entry->id }}">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ $entry->date->format('d/m/Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">{{ substr($entry->start_time, 0, 5) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">{{ substr($entry->end_time, 0, 5) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $entry->date->format('d/m/Y') }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm">
                                     <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">{{ number_format($entry->hours, 2, ',', '.') }}h</span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-300">{{ $entry->description }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                    @if($entry->project)
+                                        <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">{{ $entry->project->name }}</span>
+                                    @else
+                                        <span class="text-gray-500">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">{{ $entry->description }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm">
                                     <button onclick="removeEntry({{ $entry->id }})"
                                         class="text-red-400 hover:text-red-300 transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,6 +258,62 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden divide-y divide-gray-800" id="entries-cards">
+                @forelse($entries as $entry)
+                    <div class="p-4 hover:bg-gray-800/50 transition-colors" data-entry-id="{{ $entry->id }}">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-white font-medium">{{ $entry->date->format('d/m/Y') }}</span>
+                                <span class="text-gray-400 font-mono text-sm">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</span>
+                            </div>
+                            <button onclick="removeEntry({{ $entry->id }})"
+                                class="text-red-400 hover:text-red-300 transition-colors p-1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                        @if($entry->project)
+                            <span class="inline-block bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs mb-2">{{ $entry->project->name }}</span>
+                        @endif
+                        <p class="text-gray-300 text-sm mb-3">{{ $entry->description }}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ number_format($entry->hours, 2, ',', '.') }}h</span>
+                            <span class="text-emerald-400 font-semibold">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div id="empty-card" class="p-8 text-center text-gray-500">
+                        Nenhum lancamento encontrado para este mes.
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Paginacao -->
+            @if($entries->hasPages())
+                <div class="p-4 border-t border-gray-800">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-400">
+                            Mostrando {{ $entries->firstItem() }} a {{ $entries->lastItem() }} de {{ $entries->total() }} lancamentos
+                        </p>
+                        <div class="flex gap-2">
+                            @if($entries->onFirstPage())
+                                <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Anterior</span>
+                            @else
+                                <a href="{{ $entries->previousPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Anterior</a>
+                            @endif
+
+                            @if($entries->hasMorePages())
+                                <a href="{{ $entries->nextPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Proximo</a>
+                            @else
+                                <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Proximo</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Divisao por CNPJ -->
@@ -246,7 +350,7 @@
     @push('scripts')
     <script>
         const HOURLY_RATE = {{ $stats['hourly_rate'] }};
-        const EXTRA_HOME_OFFICE = {{ $stats['extra_home_office'] }};
+        const EXTRA_VALUE = {{ $stats['extra_value'] }};
         const CSRF_TOKEN = '{{ csrf_token() }}';
         const CURRENT_MONTH = '{{ $currentMonth }}';
     </script>

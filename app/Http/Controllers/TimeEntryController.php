@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Services\TimeCalculatorService;
 use Carbon\Carbon;
@@ -29,17 +30,22 @@ class TimeEntryController extends Controller
 
         $entries = TimeEntry::forUser(auth()->id())
             ->forMonth($monthReference)
+            ->with('project')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
-            ->get();
+            ->paginate(10);
 
         $stats = $this->calculator->getMonthlyStats(auth()->id(), $monthReference);
+        $projects = Project::forUser(auth()->id())->active()->orderBy('name')->get();
+        $defaultProject = Project::getDefault(auth()->id());
 
         return view('dashboard', [
             'entries' => $entries,
             'stats' => $stats,
             'currentMonth' => $monthReference,
             'months' => $this->getAvailableMonths(),
+            'projects' => $projects,
+            'defaultProjectId' => $defaultProject?->id,
         ]);
     }
 
@@ -50,6 +56,7 @@ class TimeEntryController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'description' => 'required|string|max:1000',
+            'project_id' => 'nullable|exists:projects,id',
         ]);
 
         $date = Carbon::parse($validated['date']);
@@ -73,6 +80,7 @@ class TimeEntryController extends Controller
 
         $entry = TimeEntry::create([
             'user_id' => auth()->id(),
+            'project_id' => $validated['project_id'] ?? null,
             'date' => $validated['date'],
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
@@ -80,6 +88,8 @@ class TimeEntryController extends Controller
             'description' => $validated['description'],
             'month_reference' => $date->format('Y-m'),
         ]);
+
+        $entry->load('project');
 
         $stats = $this->calculator->getMonthlyStats(
             auth()->id(),
@@ -96,6 +106,8 @@ class TimeEntryController extends Controller
                 'end_time' => substr($entry->end_time, 0, 5),
                 'hours' => $entry->hours,
                 'description' => $entry->description,
+                'project_id' => $entry->project_id,
+                'project_name' => $entry->project?->name,
             ],
             'stats' => $stats,
         ]);
@@ -134,7 +146,7 @@ class TimeEntryController extends Controller
         $months = [];
         $current = Carbon::now();
 
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 6; $i++) {
             $date = $current->copy()->subMonths($i);
             $months[] = [
                 'value' => $date->format('Y-m'),

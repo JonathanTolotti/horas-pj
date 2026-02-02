@@ -1,11 +1,20 @@
 // Tracking state
 let trackingInterval = null;
+let confirmCallback = null;
 
 // Storage keys
 const STORAGE_KEYS = {
     ACTIVE: 'tracking_active',
     START_TIME: 'tracking_start_time',
     DATE: 'tracking_date'
+};
+
+// Toast types
+const TOAST_TYPES = {
+    SUCCESS: 'success',
+    ERROR: 'error',
+    WARNING: 'warning',
+    INFO: 'info'
 };
 
 // Initialize on page load
@@ -16,7 +25,160 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateClock, 1000);
 });
 
-// Initialize page with current date
+// ==================== TOAST SYSTEM ====================
+
+function showToast(message, type = TOAST_TYPES.INFO, duration = 4000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-item';
+
+    // Estilos base do toast
+    toast.style.cssText = `
+        transform: translateX(100%);
+        opacity: 0;
+        transition: all 0.3s ease-out;
+    `;
+
+    const styles = {
+        success: {
+            bg: '#064e3b',
+            border: '#10b981',
+            text: '#a7f3d0',
+            icon: '#34d399'
+        },
+        error: {
+            bg: '#7f1d1d',
+            border: '#ef4444',
+            text: '#fecaca',
+            icon: '#f87171'
+        },
+        warning: {
+            bg: '#78350f',
+            border: '#f59e0b',
+            text: '#fde68a',
+            icon: '#fbbf24'
+        },
+        info: {
+            bg: '#164e63',
+            border: '#06b6d4',
+            text: '#a5f3fc',
+            icon: '#22d3ee'
+        }
+    };
+
+    const style = styles[type] || styles.info;
+
+    const icons = {
+        success: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>`,
+        error: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>`,
+        warning: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>`,
+        info: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>`
+    };
+
+    toast.innerHTML = `
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 2px solid ${style.border};
+            background: ${style.bg};
+            color: ${style.text};
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4), 0 0 20px ${style.border}40;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 280px;
+            max-width: 400px;
+        ">
+            ${icons[type] || icons.info}
+            <span style="flex:1">${escapeHtml(message)}</span>
+            <button onclick="this.closest('.toast-item').remove()" style="
+                background: none;
+                border: none;
+                cursor: pointer;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+                padding: 4px;
+                color: ${style.text};
+            " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    });
+
+    // Auto remove
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// ==================== CONFIRM MODAL ====================
+
+function showConfirm(message, callback, title = 'Confirmar') {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-title');
+    const messageEl = document.getElementById('confirm-message');
+    const confirmBtn = document.getElementById('confirm-btn');
+
+    if (!modal) return;
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    confirmCallback = callback;
+
+    // Set up confirm button
+    confirmBtn.onclick = function() {
+        closeConfirmModal();
+        if (confirmCallback) {
+            confirmCallback();
+        }
+    };
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    confirmCallback = null;
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeConfirmModal();
+    }
+});
+
+// ==================== PAGE INITIALIZATION ====================
+
 function initializePage() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('entry-date').value = today;
@@ -36,7 +198,8 @@ function updateClock() {
     document.getElementById('current-date').textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
 }
 
-// Format currency
+// ==================== FORMATTING ====================
+
 function formatCurrency(value) {
     return value.toLocaleString('pt-BR', {
         style: 'currency',
@@ -44,7 +207,6 @@ function formatCurrency(value) {
     });
 }
 
-// Format hours
 function formatHours(hours) {
     return hours.toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
@@ -52,7 +214,8 @@ function formatHours(hours) {
     }) + 'h';
 }
 
-// Restore tracking state from localStorage
+// ==================== TRACKING ====================
+
 function restoreTracking() {
     const isActive = localStorage.getItem(STORAGE_KEYS.ACTIVE) === 'true';
     const startTime = localStorage.getItem(STORAGE_KEYS.START_TIME);
@@ -70,14 +233,12 @@ function restoreTracking() {
     }
 }
 
-// Format time for input field
 function formatTimeInput(date) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
 }
 
-// Toggle tracking
 function toggleTracking() {
     const isActive = localStorage.getItem(STORAGE_KEYS.ACTIVE) === 'true';
 
@@ -88,7 +249,6 @@ function toggleTracking() {
     }
 }
 
-// Start tracking
 function startTracking() {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -105,9 +265,10 @@ function startTracking() {
 
     // Start UI tracking
     startTrackingUI(now);
+
+    showToast('Tracking iniciado!', TOAST_TYPES.SUCCESS);
 }
 
-// Start tracking UI updates
 function startTrackingUI(startTime) {
     const btn = document.getElementById('track-btn');
     const btnText = document.getElementById('track-btn-text');
@@ -133,7 +294,6 @@ function startTrackingUI(startTime) {
     btnText.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-// Stop tracking
 function stopTracking() {
     const now = new Date();
 
@@ -158,23 +318,28 @@ function stopTracking() {
     btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
     btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
     btnText.textContent = 'Iniciar Tracking';
+
+    showToast('Tracking parado. Preencha a descricao e adicione o lancamento.', TOAST_TYPES.INFO);
 }
 
-// Add new entry
+// ==================== ENTRIES CRUD ====================
+
 async function addEntry() {
     const date = document.getElementById('entry-date').value;
     const startTime = document.getElementById('entry-start').value;
     const endTime = document.getElementById('entry-end').value;
     const description = document.getElementById('entry-description').value;
+    const projectSelect = document.getElementById('entry-project');
+    const projectId = projectSelect ? projectSelect.value : null;
 
     // Validation
     if (!date || !startTime || !endTime || !description) {
-        alert('Por favor, preencha todos os campos!');
+        showToast('Por favor, preencha todos os campos!', TOAST_TYPES.WARNING);
         return;
     }
 
     if (endTime <= startTime) {
-        alert('O horario de fim deve ser maior que o horario de inicio!');
+        showToast('O horario de fim deve ser maior que o horario de inicio!', TOAST_TYPES.WARNING);
         return;
     }
 
@@ -190,7 +355,8 @@ async function addEntry() {
                 date: date,
                 start_time: startTime,
                 end_time: endTime,
-                description: description
+                description: description,
+                project_id: projectId || null
             })
         });
 
@@ -204,6 +370,9 @@ async function addEntry() {
             // Add entry to table
             addEntryToTable(data.entry);
 
+            // Add entry to mobile cards
+            addEntryToCards(data.entry);
+
             // Update stats
             updateStats(data.stats);
 
@@ -216,13 +385,14 @@ async function addEntry() {
             if (localStorage.getItem(STORAGE_KEYS.ACTIVE) === 'true') {
                 stopTracking();
             }
+
+            showToast('Lancamento adicionado com sucesso!', TOAST_TYPES.SUCCESS);
         }
     } catch (error) {
-        alert(error.message);
+        showToast(error.message, TOAST_TYPES.ERROR);
     }
 }
 
-// Add entry to table
 function addEntryToTable(entry) {
     const tbody = document.getElementById('entries-table');
     const emptyRow = document.getElementById('empty-row');
@@ -233,20 +403,23 @@ function addEntryToTable(entry) {
     }
 
     const entryValue = entry.hours * HOURLY_RATE;
+    const projectHtml = entry.project_name
+        ? `<span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">${escapeHtml(entry.project_name)}</span>`
+        : '<span class="text-gray-500">-</span>';
 
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-800/50 transition-colors';
     row.setAttribute('data-entry-id', entry.id);
     row.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${entry.date_formatted}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">${entry.start_time}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">${entry.end_time}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm">
+        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">${entry.date_formatted}</td>
+        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">${entry.start_time} - ${entry.end_time}</td>
+        <td class="px-4 py-4 whitespace-nowrap text-sm">
             <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">${formatHours(parseFloat(entry.hours))}</span>
         </td>
-        <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(entry.description)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400">${formatCurrency(entryValue)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm">
+        <td class="px-4 py-4 whitespace-nowrap text-sm">${projectHtml}</td>
+        <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">${escapeHtml(entry.description)}</td>
+        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400">${formatCurrency(entryValue)}</td>
+        <td class="px-4 py-4 whitespace-nowrap text-sm">
             <button onclick="removeEntry(${entry.id})"
                 class="text-red-400 hover:text-red-300 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,56 +433,114 @@ function addEntryToTable(entry) {
     tbody.insertBefore(row, tbody.firstChild);
 }
 
-// Remove entry
-async function removeEntry(id) {
-    if (!confirm('Deseja realmente remover este lancamento?')) {
-        return;
+function addEntryToCards(entry) {
+    const container = document.getElementById('entries-cards');
+    const emptyCard = document.getElementById('empty-card');
+
+    // Remove empty message if exists
+    if (emptyCard) {
+        emptyCard.remove();
     }
 
-    try {
-        const response = await fetch(`/time-entries/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': CSRF_TOKEN,
-                'Accept': 'application/json'
-            }
-        });
+    const entryValue = entry.hours * HOURLY_RATE;
+    const projectHtml = entry.project_name
+        ? `<span class="inline-block bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs mb-2">${escapeHtml(entry.project_name)}</span>`
+        : '';
 
-        const data = await response.json();
+    const card = document.createElement('div');
+    card.className = 'p-4 hover:bg-gray-800/50 transition-colors';
+    card.setAttribute('data-entry-id', entry.id);
+    card.innerHTML = `
+        <div class="flex items-start justify-between mb-2">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-white font-medium">${entry.date_formatted}</span>
+                <span class="text-gray-400 font-mono text-sm">${entry.start_time} - ${entry.end_time}</span>
+            </div>
+            <button onclick="removeEntry(${entry.id})"
+                class="text-red-400 hover:text-red-300 transition-colors p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>
+        </div>
+        ${projectHtml}
+        <p class="text-gray-300 text-sm mb-3">${escapeHtml(entry.description)}</p>
+        <div class="flex items-center justify-between">
+            <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">${formatHours(parseFloat(entry.hours))}</span>
+            <span class="text-emerald-400 font-semibold">${formatCurrency(entryValue)}</span>
+        </div>
+    `;
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Erro ao remover lancamento');
-        }
-
-        if (data.success) {
-            // Remove row from table
-            const row = document.querySelector(`tr[data-entry-id="${id}"]`);
-            if (row) {
-                row.remove();
-            }
-
-            // Update stats
-            updateStats(data.stats);
-
-            // Check if table is empty
-            const tbody = document.getElementById('entries-table');
-            if (tbody.children.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.id = 'empty-row';
-                emptyRow.innerHTML = `
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                        Nenhum lancamento encontrado para este mes.
-                    </td>
-                `;
-                tbody.appendChild(emptyRow);
-            }
-        }
-    } catch (error) {
-        alert(error.message);
-    }
+    // Insert at the beginning
+    container.insertBefore(card, container.firstChild);
 }
 
-// Update stats display
+function removeEntry(id) {
+    showConfirm('Deseja realmente remover este lancamento?', async () => {
+        try {
+            const response = await fetch(`/time-entries/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Erro ao remover lancamento');
+            }
+
+            if (data.success) {
+                // Remove row from table
+                const row = document.querySelector(`tr[data-entry-id="${id}"]`);
+                if (row) {
+                    row.remove();
+                }
+
+                // Remove card from mobile view
+                const card = document.querySelector(`div[data-entry-id="${id}"]`);
+                if (card) {
+                    card.remove();
+                }
+
+                // Update stats
+                updateStats(data.stats);
+
+                // Check if table is empty
+                const tbody = document.getElementById('entries-table');
+                if (tbody && tbody.children.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.id = 'empty-row';
+                    emptyRow.innerHTML = `
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                            Nenhum lancamento encontrado para este mes.
+                        </td>
+                    `;
+                    tbody.appendChild(emptyRow);
+                }
+
+                // Check if cards container is empty
+                const cardsContainer = document.getElementById('entries-cards');
+                if (cardsContainer && cardsContainer.children.length === 0) {
+                    const emptyCard = document.createElement('div');
+                    emptyCard.id = 'empty-card';
+                    emptyCard.className = 'p-8 text-center text-gray-500';
+                    emptyCard.textContent = 'Nenhum lancamento encontrado para este mes.';
+                    cardsContainer.appendChild(emptyCard);
+                }
+
+                showToast('Lancamento removido com sucesso!', TOAST_TYPES.SUCCESS);
+            }
+        } catch (error) {
+            showToast(error.message, TOAST_TYPES.ERROR);
+        }
+    }, 'Remover Lancamento');
+}
+
+// ==================== STATS ====================
+
 function updateStats(stats) {
     document.getElementById('total-hours').textContent = formatHours(parseFloat(stats.total_hours));
     document.getElementById('total-revenue').textContent = formatCurrency(stats.total_revenue);
@@ -322,12 +553,14 @@ function updateStats(stats) {
     });
 }
 
-// Change month filter
+// ==================== NAVIGATION ====================
+
 function changeMonth(month) {
     window.location.href = `/dashboard?month=${month}`;
 }
 
-// Escape HTML to prevent XSS
+// ==================== UTILITIES ====================
+
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

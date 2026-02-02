@@ -12,6 +12,7 @@ class TimeEntry extends Model
 
     protected $fillable = [
         'user_id',
+        'project_id',
         'date',
         'start_time',
         'end_time',
@@ -28,6 +29,11 @@ class TimeEntry extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function scopeForMonth($query, string $monthReference)
