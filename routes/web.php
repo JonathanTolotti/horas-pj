@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TimeEntryController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,6 +24,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projects', [SettingsController::class, 'storeProject'])->name('projects.store');
     Route::put('/projects/{project}', [SettingsController::class, 'updateProject'])->name('projects.update');
     Route::delete('/projects/{project}', [SettingsController::class, 'destroyProject'])->name('projects.destroy');
+
+    // Tracking
+    Route::get('/tracking/status', [TrackingController::class, 'status'])->name('tracking.status');
+    Route::post('/tracking/start', [TrackingController::class, 'start'])->name('tracking.start');
+    Route::post('/tracking/stop', [TrackingController::class, 'stop'])->name('tracking.stop');
 });
 
 Route::middleware('auth')->group(function () {

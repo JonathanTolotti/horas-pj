@@ -1,13 +1,12 @@
 // Tracking state
 let trackingInterval = null;
 let confirmCallback = null;
+let trackingStartTime = null;
 
-// Storage keys
-const STORAGE_KEYS = {
-    ACTIVE: 'tracking_active',
-    START_TIME: 'tracking_start_time',
-    DATE: 'tracking_date'
-};
+// Flatpickr instances
+let datePicker = null;
+let startTimePicker = null;
+let endTimePicker = null;
 
 // Toast types
 const TOAST_TYPES = {
@@ -19,11 +18,52 @@ const TOAST_TYPES = {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    initializeFlatpickr();
     initializePage();
     restoreTracking();
     updateClock();
     setInterval(updateClock, 1000);
 });
+
+// ==================== FLATPICKR INITIALIZATION ====================
+
+function initializeFlatpickr() {
+    // Configure Flatpickr locale to pt-BR
+    flatpickr.localize(flatpickr.l10ns.pt);
+
+    // Date picker
+    datePicker = flatpickr('#entry-date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'pt',
+        defaultDate: 'today',
+        disableMobile: true,
+        onChange: function(selectedDates, dateStr) {
+            // Ensure the hidden input has the correct format
+        }
+    });
+
+    // Start time picker
+    startTimePicker = flatpickr('#entry-start', {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: 'H:i',
+        time_24hr: true,
+        locale: 'pt',
+        disableMobile: true
+    });
+
+    // End time picker
+    endTimePicker = flatpickr('#entry-end', {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: 'H:i',
+        time_24hr: true,
+        locale: 'pt',
+        disableMobile: true
+    });
+}
 
 // ==================== TOAST SYSTEM ====================
 
@@ -180,8 +220,7 @@ document.addEventListener('keydown', function(e) {
 // ==================== PAGE INITIALIZATION ====================
 
 function initializePage() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('entry-date').value = today;
+    // Date is already set by Flatpickr defaultDate
 }
 
 // Update clock display
@@ -214,22 +253,35 @@ function formatHours(hours) {
     }) + 'h';
 }
 
-// ==================== TRACKING ====================
+// ==================== TRACKING (SERVER-BASED) ====================
 
-function restoreTracking() {
-    const isActive = localStorage.getItem(STORAGE_KEYS.ACTIVE) === 'true';
-    const startTime = localStorage.getItem(STORAGE_KEYS.START_TIME);
-    const trackingDate = localStorage.getItem(STORAGE_KEYS.DATE);
+async function restoreTracking() {
+    try {
+        const response = await fetch('/tracking/status', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            }
+        });
 
-    if (isActive && startTime && trackingDate) {
-        const savedDate = new Date(parseInt(startTime));
+        const data = await response.json();
 
-        // Set form fields
-        document.getElementById('entry-date').value = trackingDate;
-        document.getElementById('entry-start').value = formatTimeInput(savedDate);
+        if (data.active) {
+            trackingStartTime = new Date(data.started_at);
 
-        // Resume tracking UI
-        startTrackingUI(savedDate);
+            // Set form fields using Flatpickr
+            if (datePicker) {
+                datePicker.setDate(data.date, true);
+            }
+            if (startTimePicker) {
+                startTimePicker.setDate(data.start_time, true);
+            }
+
+            // Resume tracking UI
+            startTrackingUI(trackingStartTime);
+        }
+    } catch (error) {
+        console.error('Erro ao verificar status do tracking:', error);
     }
 }
 
@@ -239,34 +291,51 @@ function formatTimeInput(date) {
     return `${hours}:${minutes}`;
 }
 
-function toggleTracking() {
-    const isActive = localStorage.getItem(STORAGE_KEYS.ACTIVE) === 'true';
-
-    if (isActive) {
-        stopTracking();
+async function toggleTracking() {
+    // Check current state from tracking start time
+    if (trackingStartTime !== null) {
+        await stopTracking();
     } else {
-        startTracking();
+        await startTracking();
     }
 }
 
-function startTracking() {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
+async function startTracking() {
+    try {
+        const response = await fetch('/tracking/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json'
+            }
+        });
 
-    // Save to localStorage
-    localStorage.setItem(STORAGE_KEYS.ACTIVE, 'true');
-    localStorage.setItem(STORAGE_KEYS.START_TIME, now.getTime().toString());
-    localStorage.setItem(STORAGE_KEYS.DATE, today);
+        const data = await response.json();
 
-    // Update form fields
-    document.getElementById('entry-date').value = today;
-    document.getElementById('entry-start').value = formatTimeInput(now);
-    document.getElementById('entry-end').value = '';
+        if (data.success) {
+            trackingStartTime = new Date(data.started_at);
 
-    // Start UI tracking
-    startTrackingUI(now);
+            // Update form fields using Flatpickr
+            if (datePicker) {
+                datePicker.setDate(data.date, true);
+            }
+            if (startTimePicker) {
+                startTimePicker.setDate(data.start_time, true);
+            }
+            if (endTimePicker) {
+                endTimePicker.clear();
+            }
 
-    showToast('Tracking iniciado!', TOAST_TYPES.SUCCESS);
+            // Start UI tracking
+            startTrackingUI(trackingStartTime);
+
+            showToast('Tracking iniciado!', TOAST_TYPES.SUCCESS);
+        }
+    } catch (error) {
+        showToast('Erro ao iniciar tracking', TOAST_TYPES.ERROR);
+        console.error('Erro ao iniciar tracking:', error);
+    }
 }
 
 function startTrackingUI(startTime) {
@@ -294,32 +363,48 @@ function startTrackingUI(startTime) {
     btnText.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-function stopTracking() {
-    const now = new Date();
+async function stopTracking() {
+    try {
+        const response = await fetch('/tracking/stop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json'
+            }
+        });
 
-    // Clear interval
-    if (trackingInterval) {
-        clearInterval(trackingInterval);
-        trackingInterval = null;
+        const data = await response.json();
+
+        if (data.success) {
+            // Clear interval
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+
+            // Clear tracking start time
+            trackingStartTime = null;
+
+            // Update form field with end time using Flatpickr
+            if (endTimePicker) {
+                endTimePicker.setDate(data.end_time, true);
+            }
+
+            // Reset button UI
+            const btn = document.getElementById('track-btn');
+            const btnText = document.getElementById('track-btn-text');
+
+            btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
+            btnText.textContent = 'Iniciar Tracking';
+
+            showToast('Tracking parado. Preencha a descricao e adicione o lancamento.', TOAST_TYPES.INFO);
+        }
+    } catch (error) {
+        showToast('Erro ao parar tracking', TOAST_TYPES.ERROR);
+        console.error('Erro ao parar tracking:', error);
     }
-
-    // Update form field with end time
-    document.getElementById('entry-end').value = formatTimeInput(now);
-
-    // Clear localStorage
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE);
-    localStorage.removeItem(STORAGE_KEYS.START_TIME);
-    localStorage.removeItem(STORAGE_KEYS.DATE);
-
-    // Reset button UI
-    const btn = document.getElementById('track-btn');
-    const btnText = document.getElementById('track-btn-text');
-
-    btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
-    btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
-    btnText.textContent = 'Iniciar Tracking';
-
-    showToast('Tracking parado. Preencha a descricao e adicione o lancamento.', TOAST_TYPES.INFO);
 }
 
 // ==================== ENTRIES CRUD ====================
@@ -376,14 +461,38 @@ async function addEntry() {
             // Update stats
             updateStats(data.stats);
 
-            // Clear form
-            document.getElementById('entry-start').value = '';
-            document.getElementById('entry-end').value = '';
+            // Clear form using Flatpickr
+            if (startTimePicker) {
+                startTimePicker.clear();
+            }
+            if (endTimePicker) {
+                endTimePicker.clear();
+            }
             document.getElementById('entry-description').value = '';
 
-            // Stop tracking if active
-            if (localStorage.getItem(STORAGE_KEYS.ACTIVE) === 'true') {
-                stopTracking();
+            // Stop tracking if active (just reset UI, server already handled)
+            if (trackingStartTime !== null) {
+                if (trackingInterval) {
+                    clearInterval(trackingInterval);
+                    trackingInterval = null;
+                }
+                trackingStartTime = null;
+
+                const btn = document.getElementById('track-btn');
+                const btnText = document.getElementById('track-btn-text');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
+                btnText.textContent = 'Iniciar Tracking';
+
+                // Also stop on server
+                fetch('/tracking/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN,
+                        'Accept': 'application/json'
+                    }
+                }).catch(() => {});
             }
 
             showToast('Lancamento adicionado com sucesso!', TOAST_TYPES.SUCCESS);
