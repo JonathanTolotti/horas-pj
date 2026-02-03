@@ -20,6 +20,12 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 
+        <script>
+            // Apply privacy mode immediately to prevent flash of sensitive content
+            if (localStorage.getItem('privacy_mode') === 'true') {
+                document.documentElement.classList.add('privacy-mode');
+            }
+        </script>
         <style>
             body {
                 font-family: 'Inter', sans-serif;
@@ -88,6 +94,15 @@
             }
             .flatpickr-day.flatpickr-disabled {
                 color: #4b5563 !important;
+            }
+            /* Privacy mode - blur sensitive values */
+            html.privacy-mode .sensitive-value {
+                filter: blur(8px);
+                user-select: none;
+                transition: filter 0.2s ease;
+            }
+            html.privacy-mode .sensitive-value:hover {
+                filter: blur(4px);
             }
         </style>
     </head>

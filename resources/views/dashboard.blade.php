@@ -65,7 +65,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold text-white" id="total-hours">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</span>
+                    <span class="text-3xl font-bold text-white sensitive-value" id="total-hours">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</span>
                 </div>
                 <p class="text-gray-400 text-sm">Total de Horas</p>
                 <p class="text-xs text-gray-500 mt-1">No periodo atual</p>
@@ -80,7 +80,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <span class="text-3xl font-bold text-white" id="hourly-rate">R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</span>
+                        <span class="text-3xl font-bold text-white sensitive-value" id="hourly-rate">R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</span>
                     </div>
                 </div>
                 <p class="text-gray-400 text-sm">Valor/Hora</p>
@@ -95,7 +95,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold text-white" id="total-revenue">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</span>
+                    <span class="text-3xl font-bold text-white sensitive-value" id="total-revenue">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</span>
                 </div>
                 <p class="text-gray-400 text-sm">Faturado (Horas)</p>
                 <p class="text-xs text-gray-500 mt-1">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }} x R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</p>
@@ -109,7 +109,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold text-white" id="extra-value">R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</span>
+                    <span class="text-3xl font-bold text-white sensitive-value" id="extra-value">R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</span>
                 </div>
                 <p class="text-gray-400 text-sm">Valor Extra</p>
                 <p class="text-xs text-gray-500 mt-1">Valor fixo mensal</p>
@@ -123,7 +123,7 @@
                     <p class="text-gray-400 text-sm">Total Geral do Mes</p>
                     <p class="text-xs text-gray-500 mt-1">Horas + Valor Extra</p>
                 </div>
-                <span class="text-4xl font-bold text-white" id="total-with-extra">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>
+                <span class="text-4xl font-bold text-white sensitive-value" id="total-with-extra">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>
             </div>
         </div>
 
@@ -238,7 +238,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">{{ $entry->description }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm">
                                     <button onclick="removeEntry({{ $entry->id }})"
                                         class="text-red-400 hover:text-red-300 transition-colors">
@@ -281,7 +281,7 @@
                         <p class="text-gray-300 text-sm mb-3">{{ $entry->description }}</p>
                         <div class="flex items-center justify-between">
                             <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
-                            <span class="text-emerald-400 font-semibold">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
+                            <span class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
                         </div>
                     </div>
                 @empty
@@ -322,7 +322,7 @@
                 <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
-                Divisao por CNPJ (Total: R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }})
+                Divisao por CNPJ (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>)
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -340,7 +340,7 @@
                         </div>
                         <h3 class="text-white font-semibold mb-1">{{ $cnpj['name'] }}</h3>
                         <p class="text-gray-400 text-sm mb-3 font-mono">{{ $cnpj['number'] }}</p>
-                        <p class="text-2xl font-bold text-{{ $color }}-400 cnpj-value">R$ {{ number_format($stats['revenue_per_cnpj'], 2, ',', '.') }}</p>
+                        <p class="text-2xl font-bold text-{{ $color }}-400 cnpj-value sensitive-value">R$ {{ number_format($stats['revenue_per_cnpj'], 2, ',', '.') }}</p>
                     </div>
                 @endforeach
             </div>

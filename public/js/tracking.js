@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFlatpickr();
     initializePage();
     restoreTracking();
+    restorePrivacy();
     updateClock();
     setInterval(updateClock, 1000);
 });
@@ -526,7 +527,7 @@ function addEntryToTable(entry) {
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm">${projectHtml}</td>
         <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">${escapeHtml(entry.description)}</td>
-        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400">${formatCurrency(entryValue)}</td>
+        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">${formatCurrency(entryValue)}</td>
         <td class="px-4 py-4 whitespace-nowrap text-sm">
             <button onclick="removeEntry(${entry.id})"
                 class="text-red-400 hover:text-red-300 transition-colors">
@@ -575,7 +576,7 @@ function addEntryToCards(entry) {
         <p class="text-gray-300 text-sm mb-3">${escapeHtml(entry.description)}</p>
         <div class="flex items-center justify-between">
             <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">${formatHours(parseFloat(entry.hours))}</span>
-            <span class="text-emerald-400 font-semibold">${formatCurrency(entryValue)}</span>
+            <span class="text-emerald-400 font-semibold sensitive-value">${formatCurrency(entryValue)}</span>
         </div>
     `;
 
@@ -673,4 +674,42 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ==================== PRIVACY MODE ====================
+
+function restorePrivacy() {
+    const isHidden = localStorage.getItem('privacy_mode') === 'true';
+    if (isHidden) {
+        applyPrivacyMode(true);
+    }
+}
+
+function togglePrivacy() {
+    const isCurrentlyHidden = document.documentElement.classList.contains('privacy-mode');
+    const newState = !isCurrentlyHidden;
+
+    localStorage.setItem('privacy_mode', newState.toString());
+    applyPrivacyMode(newState);
+}
+
+function applyPrivacyMode(hidden) {
+    const eyeOpen = document.getElementById('eye-open');
+    const eyeClosed = document.getElementById('eye-closed');
+    const eyeOpenMobile = document.getElementById('eye-open-mobile');
+    const eyeClosedMobile = document.getElementById('eye-closed-mobile');
+
+    if (hidden) {
+        document.documentElement.classList.add('privacy-mode');
+        if (eyeOpen) eyeOpen.classList.add('hidden');
+        if (eyeClosed) eyeClosed.classList.remove('hidden');
+        if (eyeOpenMobile) eyeOpenMobile.classList.add('hidden');
+        if (eyeClosedMobile) eyeClosedMobile.classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('privacy-mode');
+        if (eyeOpen) eyeOpen.classList.remove('hidden');
+        if (eyeClosed) eyeClosed.classList.add('hidden');
+        if (eyeOpenMobile) eyeOpenMobile.classList.remove('hidden');
+        if (eyeClosedMobile) eyeClosedMobile.classList.add('hidden');
+    }
 }
