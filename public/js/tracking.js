@@ -247,10 +247,9 @@ function formatCurrency(value) {
 }
 
 function formatHours(hours) {
-    return hours.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }) + 'h';
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
 }
 
 // ==================== TRACKING (SERVER-BASED) ====================

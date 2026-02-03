@@ -65,7 +65,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold text-white" id="total-hours">{{ number_format($stats['total_hours'], 2, ',', '.') }}h</span>
+                    <span class="text-3xl font-bold text-white" id="total-hours">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</span>
                 </div>
                 <p class="text-gray-400 text-sm">Total de Horas</p>
                 <p class="text-xs text-gray-500 mt-1">No periodo atual</p>
@@ -98,7 +98,7 @@
                     <span class="text-3xl font-bold text-white" id="total-revenue">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</span>
                 </div>
                 <p class="text-gray-400 text-sm">Faturado (Horas)</p>
-                <p class="text-xs text-gray-500 mt-1">{{ number_format($stats['total_hours'], 2, ',', '.') }}h x R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }} x R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</p>
             </div>
 
             <!-- Valor Extra -->
@@ -228,7 +228,7 @@
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $entry->date->format('d/m/Y') }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                    <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">{{ number_format($entry->hours, 2, ',', '.') }}h</span>
+                                    <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
                                 </td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm">
                                     @if($entry->project)
@@ -280,7 +280,7 @@
                         @endif
                         <p class="text-gray-300 text-sm mb-3">{{ $entry->description }}</p>
                         <div class="flex items-center justify-between">
-                            <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ number_format($entry->hours, 2, ',', '.') }}h</span>
+                            <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
                             <span class="text-emerald-400 font-semibold">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
                         </div>
                     </div>
