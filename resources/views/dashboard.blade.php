@@ -354,6 +354,6 @@
         const CSRF_TOKEN = '{{ csrf_token() }}';
         const CURRENT_MONTH = '{{ $currentMonth }}';
     </script>
-    <script src="{{ asset('js/tracking.js') }}"></script>
+        <script src="{{ asset('js/tracking.js') }}?v={{ filemtime(public_path('js/tracking.js')) }}"></script>
     @endpush
 </x-app-layout>
