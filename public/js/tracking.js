@@ -5,8 +5,6 @@ let trackingStartTime = null;
 
 // Flatpickr instances
 let datePicker = null;
-let startTimePicker = null;
-let endTimePicker = null;
 
 // Toast types
 const TOAST_TYPES = {
@@ -29,15 +27,29 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==================== FLATPICKR INITIALIZATION ====================
 
 function initializeFlatpickr() {
-    // Configure Flatpickr locale to pt-BR
-    flatpickr.localize(flatpickr.l10ns.pt);
+    // Configure Flatpickr locale to pt-BR with fallback
+    const ptLocale = flatpickr.l10ns.pt || {
+        weekdays: {
+            shorthand: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"],
+            longhand: ["Domingo", "Segunda-feira", "Terca-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sabado"]
+        },
+        months: {
+            shorthand: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+            longhand: ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+        },
+        rangeSeparator: " ate ",
+        time_24hr: true,
+        firstDayOfWeek: 0
+    };
 
-    // Date picker
+    flatpickr.localize(ptLocale);
+
+    // Date picker only
     datePicker = flatpickr('#entry-date', {
         dateFormat: 'Y-m-d',
         altInput: true,
         altFormat: 'd/m/Y',
-        locale: 'pt',
+        locale: ptLocale,
         defaultDate: 'today',
         disableMobile: true,
         onChange: function(selectedDates, dateStr) {
@@ -45,25 +57,77 @@ function initializeFlatpickr() {
         }
     });
 
-    // Start time picker
-    startTimePicker = flatpickr('#entry-start', {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: 'H:i',
-        time_24hr: true,
-        locale: 'pt',
-        disableMobile: true
-    });
+    // Initialize time input masks
+    initializeTimeMasks();
+}
 
-    // End time picker
-    endTimePicker = flatpickr('#entry-end', {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: 'H:i',
-        time_24hr: true,
-        locale: 'pt',
-        disableMobile: true
+// ==================== TIME INPUT MASK ====================
+
+function initializeTimeMasks() {
+    const timeInputs = document.querySelectorAll('#entry-start, #entry-end');
+
+    timeInputs.forEach(input => {
+        input.addEventListener('input', handleTimeInput);
+        input.addEventListener('blur', validateTimeInput);
+        input.addEventListener('keydown', handleTimeKeydown);
     });
+}
+
+function handleTimeInput(e) {
+    let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + ':' + value.substring(2, 4);
+    }
+
+    e.target.value = value.substring(0, 5);
+}
+
+function handleTimeKeydown(e) {
+    // Allow: backspace, delete, tab, escape, enter
+    if ([8, 9, 27, 13, 46].includes(e.keyCode)) {
+        return;
+    }
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+    if ((e.keyCode === 65 || e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 88) && e.ctrlKey) {
+        return;
+    }
+    // Allow: home, end, left, right
+    if (e.keyCode >= 35 && e.keyCode <= 39) {
+        return;
+    }
+    // Block if not a number
+    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+    }
+    // Block if already at max length
+    if (e.target.value.length >= 5 && ![8, 46].includes(e.keyCode)) {
+        e.preventDefault();
+    }
+}
+
+function validateTimeInput(e) {
+    const value = e.target.value;
+    if (!value) return;
+
+    const parts = value.split(':');
+    if (parts.length !== 2) {
+        e.target.value = '';
+        return;
+    }
+
+    let hours = parseInt(parts[0], 10);
+    let minutes = parseInt(parts[1], 10);
+
+    // Validate and fix hours
+    if (isNaN(hours) || hours < 0) hours = 0;
+    if (hours > 23) hours = 23;
+
+    // Validate and fix minutes
+    if (isNaN(minutes) || minutes < 0) minutes = 0;
+    if (minutes > 59) minutes = 59;
+
+    e.target.value = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
 }
 
 // ==================== TOAST SYSTEM ====================
@@ -269,13 +333,11 @@ async function restoreTracking() {
         if (data.active) {
             trackingStartTime = new Date(data.started_at);
 
-            // Set form fields using Flatpickr
+            // Set form fields
             if (datePicker) {
                 datePicker.setDate(data.date, true);
             }
-            if (startTimePicker) {
-                startTimePicker.setDate(data.start_time, true);
-            }
+            document.getElementById('entry-start').value = data.start_time;
 
             // Resume tracking UI
             startTrackingUI(trackingStartTime);
@@ -316,16 +378,12 @@ async function startTracking() {
         if (data.success) {
             trackingStartTime = new Date(data.started_at);
 
-            // Update form fields using Flatpickr
+            // Update form fields
             if (datePicker) {
                 datePicker.setDate(data.date, true);
             }
-            if (startTimePicker) {
-                startTimePicker.setDate(data.start_time, true);
-            }
-            if (endTimePicker) {
-                endTimePicker.clear();
-            }
+            document.getElementById('entry-start').value = data.start_time;
+            document.getElementById('entry-end').value = '';
 
             // Start UI tracking
             startTrackingUI(trackingStartTime);
@@ -386,10 +444,8 @@ async function stopTracking() {
             // Clear tracking start time
             trackingStartTime = null;
 
-            // Update form field with end time using Flatpickr
-            if (endTimePicker) {
-                endTimePicker.setDate(data.end_time, true);
-            }
+            // Update form field with end time
+            document.getElementById('entry-end').value = data.end_time;
 
             // Reset button UI
             const btn = document.getElementById('track-btn');
@@ -461,13 +517,9 @@ async function addEntry() {
             // Update stats
             updateStats(data.stats);
 
-            // Clear form using Flatpickr
-            if (startTimePicker) {
-                startTimePicker.clear();
-            }
-            if (endTimePicker) {
-                endTimePicker.clear();
-            }
+            // Clear form
+            document.getElementById('entry-start').value = '';
+            document.getElementById('entry-end').value = '';
             document.getElementById('entry-description').value = '';
 
             // Stop tracking if active (just reset UI, server already handled)

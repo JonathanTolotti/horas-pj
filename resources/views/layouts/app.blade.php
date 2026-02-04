@@ -71,29 +71,12 @@
             .flatpickr-months .flatpickr-next-month:hover svg {
                 fill: #06b6d4 !important;
             }
-            .flatpickr-time {
-                background: #1f2937 !important;
-                border-color: #374151 !important;
-            }
-            .flatpickr-time input,
-            .flatpickr-time .flatpickr-am-pm {
-                color: #fff !important;
-            }
-            .flatpickr-time input:hover,
-            .flatpickr-time .flatpickr-am-pm:hover {
-                background: #374151 !important;
-            }
-            .numInputWrapper:hover {
-                background: #374151 !important;
-            }
-            .numInputWrapper span {
-                border-color: #4b5563 !important;
-            }
-            .numInputWrapper span:hover {
-                background: #4b5563 !important;
-            }
             .flatpickr-day.flatpickr-disabled {
                 color: #4b5563 !important;
+            }
+            /* Date picker input styling */
+            .flatpickr-input {
+                cursor: pointer !important;
             }
             /* Privacy mode - blur sensitive values */
             html.privacy-mode .sensitive-value {

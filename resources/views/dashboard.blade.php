@@ -146,14 +146,14 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Inicio</label>
-                        <input type="time" id="entry-start" name="start_time"
-                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
+                        <input type="text" id="entry-start" name="start_time" placeholder="00:00" maxlength="5"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent font-mono"/>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Fim</label>
-                        <input type="time" id="entry-end" name="end_time"
-                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
+                        <input type="text" id="entry-end" name="end_time" placeholder="00:00" maxlength="5"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent font-mono"/>
                     </div>
 
                     <div>
