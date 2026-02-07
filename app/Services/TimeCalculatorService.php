@@ -101,48 +101,65 @@ class TimeCalculatorService
     {
         $hourlyRate = $this->getHourlyRate($userId);
         $extraValue = $this->getExtraValue($userId);
+        $totalHours = $this->getTotalHoursForMonth($userId, $monthReference);
+        $totalRevenue = ($totalHours * $hourlyRate) + $extraValue;
+
         $companies = Company::forUser($userId)->active()->with('projects')->get();
         $companyRevenues = [];
-        $totalHoursRevenue = 0;
+        $totalPercentage = 0;
 
-        // Primeira passada: calcular revenue de horas por empresa
+        // Calcular a soma total de porcentagens de cada empresa (média dos projetos vinculados)
         foreach ($companies as $company) {
-            $companyRevenue = 0;
+            // Pegar a maior porcentagem entre os projetos vinculados
+            // Se a empresa está vinculada a múltiplos projetos, usa a soma das porcentagens
+            $companyPercentage = 0;
 
-            foreach ($company->projects as $project) {
-                $projectHours = TimeEntry::forUser($userId)
-                    ->forMonth($monthReference)
-                    ->where('project_id', $project->id)
-                    ->sum('hours');
-
-                $projectRevenue = $projectHours * $hourlyRate;
-                $percentage = $project->pivot->percentage / 100;
-                $companyRevenue += $projectRevenue * $percentage;
+            if ($company->projects->count() > 0) {
+                // Soma as porcentagens de todos os projetos vinculados
+                foreach ($company->projects as $project) {
+                    $companyPercentage += $project->pivot->percentage;
+                }
+                // Divide pelo número de projetos para ter a média (porcentagem da empresa)
+                $companyPercentage = $companyPercentage / $company->projects->count();
             }
-
-            $totalHoursRevenue += $companyRevenue;
 
             $companyRevenues[$company->id] = [
                 'id' => $company->id,
                 'name' => $company->name,
                 'cnpj' => $company->cnpj,
-                'hours_revenue' => $companyRevenue,
-                'revenue' => $companyRevenue,
+                'percentage' => $companyPercentage,
+                'revenue' => 0,
             ];
+
+            $totalPercentage += $companyPercentage;
         }
 
-        // Segunda passada: distribuir valor extra proporcionalmente
-        if ($extraValue > 0 && $totalHoursRevenue > 0) {
+        // Distribuir o total baseado nas porcentagens
+        if ($totalPercentage > 0) {
+            $distributedTotal = 0;
+            $lastCompanyId = null;
+
             foreach ($companyRevenues as $companyId => $data) {
-                $proportion = $data['hours_revenue'] / $totalHoursRevenue;
-                $extraShare = $extraValue * $proportion;
-                $companyRevenues[$companyId]['revenue'] = round($data['hours_revenue'] + $extraShare, 2);
+                // Calcula a proporção desta empresa em relação ao total de porcentagens
+                $proportion = $data['percentage'] / $totalPercentage;
+                $companyRevenue = round($totalRevenue * $proportion, 2);
+                $companyRevenues[$companyId]['revenue'] = $companyRevenue;
+                $distributedTotal += $companyRevenue;
+                $lastCompanyId = $companyId;
+            }
+
+            // Ajustar a última empresa para compensar erros de arredondamento
+            if ($lastCompanyId !== null) {
+                $difference = round($totalRevenue - $distributedTotal, 2);
+                if (abs($difference) > 0 && abs($difference) <= 0.03) {
+                    $companyRevenues[$lastCompanyId]['revenue'] += $difference;
+                }
             }
         }
 
         // Limpar campo auxiliar
         foreach ($companyRevenues as $companyId => $data) {
-            unset($companyRevenues[$companyId]['hours_revenue']);
+            unset($companyRevenues[$companyId]['percentage']);
         }
 
         return $companyRevenues;
@@ -158,7 +175,14 @@ class TimeCalculatorService
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
         $assignedRevenue = array_sum(array_column($companyRevenues, 'revenue'));
 
-        return round($totalWithExtra - $assignedRevenue, 2);
+        $unassigned = round($totalWithExtra - $assignedRevenue, 2);
+
+        // Ignorar diferenças de arredondamento muito pequenas
+        if (abs($unassigned) <= 0.03) {
+            return 0;
+        }
+
+        return $unassigned;
     }
 
     public function getMonthlyStats(int $userId, string $monthReference): array
