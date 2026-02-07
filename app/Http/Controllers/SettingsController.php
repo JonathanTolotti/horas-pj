@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
@@ -13,11 +14,13 @@ class SettingsController extends Controller
     public function index(): View
     {
         $settings = Setting::forUser(auth()->id());
-        $projects = Project::forUser(auth()->id())->orderBy('name')->get();
+        $projects = Project::forUser(auth()->id())->with('companies')->orderBy('name')->get();
+        $companies = Company::forUser(auth()->id())->orderBy('name')->get();
 
         return view('settings', [
             'settings' => $settings,
             'projects' => $projects,
+            'companies' => $companies,
         ]);
     }
 
@@ -115,6 +118,177 @@ class SettingsController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Projeto excluido com sucesso!',
+        ]);
+    }
+
+    public function storeCompany(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'cnpj' => ['required', 'string', 'size:18', 'regex:/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/'],
+            'active' => 'boolean',
+        ]);
+
+        $validated['user_id'] = auth()->id();
+        $validated['active'] = $validated['active'] ?? true;
+
+        $company = Company::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Empresa criada com sucesso!',
+            'company' => $company,
+        ]);
+    }
+
+    public function updateCompany(Request $request, Company $company): JsonResponse
+    {
+        if ($company->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nao autorizado.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'cnpj' => ['required', 'string', 'size:18', 'regex:/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/'],
+            'active' => 'boolean',
+        ]);
+
+        $company->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Empresa atualizada com sucesso!',
+            'company' => $company,
+        ]);
+    }
+
+    public function destroyCompany(Company $company): JsonResponse
+    {
+        if ($company->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nao autorizado.',
+            ], 403);
+        }
+
+        // Verificar se há vínculos com projetos
+        if ($company->projects()->count() > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nao e possivel excluir uma empresa com vinculos a projetos. Remova os vinculos primeiro.',
+            ], 422);
+        }
+
+        $company->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Empresa excluida com sucesso!',
+        ]);
+    }
+
+    public function attachCompany(Request $request, Project $project): JsonResponse
+    {
+        if ($project->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nao autorizado.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
+            'percentage' => 'required|numeric|min:0.01|max:100',
+        ]);
+
+        // Verificar se a empresa pertence ao usuário
+        $company = Company::find($validated['company_id']);
+        if ($company->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Empresa nao encontrada.',
+            ], 404);
+        }
+
+        // Verificar se a soma das porcentagens não ultrapassa 100%
+        $currentTotal = $project->companies()->sum('percentage');
+        if ($currentTotal + $validated['percentage'] > 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A soma das porcentagens nao pode ultrapassar 100%. Disponivel: ' . (100 - $currentTotal) . '%',
+            ], 422);
+        }
+
+        // Verificar se já existe vínculo
+        if ($project->companies()->where('company_id', $validated['company_id'])->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta empresa ja esta vinculada ao projeto.',
+            ], 422);
+        }
+
+        $project->companies()->attach($validated['company_id'], [
+            'percentage' => $validated['percentage'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Empresa vinculada com sucesso!',
+        ]);
+    }
+
+    public function updateCompanyPercentage(Request $request, Project $project, Company $company): JsonResponse
+    {
+        if ($project->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nao autorizado.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'percentage' => 'required|numeric|min:0.01|max:100',
+        ]);
+
+        // Verificar se a soma das porcentagens não ultrapassa 100%
+        $currentTotal = $project->companies()
+            ->where('company_id', '!=', $company->id)
+            ->sum('percentage');
+
+        if ($currentTotal + $validated['percentage'] > 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A soma das porcentagens nao pode ultrapassar 100%. Disponivel: ' . (100 - $currentTotal) . '%',
+            ], 422);
+        }
+
+        $project->companies()->updateExistingPivot($company->id, [
+            'percentage' => $validated['percentage'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Porcentagem atualizada com sucesso!',
+        ]);
+    }
+
+    public function detachCompany(Project $project, Company $company): JsonResponse
+    {
+        if ($project->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nao autorizado.',
+            ], 403);
+        }
+
+        $project->companies()->detach($company->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Vinculo removido com sucesso!',
         ]);
     }
 }

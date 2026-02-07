@@ -19,7 +19,7 @@
                 <button onclick="closeConfirmModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                     Cancelar
                 </button>
-                <button id="confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                <button id="confirm-btn" onclick="executeConfirm()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
                     Confirmar
                 </button>
             </div>
@@ -316,34 +316,69 @@
             @endif
         </div>
 
-        <!-- Divisao por CNPJ -->
+        <!-- Divisao por Empresa -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                 <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
-                Divisao por CNPJ (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>)
+                Faturamento por Empresa (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>)
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                @php $colors = ['blue', 'emerald', 'purple']; @endphp
-                @foreach($stats['cnpjs'] as $index => $cnpj)
-                    @php $color = $colors[$index - 1] ?? 'blue'; @endphp
-                    <div class="bg-gradient-to-br from-{{ $color }}-500/10 to-{{ $color }}-600/5 border border-{{ $color }}-500/30 rounded-lg p-5 hover:border-{{ $color }}-500/50 transition-all">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="bg-{{ $color }}-500/20 p-2 rounded-lg">
-                                <svg class="w-5 h-5 text-{{ $color }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
+            @if(count($stats['company_revenues']) > 0 || $stats['unassigned_revenue'] > 0)
+                @php
+                    $colors = ['blue', 'emerald', 'purple', 'cyan', 'amber', 'rose'];
+                    $colorIndex = 0;
+                    $totalRevenue = $stats['total_with_extra'];
+                @endphp
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($stats['company_revenues'] as $company)
+                        @php
+                            $color = $colors[$colorIndex % count($colors)];
+                            $percentage = $totalRevenue > 0 ? ($company['revenue'] / $totalRevenue) * 100 : 0;
+                            $colorIndex++;
+                        @endphp
+                        <div class="bg-gradient-to-br from-{{ $color }}-500/10 to-{{ $color }}-600/5 border border-{{ $color }}-500/30 rounded-lg p-5 hover:border-{{ $color }}-500/50 transition-all" data-company-id="{{ $company['id'] }}">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="bg-{{ $color }}-500/20 p-2 rounded-lg">
+                                    <svg class="w-5 h-5 text-{{ $color }}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs bg-{{ $color }}-500/20 text-{{ $color }}-300 px-2 py-1 rounded-full font-medium">{{ number_format($percentage, 1) }}%</span>
                             </div>
-                            <span class="text-xs bg-{{ $color }}-500/20 text-{{ $color }}-300 px-2 py-1 rounded-full font-medium">33,33%</span>
+                            <h3 class="text-white font-semibold mb-1">{{ $company['name'] }}</h3>
+                            <p class="text-gray-400 text-sm mb-3 font-mono">{{ $company['cnpj'] }}</p>
+                            <p class="text-2xl font-bold text-{{ $color }}-400 sensitive-value company-revenue">R$ {{ number_format($company['revenue'], 2, ',', '.') }}</p>
                         </div>
-                        <h3 class="text-white font-semibold mb-1">{{ $cnpj['name'] }}</h3>
-                        <p class="text-gray-400 text-sm mb-3 font-mono">{{ $cnpj['number'] }}</p>
-                        <p class="text-2xl font-bold text-{{ $color }}-400 cnpj-value sensitive-value">R$ {{ number_format($stats['revenue_per_cnpj'], 2, ',', '.') }}</p>
-                    </div>
-                @endforeach
-            </div>
+                    @endforeach
+
+                    @if($stats['unassigned_revenue'] > 0)
+                        @php $unassignedPercentage = $totalRevenue > 0 ? ($stats['unassigned_revenue'] / $totalRevenue) * 100 : 0; @endphp
+                        <div class="bg-gradient-to-br from-gray-500/10 to-gray-600/5 border border-gray-500/30 rounded-lg p-5 hover:border-gray-500/50 transition-all">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="bg-gray-500/20 p-2 rounded-lg">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs bg-gray-500/20 text-gray-300 px-2 py-1 rounded-full font-medium">{{ number_format($unassignedPercentage, 1) }}%</span>
+                            </div>
+                            <h3 class="text-white font-semibold mb-1">Nao Atribuido</h3>
+                            <p class="text-gray-400 text-sm mb-3">Projetos sem empresa ou com porcentagem &lt; 100%</p>
+                            <p class="text-2xl font-bold text-gray-400 sensitive-value unassigned-revenue">R$ {{ number_format($stats['unassigned_revenue'], 2, ',', '.') }}</p>
+                        </div>
+                    @endif
+                </div>
+            @else
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <p class="mb-2">Nenhuma empresa cadastrada.</p>
+                    <p class="text-sm">Acesse <a href="{{ route('settings') }}" class="text-cyan-400 hover:text-cyan-300">Configuracoes</a> para cadastrar empresas e vincular aos projetos.</p>
+                </div>
+            @endif
         </div>
     </div>
 

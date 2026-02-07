@@ -51,4 +51,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(TimeEntry::class);
     }
+
+    public function companies(): HasMany
+    {
+        return $this->hasMany(Company::class);
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

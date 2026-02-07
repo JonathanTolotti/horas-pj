@@ -25,6 +25,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projects/{project}', [SettingsController::class, 'updateProject'])->name('projects.update');
     Route::delete('/projects/{project}', [SettingsController::class, 'destroyProject'])->name('projects.destroy');
 
+    // Companies
+    Route::post('/companies', [SettingsController::class, 'storeCompany'])->name('companies.store');
+    Route::put('/companies/{company}', [SettingsController::class, 'updateCompany'])->name('companies.update');
+    Route::delete('/companies/{company}', [SettingsController::class, 'destroyCompany'])->name('companies.destroy');
+
+    // Company-Project relationship
+    Route::post('/projects/{project}/companies', [SettingsController::class, 'attachCompany'])->name('projects.companies.attach');
+    Route::put('/projects/{project}/companies/{company}', [SettingsController::class, 'updateCompanyPercentage'])->name('projects.companies.update');
+    Route::delete('/projects/{project}/companies/{company}', [SettingsController::class, 'detachCompany'])->name('projects.companies.detach');
+
     // Tracking
     Route::get('/tracking/status', [TrackingController::class, 'status'])->name('tracking.status');
     Route::post('/tracking/start', [TrackingController::class, 'start'])->name('tracking.start');

@@ -246,7 +246,6 @@ function showConfirm(message, callback, title = 'Confirmar') {
     const modal = document.getElementById('confirm-modal');
     const titleEl = document.getElementById('confirm-title');
     const messageEl = document.getElementById('confirm-message');
-    const confirmBtn = document.getElementById('confirm-btn');
 
     if (!modal) return;
 
@@ -254,16 +253,17 @@ function showConfirm(message, callback, title = 'Confirmar') {
     messageEl.textContent = message;
     confirmCallback = callback;
 
-    // Set up confirm button
-    confirmBtn.onclick = function() {
-        closeConfirmModal();
-        if (confirmCallback) {
-            confirmCallback();
-        }
-    };
-
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+}
+
+function executeConfirm() {
+    // Salvar callback antes de fechar o modal (closeConfirmModal zera o callback)
+    const callback = confirmCallback;
+    closeConfirmModal();
+    if (callback) {
+        callback();
+    }
 }
 
 function closeConfirmModal() {
@@ -707,11 +707,21 @@ function updateStats(stats) {
     document.getElementById('total-revenue').textContent = formatCurrency(stats.total_revenue);
     document.getElementById('total-with-extra').textContent = formatCurrency(stats.total_with_extra);
 
-    // Update CNPJ values
-    const cnpjValues = document.querySelectorAll('.cnpj-value');
-    cnpjValues.forEach(el => {
-        el.textContent = formatCurrency(stats.revenue_per_cnpj);
-    });
+    // Update company revenues (dynamic cards)
+    if (stats.company_revenues) {
+        Object.values(stats.company_revenues).forEach(company => {
+            const el = document.querySelector(`[data-company-id="${company.id}"] .company-revenue`);
+            if (el) {
+                el.textContent = formatCurrency(company.revenue);
+            }
+        });
+    }
+
+    // Update unassigned revenue
+    const unassignedEl = document.querySelector('.unassigned-revenue');
+    if (unassignedEl && stats.unassigned_revenue !== undefined) {
+        unassignedEl.textContent = formatCurrency(stats.unassigned_revenue);
+    }
 }
 
 // ==================== NAVIGATION ====================
