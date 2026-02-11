@@ -28,18 +28,24 @@ class TimeEntryController extends Controller
             $request->session()->put('month_reference', $monthReference);
         }
 
-        $entries = TimeEntry::forUser(auth()->id())
+        // Query base para o mês
+        $baseQuery = TimeEntry::forUser(auth()->id())
             ->forMonth($monthReference)
             ->with('project')
             ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'desc')
-            ->paginate(10);
+            ->orderBy('start_time', 'desc');
+
+        // Paginado para visualização por batidas
+        $entries = (clone $baseQuery)->paginate(10);
+
+        // Todos os registros para visualização por dia (sem paginação)
+        $allEntries = (clone $baseQuery)->get();
 
         $stats = $this->calculator->getMonthlyStats(auth()->id(), $monthReference);
         $projects = Project::forUser(auth()->id())->active()->orderBy('name')->get();
         $defaultProject = Project::getDefault(auth()->id());
 
-        $entriesByDay = $this->groupEntriesByDay($entries, $stats['hourly_rate']);
+        $entriesByDay = $this->groupEntriesByDay($allEntries, $stats['hourly_rate']);
 
         return view('dashboard', [
             'entries' => $entries,
@@ -153,7 +159,7 @@ class TimeEntryController extends Controller
             $date = $current->copy()->subMonths($i);
             $months[] = [
                 'value' => $date->format('Y-m'),
-                'label' => ucfirst($date->translatedFormat('F Y')),
+                'label' => ucfirst($date->isoFormat('MMMM Y')),
             ];
         }
 

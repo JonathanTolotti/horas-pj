@@ -334,7 +334,7 @@
                             @forelse($entriesByDay as $dateKey => $dayData)
                                 <tr class="hover:bg-gray-800/50 transition-colors group">
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-medium">{{ $dayData['date']->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">{{ ucfirst($dayData['date']->translatedFormat('l')) }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">{{ ucfirst($dayData['date']->isoFormat('dddd')) }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm">
                                         <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs font-medium">{{ $dayData['entries_count'] }} {{ $dayData['entries_count'] == 1 ? 'batida' : 'batidas' }}</span>
                                     </td>
@@ -388,7 +388,7 @@
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <span class="text-white font-medium">{{ $dayData['date']->format('d/m/Y') }}</span>
-                                    <span class="text-gray-500 text-sm ml-2">{{ ucfirst($dayData['date']->translatedFormat('l')) }}</span>
+                                    <span class="text-gray-500 text-sm ml-2">{{ ucfirst($dayData['date']->isoFormat('dddd')) }}</span>
                                 </div>
                                 <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">{{ $dayData['entries_count'] }} {{ $dayData['entries_count'] == 1 ? 'batida' : 'batidas' }}</span>
                             </div>
