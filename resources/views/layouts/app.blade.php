@@ -25,6 +25,10 @@
             if (localStorage.getItem('privacy_mode') === 'true') {
                 document.documentElement.classList.add('privacy-mode');
             }
+            // Apply view mode immediately to prevent flash
+            if (localStorage.getItem('view_mode') === 'daily') {
+                document.documentElement.classList.add('view-mode-daily');
+            }
         </script>
         <style>
             body {
@@ -86,6 +90,22 @@
             }
             html.privacy-mode .sensitive-value:hover {
                 filter: blur(4px);
+            }
+            /* View mode - prevent flash on page load */
+            html.view-mode-daily #view-entries {
+                display: none !important;
+            }
+            html.view-mode-daily #view-daily {
+                display: block !important;
+            }
+            /* View mode buttons - sync with view state */
+            html.view-mode-daily #view-entries-btn {
+                background-color: transparent !important;
+                color: #9ca3af !important;
+            }
+            html.view-mode-daily #view-daily-btn {
+                background-color: #0891b2 !important;
+                color: white !important;
             }
         </style>
     </head>

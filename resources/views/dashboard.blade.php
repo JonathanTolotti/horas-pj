@@ -200,95 +200,230 @@
         <!-- Tabela de Lancamentos -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
             <div class="p-4 sm:p-6 border-b border-gray-800">
-                <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Últimos lançamentos
-                </h2>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span id="entries-title">Últimos lançamentos</span>
+                    </h2>
+                    <!-- Toggle Visualizacao -->
+                    <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
+                        <button onclick="setViewMode('entries')" id="view-entries-btn"
+                            class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 bg-cyan-600 text-white"
+                            title="Visualizar por batidas">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                            </svg>
+                            <span class="hidden sm:inline">Batidas</span>
+                        </button>
+                        <button onclick="setViewMode('daily')" id="view-daily-btn"
+                            class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 text-gray-400 hover:text-white"
+                            title="Visualizar por dia">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Por Dia</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Desktop Table -->
-            <div class="hidden md:block overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-800/50">
-                        <tr>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horario</th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horas</th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Projeto</th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descricao</th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor</th>
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acoes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="entries-table" class="divide-y divide-gray-800">
-                        @forelse($entries as $entry)
-                            <tr class="hover:bg-gray-800/50 transition-colors" data-entry-id="{{ $entry->id }}">
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $entry->date->format('d/m/Y') }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                    <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
-                                </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                    @if($entry->project)
-                                        <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">{{ $entry->project->name }}</span>
-                                    @else
-                                        <span class="text-gray-500">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">{{ $entry->description }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                    <button onclick="removeEntry({{ $entry->id }})"
-                                        class="text-red-400 hover:text-red-300 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                    </button>
-                                </td>
+            <!-- ========== VISUALIZAÇÃO POR BATIDAS ========== -->
+            <div id="view-entries" class="view-container">
+                <!-- Desktop Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-800/50">
+                            <tr>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horario</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horas</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Projeto</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descricao</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acoes</th>
                             </tr>
-                        @empty
-                            <tr id="empty-row">
-                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                                    Nenhum lancamento encontrado para este mes.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody id="entries-table" class="divide-y divide-gray-800">
+                            @forelse($entries as $entry)
+                                <tr class="hover:bg-gray-800/50 transition-colors" data-entry-id="{{ $entry->id }}">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $entry->date->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-mono">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                        <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                        @if($entry->project)
+                                            <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">{{ $entry->project->name }}</span>
+                                        @else
+                                            <span class="text-gray-500">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">{{ $entry->description }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                        <button onclick="removeEntry({{ $entry->id }})"
+                                            class="text-red-400 hover:text-red-300 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr id="empty-row">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                        Nenhum lancamento encontrado para este mes.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Mobile Cards -->
-            <div class="md:hidden divide-y divide-gray-800" id="entries-cards">
-                @forelse($entries as $entry)
-                    <div class="p-4 hover:bg-gray-800/50 transition-colors" data-entry-id="{{ $entry->id }}">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-white font-medium">{{ $entry->date->format('d/m/Y') }}</span>
-                                <span class="text-gray-400 font-mono text-sm">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</span>
+                <!-- Mobile Cards -->
+                <div class="md:hidden divide-y divide-gray-800" id="entries-cards">
+                    @forelse($entries as $entry)
+                        <div class="p-4 hover:bg-gray-800/50 transition-colors" data-entry-id="{{ $entry->id }}">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white font-medium">{{ $entry->date->format('d/m/Y') }}</span>
+                                    <span class="text-gray-400 font-mono text-sm">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</span>
+                                </div>
+                                <button onclick="removeEntry({{ $entry->id }})"
+                                    class="text-red-400 hover:text-red-300 transition-colors p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
                             </div>
-                            <button onclick="removeEntry({{ $entry->id }})"
-                                class="text-red-400 hover:text-red-300 transition-colors p-1">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            @if($entry->project)
+                                <span class="inline-block bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs mb-2">{{ $entry->project->name }}</span>
+                            @endif
+                            <p class="text-gray-300 text-sm mb-3">{{ $entry->description }}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
+                                <span class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    @empty
+                        <div id="empty-card" class="p-8 text-center text-gray-500">
+                            Nenhum lancamento encontrado para este mes.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- ========== VISUALIZAÇÃO POR DIA ========== -->
+            <div id="view-daily" class="view-container hidden">
+                <!-- Desktop Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-800/50">
+                            <tr>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Dia</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Batidas</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Horas</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-table" class="divide-y divide-gray-800">
+                            @forelse($entriesByDay as $dateKey => $dayData)
+                                <tr class="hover:bg-gray-800/50 transition-colors group">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-medium">{{ $dayData['date']->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">{{ ucfirst($dayData['date']->translatedFormat('l')) }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                        <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs font-medium">{{ $dayData['entries_count'] }} {{ $dayData['entries_count'] == 1 ? 'batida' : 'batidas' }}</span>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                        <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full font-medium">{{ sprintf('%02d:%02d', floor($dayData['total_hours']), round(($dayData['total_hours'] - floor($dayData['total_hours'])) * 60)) }}</span>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">R$ {{ number_format($dayData['total_value'], 2, ',', '.') }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                        <button onclick="toggleDayDetails('{{ $dateKey }}')" class="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
+                                            <svg class="w-4 h-4 transform transition-transform" id="chevron-{{ $dateKey }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                            <span class="text-xs">Ver horarios</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr id="details-{{ $dateKey }}" class="hidden bg-gray-800/30">
+                                    <td colspan="6" class="px-4 py-3">
+                                        <div class="pl-4 border-l-2 border-cyan-500/30 space-y-2">
+                                            @foreach($dayData['entries'] as $entry)
+                                                <div class="flex items-center justify-between text-sm py-1">
+                                                    <div class="flex items-center gap-4">
+                                                        <span class="text-gray-400 font-mono">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</span>
+                                                        <span class="bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded text-xs">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
+                                                        @if($entry->project)
+                                                            <span class="bg-purple-500/10 text-purple-300 px-2 py-0.5 rounded text-xs">{{ $entry->project->name }}</span>
+                                                        @endif
+                                                        <span class="text-gray-500 truncate max-w-xs">{{ $entry->description }}</span>
+                                                    </div>
+                                                    <span class="text-emerald-400 font-medium sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr id="empty-daily-row">
+                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                        Nenhum lancamento encontrado para este mes.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="md:hidden divide-y divide-gray-800" id="daily-cards">
+                    @forelse($entriesByDay as $dateKey => $dayData)
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <span class="text-white font-medium">{{ $dayData['date']->format('d/m/Y') }}</span>
+                                    <span class="text-gray-500 text-sm ml-2">{{ ucfirst($dayData['date']->translatedFormat('l')) }}</span>
+                                </div>
+                                <span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">{{ $dayData['entries_count'] }} {{ $dayData['entries_count'] == 1 ? 'batida' : 'batidas' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ sprintf('%02d:%02d', floor($dayData['total_hours']), round(($dayData['total_hours'] - floor($dayData['total_hours'])) * 60)) }}</span>
+                                <span class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($dayData['total_value'], 2, ',', '.') }}</span>
+                            </div>
+                            <button onclick="toggleDayDetails('{{ $dateKey }}-mobile')" class="w-full text-center text-cyan-400 hover:text-cyan-300 transition-colors text-sm py-2 border-t border-gray-700 flex items-center justify-center gap-1">
+                                <svg class="w-4 h-4 transform transition-transform" id="chevron-{{ $dateKey }}-mobile" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
+                                Ver horarios
                             </button>
+                            <div id="details-{{ $dateKey }}-mobile" class="hidden mt-3 space-y-2 border-t border-gray-700 pt-3">
+                                @foreach($dayData['entries'] as $entry)
+                                    <div class="bg-gray-800/50 rounded-lg p-3">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-gray-300 font-mono text-sm">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</span>
+                                            <span class="bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded text-xs">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
+                                        </div>
+                                        @if($entry->project)
+                                            <span class="inline-block bg-purple-500/10 text-purple-300 px-2 py-0.5 rounded text-xs mb-1">{{ $entry->project->name }}</span>
+                                        @endif
+                                        <p class="text-gray-500 text-xs">{{ $entry->description }}</p>
+                                        <p class="text-emerald-400 text-sm font-medium mt-1 sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
-                        @if($entry->project)
-                            <span class="inline-block bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs mb-2">{{ $entry->project->name }}</span>
-                        @endif
-                        <p class="text-gray-300 text-sm mb-3">{{ $entry->description }}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</span>
-                            <span class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</span>
+                    @empty
+                        <div class="p-8 text-center text-gray-500">
+                            Nenhum lancamento encontrado para este mes.
                         </div>
-                    </div>
-                @empty
-                    <div id="empty-card" class="p-8 text-center text-gray-500">
-                        Nenhum lancamento encontrado para este mes.
-                    </div>
-                @endforelse
+                    @endforelse
+                </div>
             </div>
 
             <!-- Paginacao -->

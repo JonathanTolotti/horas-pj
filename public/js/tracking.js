@@ -3,6 +3,9 @@ let trackingInterval = null;
 let confirmCallback = null;
 let trackingStartTime = null;
 
+// View mode state
+let currentViewMode = 'entries';
+
 // Flatpickr instances
 let datePicker = null;
 
@@ -20,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializePage();
     restoreTracking();
     restorePrivacy();
+    restoreViewMode();
     updateClock();
     setInterval(updateClock, 1000);
 });
@@ -773,5 +777,80 @@ function applyPrivacyMode(hidden) {
         if (eyeClosed) eyeClosed.classList.add('hidden');
         if (eyeOpenMobile) eyeOpenMobile.classList.remove('hidden');
         if (eyeClosedMobile) eyeClosedMobile.classList.add('hidden');
+    }
+}
+
+// ==================== VIEW MODE (BATIDAS / POR DIA) ====================
+
+function restoreViewMode() {
+    const savedMode = localStorage.getItem('view_mode') || 'entries';
+    setViewMode(savedMode, false);
+}
+
+function setViewMode(mode, save = true) {
+    currentViewMode = mode;
+
+    // Save preference
+    if (save) {
+        localStorage.setItem('view_mode', mode);
+    }
+
+    // Update html class for CSS-based visibility (prevents flash)
+    if (mode === 'daily') {
+        document.documentElement.classList.add('view-mode-daily');
+    } else {
+        document.documentElement.classList.remove('view-mode-daily');
+    }
+
+    // Get view containers
+    const viewEntries = document.getElementById('view-entries');
+    const viewDaily = document.getElementById('view-daily');
+    const btnEntries = document.getElementById('view-entries-btn');
+    const btnDaily = document.getElementById('view-daily-btn');
+    const title = document.getElementById('entries-title');
+
+    if (!viewEntries || !viewDaily) return;
+
+    // Toggle visibility
+    if (mode === 'entries') {
+        viewEntries.classList.remove('hidden');
+        viewDaily.classList.add('hidden');
+        if (title) title.textContent = 'Últimos lançamentos';
+    } else {
+        viewEntries.classList.add('hidden');
+        viewDaily.classList.remove('hidden');
+        if (title) title.textContent = 'Lançamentos por dia';
+    }
+
+    // Update button styles
+    if (btnEntries && btnDaily) {
+        if (mode === 'entries') {
+            btnEntries.classList.add('bg-cyan-600', 'text-white');
+            btnEntries.classList.remove('text-gray-400', 'hover:text-white');
+            btnDaily.classList.remove('bg-cyan-600', 'text-white');
+            btnDaily.classList.add('text-gray-400', 'hover:text-white');
+        } else {
+            btnDaily.classList.add('bg-cyan-600', 'text-white');
+            btnDaily.classList.remove('text-gray-400', 'hover:text-white');
+            btnEntries.classList.remove('bg-cyan-600', 'text-white');
+            btnEntries.classList.add('text-gray-400', 'hover:text-white');
+        }
+    }
+}
+
+function toggleDayDetails(dateKey) {
+    const detailsRow = document.getElementById(`details-${dateKey}`);
+    const chevron = document.getElementById(`chevron-${dateKey}`);
+
+    if (!detailsRow) return;
+
+    const isHidden = detailsRow.classList.contains('hidden');
+
+    if (isHidden) {
+        detailsRow.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+    } else {
+        detailsRow.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
     }
 }

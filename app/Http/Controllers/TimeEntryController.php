@@ -39,8 +39,11 @@ class TimeEntryController extends Controller
         $projects = Project::forUser(auth()->id())->active()->orderBy('name')->get();
         $defaultProject = Project::getDefault(auth()->id());
 
+        $entriesByDay = $this->groupEntriesByDay($entries, $stats['hourly_rate']);
+
         return view('dashboard', [
             'entries' => $entries,
+            'entriesByDay' => $entriesByDay,
             'stats' => $stats,
             'currentMonth' => $monthReference,
             'months' => $this->getAvailableMonths(),
@@ -155,5 +158,22 @@ class TimeEntryController extends Controller
         }
 
         return $months;
+    }
+
+    protected function groupEntriesByDay($entries, float $hourlyRate): array
+    {
+        return $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
+            ->map(function ($dayEntries) use ($hourlyRate) {
+                $totalHours = $dayEntries->sum('hours');
+
+                return [
+                    'date' => $dayEntries->first()->date,
+                    'entries' => $dayEntries,
+                    'total_hours' => $totalHours,
+                    'total_value' => $totalHours * $hourlyRate,
+                    'entries_count' => $dayEntries->count(),
+                ];
+            })
+            ->toArray();
     }
 }
