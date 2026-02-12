@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'abacatepay' => [
+        'api_key' => env('ABACATEPAY_API_KEY'),
+        'webhook_token' => env('ABACATEPAY_WEBHOOK_TOKEN'),
+    ],
+
 ];
