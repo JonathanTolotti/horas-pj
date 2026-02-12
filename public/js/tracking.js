@@ -783,11 +783,25 @@ function applyPrivacyMode(hidden) {
 // ==================== VIEW MODE (BATIDAS / POR DIA) ====================
 
 function restoreViewMode() {
-    const savedMode = localStorage.getItem('view_mode') || 'entries';
+    let savedMode = localStorage.getItem('view_mode') || 'entries';
+
+    // If user doesn't have premium, force entries mode
+    if (savedMode === 'daily' && typeof CAN_VIEW_BY_DAY !== 'undefined' && !CAN_VIEW_BY_DAY) {
+        savedMode = 'entries';
+        localStorage.setItem('view_mode', 'entries');
+    }
+
     setViewMode(savedMode, false);
 }
 
 function setViewMode(mode, save = true) {
+    // Check if user can view by day (premium feature)
+    if (mode === 'daily' && typeof CAN_VIEW_BY_DAY !== 'undefined' && !CAN_VIEW_BY_DAY) {
+        // Dispatch event to open premium modal
+        window.dispatchEvent(new CustomEvent('open-premium-modal'));
+        return;
+    }
+
     currentViewMode = mode;
 
     // Save preference

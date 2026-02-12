@@ -224,6 +224,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                             <span class="hidden sm:inline">Por Dia</span>
+                            @if(!$canViewByDay)
+                                <svg class="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            @endif
                         </button>
                     </div>
                 </div>
@@ -523,7 +528,12 @@
         const EXTRA_VALUE = {{ $stats['extra_value'] }};
         const CSRF_TOKEN = '{{ csrf_token() }}';
         const CURRENT_MONTH = '{{ $currentMonth }}';
+        const CAN_VIEW_BY_DAY = {{ $canViewByDay ? 'true' : 'false' }};
+        const IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
     </script>
-        <script src="{{ asset('js/tracking.js') }}?v={{ filemtime(public_path('js/tracking.js')) }}"></script>
+    <script src="{{ asset('js/tracking.js') }}?v={{ filemtime(public_path('js/tracking.js')) }}"></script>
     @endpush
+
+    <!-- Premium Modal -->
+    <x-premium-modal feature="visualizacao por dia" />
 </x-app-layout>

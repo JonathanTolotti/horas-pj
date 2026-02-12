@@ -45,7 +45,9 @@ class TimeEntryController extends Controller
         $projects = Project::forUser(auth()->id())->active()->orderBy('name')->get();
         $defaultProject = Project::getDefault(auth()->id());
 
-        $entriesByDay = $this->groupEntriesByDay($allEntries, $stats['hourly_rate']);
+        $user = auth()->user();
+        $canViewByDay = $user->canUseFeature('view_by_day');
+        $entriesByDay = $canViewByDay ? $this->groupEntriesByDay($allEntries, $stats['hourly_rate']) : [];
 
         return view('dashboard', [
             'entries' => $entries,
@@ -55,6 +57,8 @@ class TimeEntryController extends Controller
             'months' => $this->getAvailableMonths(),
             'projects' => $projects,
             'defaultProjectId' => $defaultProject?->id,
+            'canViewByDay' => $canViewByDay,
+            'isPremium' => $user->isPremium(),
         ]);
     }
 
@@ -155,7 +159,10 @@ class TimeEntryController extends Controller
         $months = [];
         $current = Carbon::now();
 
-        for ($i = 0; $i < 6; $i++) {
+        // Limite de histórico baseado no plano
+        $limit = auth()->user()->getLimit('history_months') ?? 12;
+
+        for ($i = 0; $i < $limit; $i++) {
             $date = $current->copy()->subMonths($i);
             $months[] = [
                 'value' => $date->format('Y-m'),

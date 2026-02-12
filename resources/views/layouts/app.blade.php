@@ -31,6 +31,11 @@
             }
         </script>
         <style>
+            /* Hide elements with x-cloak until Alpine.js initializes */
+            [x-cloak] {
+                display: none !important;
+            }
+
             body {
                 font-family: 'Inter', sans-serif;
             }
