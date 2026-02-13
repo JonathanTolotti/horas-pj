@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Bash(composer remove:*)",
+      "Bash(composer require:*)",
+      "Bash(findstr:*)"
     ]
   }
 }

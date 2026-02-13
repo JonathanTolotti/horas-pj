@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
@@ -40,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tracking/status', [TrackingController::class, 'status'])->name('tracking.status');
     Route::post('/tracking/start', [TrackingController::class, 'start'])->name('tracking.start');
     Route::post('/tracking/stop', [TrackingController::class, 'stop'])->name('tracking.stop');
+
+    // Reports
+    Route::get('/reports', [ExportController::class, 'index'])->name('reports.index');
 });
 
 Route::middleware('auth')->group(function () {
@@ -60,5 +64,16 @@ Route::middleware(['auth', 'verified'])->prefix('subscription')->group(function 
 // Webhook (sem auth, mas com token secreto na URL)
 Route::post('/webhook/abacatepay/{token}', [SubscriptionController::class, 'webhook'])
     ->name('webhook.abacatepay');
+
+// Rotas de exportação (Premium)
+Route::middleware(['auth', 'verified', 'premium:export_pdf'])->prefix('export')->group(function () {
+    Route::get('/pdf', [ExportController::class, 'pdf'])->name('export.pdf');
+    Route::get('/nf', [ExportController::class, 'nf'])->name('export.nf');
+    Route::get('/annual', [ExportController::class, 'annualReport'])->name('export.annual');
+});
+
+Route::middleware(['auth', 'verified', 'premium:export_excel'])->group(function () {
+    Route::get('/export/excel', [ExportController::class, 'excel'])->name('export.excel');
+});
 
 require __DIR__.'/auth.php';

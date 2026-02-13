@@ -16,6 +16,20 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Phone -->
+        <div class="mt-4">
+            <x-input-label for="phone" value="Telefone" />
+            <x-text-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" required autocomplete="tel" placeholder="(11) 99999-9999" />
+            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+        </div>
+
+        <!-- Tax ID (CPF/CNPJ) -->
+        <div class="mt-4">
+            <x-input-label for="tax_id" value="CPF ou CNPJ" />
+            <x-text-input id="tax_id" class="block mt-1 w-full" type="text" name="tax_id" :value="old('tax_id')" required placeholder="000.000.000-00" />
+            <x-input-error :messages="$errors->get('tax_id')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" value="Senha" />
@@ -49,4 +63,35 @@
             </x-primary-button>
         </div>
     </form>
+    @push('scripts')
+    <script>
+        // Máscara de telefone
+        document.getElementById('phone')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+
+        // Máscara de CPF/CNPJ
+        document.getElementById('tax_id')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                // CPF: 000.000.000-00
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // CNPJ: 00.000.000/0000-00
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    </script>
+    @endpush
 </x-guest-layout>

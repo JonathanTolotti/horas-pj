@@ -46,23 +46,41 @@ class SubscriptionController extends Controller
         $response = $this->abacatePay->createPixPayment(
             $price['price'],
             "Premium {$price['label']} - Controle de Horas PJ",
-            ['payment_id' => $payment->id]
+            [
+                'payment_id' => $payment->id,
+                'user' => $user,
+            ]
         );
 
         // Verificar se a resposta foi bem sucedida
-        if (!isset($response['data']['id'])) {
+        if (!isset($response['data']['id']) || !isset($response['data']['brCode'])) {
             $payment->delete();
-            return back()->with('error', 'Erro ao criar pagamento. Tente novamente.');
+            $errorMsg = $response['error'] ?? 'Erro ao criar pagamento. Tente novamente.';
+            return back()->with('error', $errorMsg);
         }
 
-        // Atualizar com ID do AbacatePay
+        // Atualizar com ID do AbacatePay e data de expiração da API
+        $expiresAt = isset($response['data']['expiresAt'])
+            ? \Carbon\Carbon::parse($response['data']['expiresAt'])
+            : now()->addMinutes(5);
+
         $payment->update([
             'abacatepay_id' => $response['data']['id'],
+            'expires_at' => $expiresAt,
         ]);
+
+        // Refresh para pegar o expires_at atualizado
+        $payment->refresh();
 
         return view('subscription.checkout', [
             'payment' => $payment,
-            'pixData' => $response['data'],
+            'pixData' => [
+                'id' => $response['data']['id'],
+                'brCode' => $response['data']['brCode'],
+                'brCodeBase64' => $response['data']['brCodeBase64'],
+                'amount' => $response['data']['amount'],
+                'expiresAt' => $expiresAt->toISOString(),
+            ],
             'price' => $price,
             'months' => $months,
         ]);
@@ -93,26 +111,33 @@ class SubscriptionController extends Controller
 
         $payload = $request->all();
 
-        // Verificar se é evento de pagamento
-        if (($payload['event'] ?? '') !== 'billing.paid') {
+        // Log de auditoria - Webhook recebido (antes de processar)
+        $this->abacatePay->logWebhook($payload, $request->ip());
+
+        // Verificar se é evento de pagamento PIX
+        $event = $payload['event'] ?? '';
+        if (!in_array($event, ['pixQrCode.paid', 'billing.paid'])) {
             return response()->json(['ok' => true]);
         }
 
-        $billingId = $payload['data']['id'] ?? null;
+        $pixId = $payload['data']['id'] ?? null;
 
-        if (!$billingId) {
+        if (!$pixId) {
             return response()->json(['error' => 'Invalid payload'], 400);
         }
 
         // Buscar pagamento no nosso banco
-        $payment = Payment::where('abacatepay_id', $billingId)->first();
+        $payment = Payment::where('abacatepay_id', $pixId)->first();
 
         if (!$payment) {
             Log::warning('Webhook AbacatePay: Pagamento não encontrado', [
-                'billing_id' => $billingId,
+                'pix_id' => $pixId,
             ]);
             return response()->json(['error' => 'Payment not found'], 404);
         }
+
+        // Log de auditoria - Webhook com payment encontrado
+        $this->abacatePay->logWebhook($payload, $request->ip(), $payment->user_id, $payment->id);
 
         // Já processado
         if ($payment->status === 'paid') {
@@ -121,9 +146,9 @@ class SubscriptionController extends Controller
 
         // 2. IMPORTANTE: Verificar status DIRETAMENTE na API do AbacatePay
         // Nunca confiar apenas no payload do webhook (pode ser forjado)
-        if (!$this->abacatePay->isPaymentConfirmed($billingId)) {
+        if (!$this->abacatePay->isPaymentConfirmed($pixId, $payment->user_id, $payment->id)) {
             Log::warning('Webhook AbacatePay: Pagamento não confirmado na API', [
-                'billing_id' => $billingId,
+                'pix_id' => $pixId,
                 'payment_id' => $payment->id,
             ]);
             return response()->json(['error' => 'Payment not confirmed'], 400);

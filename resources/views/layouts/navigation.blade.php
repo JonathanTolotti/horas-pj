@@ -19,6 +19,10 @@
                        class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('dashboard') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         Dashboard
                     </a>
+                    <a href="{{ route('reports.index') }}"
+                       class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
+                        Relatorios
+                    </a>
                     <a href="{{ route('settings') }}"
                        class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('settings') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         Configuracoes
@@ -120,6 +124,10 @@
             <a href="{{ route('dashboard') }}"
                class="block w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('dashboard') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
                 Dashboard
+            </a>
+            <a href="{{ route('reports.index') }}"
+               class="block w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('reports.*') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
+                Relatorios
             </a>
             <a href="{{ route('settings') }}"
                class="block w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('settings') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">

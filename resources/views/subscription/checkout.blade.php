@@ -27,9 +27,9 @@
 
                     <!-- QR Code -->
                     <div class="flex justify-center mb-6">
-                        @if(isset($pixData['pixQrCode']))
+                        @if(isset($pixData['brCodeBase64']))
                             <div class="bg-white p-4 rounded-lg">
-                                <img src="data:image/png;base64,{{ $pixData['pixQrCode'] }}"
+                                <img src="{{ $pixData['brCodeBase64'] }}"
                                      alt="QR Code Pix"
                                      class="w-48 h-48">
                             </div>
@@ -125,7 +125,7 @@
 
         let pollInterval = null;
         let countdownInterval = null;
-        let expiresAt = new Date('{{ $payment->expires_at->toISOString() }}');
+        let expiresAt = new Date('{{ $pixData['expiresAt'] }}');
 
         function init() {
             startPolling();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Services\TimeCalculatorService;
@@ -43,6 +44,7 @@ class TimeEntryController extends Controller
 
         $stats = $this->calculator->getMonthlyStats(auth()->id(), $monthReference);
         $projects = Project::forUser(auth()->id())->active()->orderBy('name')->get();
+        $companies = Company::forUser(auth()->id())->active()->orderBy('name')->get();
         $defaultProject = Project::getDefault(auth()->id());
 
         $user = auth()->user();
@@ -56,9 +58,11 @@ class TimeEntryController extends Controller
             'currentMonth' => $monthReference,
             'months' => $this->getAvailableMonths(),
             'projects' => $projects,
+            'companies' => $companies,
             'defaultProjectId' => $defaultProject?->id,
             'canViewByDay' => $canViewByDay,
             'isPremium' => $user->isPremium(),
+            'subscriptionAlert' => $user->getSubscriptionAlert(),
         ]);
     }
 

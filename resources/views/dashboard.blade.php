@@ -28,6 +28,9 @@
 
     <div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
 
+        <!-- Subscription Alert Banner -->
+        <x-subscription-alert :alert="$subscriptionAlert" />
+
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
@@ -47,6 +50,100 @@
                         @endforeach
                     </select>
                 </div>
+
+                <!-- Export Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.outside="open = false"
+                        class="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg px-3 py-2 text-white text-sm flex items-center gap-2 transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Exportar</span>
+                        <svg class="w-4 h-4 text-gray-400" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-cloak x-transition
+                        class="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                        <div class="py-1">
+                            @if($isPremium)
+                                <a href="{{ route('export.pdf', ['month' => $currentMonth]) }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="font-medium">Relatorio PDF</div>
+                                        <div class="text-xs text-gray-500">Relatorio completo do mes</div>
+                                    </div>
+                                </a>
+                                <a href="{{ route('export.excel', ['month' => $currentMonth]) }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="font-medium">Planilha CSV</div>
+                                        <div class="text-xs text-gray-500">Exportar para Excel</div>
+                                    </div>
+                                </a>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <button onclick="openNfExportModal()"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="font-medium">Relatorio para NF</div>
+                                        <div class="text-xs text-gray-500">Selecione uma empresa</div>
+                                    </div>
+                                </button>
+                            @else
+                                <button onclick="showPremiumModal('exportacao de relatorios')"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-700 transition-colors">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    <div class="flex-1 text-left">
+                                        <div class="font-medium">Relatorio PDF</div>
+                                        <div class="text-xs text-gray-500">Relatorio completo do mes</div>
+                                    </div>
+                                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </button>
+                                <button onclick="showPremiumModal('exportacao de relatorios')"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-700 transition-colors">
+                                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <div class="flex-1 text-left">
+                                        <div class="font-medium">Planilha CSV</div>
+                                        <div class="text-xs text-gray-500">Exportar para Excel</div>
+                                    </div>
+                                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </button>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <button onclick="showPremiumModal('exportacao de relatorios')"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-700 transition-colors">
+                                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <div class="flex-1 text-left">
+                                        <div class="font-medium">Relatorio para NF</div>
+                                        <div class="text-xs text-gray-500">Selecione uma empresa</div>
+                                    </div>
+                                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 <div class="text-right">
                     <p class="text-xs sm:text-sm text-gray-400">Hoje</p>
                     <p class="text-base sm:text-2xl font-semibold text-white" id="current-date"></p>
@@ -536,4 +633,67 @@
 
     <!-- Premium Modal -->
     <x-premium-modal feature="visualizacao por dia" />
+
+    <!-- Modal de Exportacao NF -->
+    <div id="nf-export-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeNfExportModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-amber-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white">Relatorio para Nota Fiscal</h3>
+            </div>
+            <p class="text-gray-400 mb-4">Selecione a empresa para gerar o relatorio:</p>
+
+            <form action="{{ route('export.nf') }}" method="GET">
+                <input type="hidden" name="month" value="{{ $currentMonth }}">
+
+                <div class="space-y-2 mb-6">
+                    @forelse($companies as $company)
+                        <label class="flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors border border-transparent has-[:checked]:border-amber-500/50">
+                            <input type="radio" name="company_id" value="{{ $company->id }}" class="text-amber-500 focus:ring-amber-500 bg-gray-700 border-gray-600">
+                            <div class="flex-1">
+                                <div class="text-white font-medium">{{ $company->name }}</div>
+                                <div class="text-gray-500 text-sm font-mono">{{ $company->cnpj }}</div>
+                            </div>
+                        </label>
+                    @empty
+                        <div class="text-center py-4 text-gray-500">
+                            <p>Nenhuma empresa cadastrada.</p>
+                            <a href="{{ route('settings') }}" class="text-cyan-400 hover:text-cyan-300 text-sm">Cadastrar empresa</a>
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeNfExportModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        Cancelar
+                    </button>
+                    @if($companies->count() > 0)
+                        <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Gerar PDF
+                        </button>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function openNfExportModal() {
+            document.getElementById('nf-export-modal').classList.remove('hidden');
+        }
+
+        function closeNfExportModal() {
+            document.getElementById('nf-export-modal').classList.add('hidden');
+        }
+    </script>
+    @endpush
 </x-app-layout>
