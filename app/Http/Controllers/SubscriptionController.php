@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PaymentApprovedMail;
 use App\Models\Payment;
 use App\Services\AbacatePayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SubscriptionController extends Controller
 {
@@ -98,8 +100,9 @@ class SubscriptionController extends Controller
      * 1. Token secreto na URL (só AbacatePay conhece)
      * 2. Verificação do pagamento direto na API (nunca confiar no payload)
      */
-    public function webhook(Request $request, string $token)
+    public function webhook(Request $request)
     {
+        $token = $request->query('webhookSecret');
         // 1. Verificar token secreto da URL
         $expectedToken = config('services.abacatepay.webhook_token');
         if (!$expectedToken || !hash_equals($expectedToken, $token)) {
@@ -120,7 +123,7 @@ class SubscriptionController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $pixId = $payload['data']['id'] ?? null;
+        $pixId = $payload['data']['pixQrCode']['id'] ?? null;
 
         if (!$pixId) {
             return response()->json(['error' => 'Invalid payload'], 400);
@@ -144,8 +147,6 @@ class SubscriptionController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        // 2. IMPORTANTE: Verificar status DIRETAMENTE na API do AbacatePay
-        // Nunca confiar apenas no payload do webhook (pode ser forjado)
         if (!$this->abacatePay->isPaymentConfirmed($pixId, $payment->user_id, $payment->id)) {
             Log::warning('Webhook AbacatePay: Pagamento não confirmado na API', [
                 'pix_id' => $pixId,
@@ -160,7 +161,22 @@ class SubscriptionController extends Controller
             'paid_at' => now(),
         ]);
 
-        $payment->user->activatePremium($payment->months);
+        $user = $payment->user;
+        $user->activatePremium($payment->months);
+
+        // Recarregar o payment para pegar paid_at atualizado
+        $payment->refresh();
+
+        // Enviar email de confirmação de pagamento
+        try {
+            Mail::to($user->email)->send(new PaymentApprovedMail($user, $payment));
+        } catch (\Exception $e) {
+            Log::error('Erro ao enviar email de pagamento aprovado', [
+                'user_id' => $user->id,
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         Log::info('Assinatura ativada via webhook', [
             'user_id' => $payment->user_id,
@@ -177,7 +193,29 @@ class SubscriptionController extends Controller
 
         return view('subscription.manage', [
             'subscription' => $user->subscription,
-            'payments' => $user->payments()->where('status', 'paid')->latest()->get(),
+            'payments' => $user->payments()->latest()->get(),
+        ]);
+    }
+
+    public function receipt(Payment $payment)
+    {
+        // Verificar se o pagamento pertence ao usuário
+        if ($payment->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Só gerar recibo para pagamentos aprovados
+        if ($payment->status !== 'paid') {
+            abort(404, 'Recibo não disponível para pagamentos não aprovados');
+        }
+
+        $user = auth()->user();
+        $planLabel = config("plans.prices.{$payment->months}.label", "{$payment->months} mês(es)");
+
+        return view('subscription.receipt', [
+            'payment' => $payment,
+            'user' => $user,
+            'planLabel' => $planLabel,
         ]);
     }
 

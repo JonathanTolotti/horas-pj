@@ -59,7 +59,7 @@
                             </p>
                             @if($months > 1)
                                 <p class="text-gray-400 text-sm mb-4">
-                                    R$ {{ number_format($price['price'] / $months, 2, ',', '.') }}/mes
+                                    R$ {{ number_format($price['price'] / $months, 2, ',', '.') }}/mês
                                 </p>
                             @else
                                 <p class="text-gray-400 text-sm mb-4">&nbsp;</p>
@@ -74,79 +74,170 @@
                 @endforeach
             </div>
 
-            <!-- Features List -->
-            <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                <h2 class="text-white font-semibold mb-4">O que esta incluso no Premium</h2>
-                <div class="grid md:grid-cols-2 gap-3">
-                    <div class="flex items-center gap-2 text-gray-300">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Projetos ilimitados
+            <!-- Comparison Table -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                <div class="grid grid-cols-3">
+                    <!-- Header -->
+                    <div class="p-4 bg-gray-900 border-b border-gray-700">
+                        <span class="text-gray-400 font-medium">Funcionalidade</span>
                     </div>
-                    <div class="flex items-center gap-2 text-gray-300">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Empresas ilimitadas
+                    <div class="p-4 bg-gray-900 border-b border-gray-700 text-center">
+                        <span class="text-gray-400 font-medium">Free</span>
                     </div>
-                    <div class="flex items-center gap-2 text-gray-300">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Visualizacao por dia
+                    <div class="p-4 bg-gray-900 border-b border-gray-700 text-center">
+                        <span class="text-cyan-400 font-medium">Premium</span>
                     </div>
-                    <div class="flex items-center gap-2 text-gray-300">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Exportacao PDF e Excel
+
+                    <!-- Projetos -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Projetos
                     </div>
-                    <div class="flex items-center gap-2 text-gray-300">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Historico completo
+                    <div class="p-4 border-b border-gray-700 text-center text-gray-400">
+                        1 projeto
                     </div>
-                    <div class="flex items-center gap-2 text-gray-300">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="p-4 border-b border-gray-700 text-center text-green-400 font-medium">
+                        Ilimitados
+                    </div>
+
+                    <!-- Empresas -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Empresas/CNPJs
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center text-gray-400">
+                        1 empresa
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center text-green-400 font-medium">
+                        Ilimitadas
+                    </div>
+
+                    <!-- Histórico -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Histórico de lançamentos
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center text-gray-400">
+                        2 meses
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center text-green-400 font-medium">
+                        Completo
+                    </div>
+
+                    <!-- Tracking -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Tracking de horas
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Relatorio para NF
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+
+                    <!-- Dashboard -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Dashboard com totais
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+
+                    <!-- Visualização por dia -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Visualização por dia
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-red-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+
+                    <!-- Exportação PDF -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Exportação PDF
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-red-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+
+                    <!-- Exportação Excel -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Exportação Excel
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-red-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+
+                    <!-- Relatório NF -->
+                    <div class="p-4 border-b border-gray-700 text-gray-300">
+                        Relatório para Nota Fiscal
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-red-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 border-b border-gray-700 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+
+                    <!-- Relatório Anual -->
+                    <div class="p-4 text-gray-300">
+                        Relatório Anual
+                    </div>
+                    <div class="p-4 text-center">
+                        <svg class="w-5 h-5 text-red-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 text-center">
+                        <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
                     </div>
                 </div>
             </div>
 
-            <!-- Free Plan Comparison -->
-            <div class="mt-6 bg-gray-900 rounded-xl border border-gray-800 p-6">
-                <h3 class="text-gray-400 font-medium mb-3">Plano Free</h3>
-                <div class="grid md:grid-cols-2 gap-2 text-sm">
-                    <div class="flex items-center gap-2 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        1 projeto ativo
-                    </div>
-                    <div class="flex items-center gap-2 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        1 empresa cadastrada
-                    </div>
-                    <div class="flex items-center gap-2 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Historico de 2 meses
-                    </div>
-                    <div class="flex items-center gap-2 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                        <span class="line-through">Visualizacao por dia</span>
-                    </div>
+            <!-- Trial Info -->
+            @if(!$currentPlan || (!$currentPlan->isPremium() && $currentPlan->status !== 'trial'))
+                <div class="mt-6 text-center">
+                    <p class="text-gray-400 text-sm">
+                        Ainda não está convencido? Novos usuários ganham
+                        <span class="text-cyan-400 font-medium">{{ config('plans.trial_days') }} dias de trial grátis</span>
+                        para testar todas as funcionalidades Premium.
+                    </p>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

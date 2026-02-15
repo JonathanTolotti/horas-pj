@@ -62,7 +62,7 @@
 
             <!-- Payment History -->
             <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                <h2 class="text-lg font-semibold text-white mb-4">Historico de Pagamentos</h2>
+                <h2 class="text-lg font-semibold text-white mb-4">Histórico de Pagamentos</h2>
 
                 @if($payments->count() > 0)
                     <div class="space-y-3">
@@ -70,11 +70,35 @@
                             <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-0">
                                 <div>
                                     <p class="text-white">Premium {{ config("plans.prices.{$payment->months}.label") }}</p>
-                                    <p class="text-gray-400 text-sm">{{ $payment->paid_at->format('d/m/Y H:i') }}</p>
+                                    <p class="text-gray-400 text-sm">
+                                        @if($payment->paid_at)
+                                            {{ $payment->paid_at->format('d/m/Y H:i') }}
+                                        @else
+                                            {{ $payment->created_at->format('d/m/Y H:i') }}
+                                        @endif
+                                    </p>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-white font-medium">R$ {{ number_format($payment->amount, 2, ',', '.') }}</p>
-                                    <span class="text-green-400 text-xs">Pago</span>
+                                <div class="flex items-center gap-4">
+                                    @if($payment->status === 'paid')
+                                        <a href="{{ route('subscription.receipt', $payment) }}"
+                                           class="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
+                                           title="Ver recibo">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            Recibo
+                                        </a>
+                                    @endif
+                                    <div class="text-right">
+                                        <p class="text-white font-medium">R$ {{ number_format($payment->amount, 2, ',', '.') }}</p>
+                                        @if($payment->status === 'paid')
+                                            <span class="text-green-400 text-xs">Pago</span>
+                                        @elseif($payment->status === 'pending')
+                                            <span class="text-yellow-400 text-xs">Pendente</span>
+                                        @else
+                                            <span class="text-red-400 text-xs">Expirado</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         @endforeach

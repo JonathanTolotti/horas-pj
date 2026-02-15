@@ -134,19 +134,18 @@ class ExportController extends Controller
             fputcsv($handle, ['RESUMO'], ';');
             fputcsv($handle, ['Total de Horas', number_format($data['stats']['total_hours'], 1, ',', '.')], ';');
             fputcsv($handle, ['Valor/Hora', 'R$ ' . number_format($data['stats']['hourly_rate'], 2, ',', '.')], ';');
-            fputcsv($handle, ['Total a Receber', 'R$ ' . number_format($data['stats']['total_value'], 2, ',', '.')], ';');
+            fputcsv($handle, ['Total a Receber', 'R$ ' . number_format($data['stats']['total_with_extra'], 2, ',', '.')], ';');
             fputcsv($handle, [], ';');
 
             // Detalhamento por empresa (se houver)
-            if (!empty($data['stats']['companies'])) {
+            if (!empty($data['stats']['company_revenues'])) {
                 fputcsv($handle, ['DETALHAMENTO POR EMPRESA'], ';');
-                fputcsv($handle, ['Empresa', 'CNPJ', 'Percentual', 'Valor'], ';');
-                foreach ($data['stats']['companies'] as $company) {
+                fputcsv($handle, ['Empresa', 'CNPJ', 'Valor'], ';');
+                foreach ($data['stats']['company_revenues'] as $company) {
                     fputcsv($handle, [
                         $company['name'],
                         $company['cnpj'],
-                        $company['percentage'] . '%',
-                        'R$ ' . number_format($company['value'], 2, ',', '.'),
+                        'R$ ' . number_format($company['revenue'], 2, ',', '.'),
                     ], ';');
                 }
                 fputcsv($handle, [], ';');

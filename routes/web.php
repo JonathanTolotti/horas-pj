@@ -59,10 +59,11 @@ Route::middleware(['auth', 'verified'])->prefix('subscription')->group(function 
     Route::get('/success', [SubscriptionController::class, 'success'])->name('subscription.success');
     Route::get('/manage', [SubscriptionController::class, 'manage'])->name('subscription.manage');
     Route::get('/check-payment/{payment}', [SubscriptionController::class, 'checkPaymentStatus'])->name('subscription.check');
+    Route::get('/receipt/{payment}', [SubscriptionController::class, 'receipt'])->name('subscription.receipt');
 });
 
 // Webhook (sem auth, mas com token secreto na URL)
-Route::post('/webhook/abacatepay/{token}', [SubscriptionController::class, 'webhook'])
+Route::post('/webhook/abacatepay', [SubscriptionController::class, 'webhook'])
     ->name('webhook.abacatepay');
 
 // Rotas de exportação (Premium)
