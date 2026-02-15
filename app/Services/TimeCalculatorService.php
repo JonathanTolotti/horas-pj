@@ -39,6 +39,12 @@ class TimeCalculatorService
         return (float) $settings->extra_value;
     }
 
+    public function getDiscountValue(int $userId): float
+    {
+        $settings = Setting::forUser($userId);
+        return (float) $settings->discount_value;
+    }
+
     public function calculateTotalRevenue(float $totalHours, float $hourlyRate): float
     {
         return round($totalHours * $hourlyRate, 2);
@@ -101,8 +107,9 @@ class TimeCalculatorService
     {
         $hourlyRate = $this->getHourlyRate($userId);
         $extraValue = $this->getExtraValue($userId);
+        $discountValue = $this->getDiscountValue($userId);
         $totalHours = $this->getTotalHoursForMonth($userId, $monthReference);
-        $totalRevenue = ($totalHours * $hourlyRate) + $extraValue;
+        $totalRevenue = ($totalHours * $hourlyRate) + $extraValue - $discountValue;
 
         $companies = Company::forUser($userId)->active()->with('projects')->get();
         $companyRevenues = [];
@@ -170,12 +177,13 @@ class TimeCalculatorService
         $hourlyRate = $this->getHourlyRate($userId);
         $totalRevenue = $this->getTotalHoursForMonth($userId, $monthReference) * $hourlyRate;
         $extraValue = $this->getExtraValue($userId);
-        $totalWithExtra = $totalRevenue + $extraValue;
+        $discountValue = $this->getDiscountValue($userId);
+        $totalFinal = $totalRevenue + $extraValue - $discountValue;
 
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
         $assignedRevenue = array_sum(array_column($companyRevenues, 'revenue'));
 
-        $unassigned = round($totalWithExtra - $assignedRevenue, 2);
+        $unassigned = round($totalFinal - $assignedRevenue, 2);
 
         // Ignorar diferenças de arredondamento muito pequenas
         if (abs($unassigned) <= 0.03) {
@@ -190,8 +198,10 @@ class TimeCalculatorService
         $totalHours = $this->getTotalHoursForMonth($userId, $monthReference);
         $hourlyRate = $this->getHourlyRate($userId);
         $extraValue = $this->getExtraValue($userId);
+        $discountValue = $this->getDiscountValue($userId);
         $totalRevenue = $this->calculateTotalRevenue($totalHours, $hourlyRate);
         $totalWithExtra = $totalRevenue + $extraValue;
+        $totalFinal = $totalWithExtra - $discountValue;
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
         $unassignedRevenue = $this->getUnassignedRevenue($userId, $monthReference);
 
@@ -199,8 +209,10 @@ class TimeCalculatorService
             'total_hours' => $totalHours,
             'hourly_rate' => $hourlyRate,
             'extra_value' => $extraValue,
+            'discount_value' => $discountValue,
             'total_revenue' => $totalRevenue,
             'total_with_extra' => $totalWithExtra,
+            'total_final' => $totalFinal,
             'company_revenues' => $companyRevenues,
             'unassigned_revenue' => $unassignedRevenue,
         ];

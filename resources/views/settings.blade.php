@@ -187,7 +187,7 @@
             </h2>
 
             <form id="settings-form" onsubmit="return false;">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora</label>
                         <div class="relative">
@@ -199,15 +199,26 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Valor Extra Mensal</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Acréscimo Mensal</label>
                         <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400">+R$</span>
                             <input type="text" id="extra-value" inputmode="decimal"
                                 value="{{ number_format($settings->extra_value, 2, ',', '.') }}"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-12 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-14 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 onkeyup="formatCurrencyInput(this)" onblur="formatCurrencyInput(this)"/>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Ex: Home Office, ajuda de custo, etc.</p>
+                        <p class="text-xs text-gray-500 mt-1">Ex: Home Office, ajuda de custo</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Desconto Mensal</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-red-400">-R$</span>
+                            <input type="text" id="discount-value" inputmode="decimal"
+                                value="{{ number_format($settings->discount_value ?? 0, 2, ',', '.') }}"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-14 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                onkeyup="formatCurrencyInput(this)" onblur="formatCurrencyInput(this)"/>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Ex: Impostos, taxas, deduções</p>
                     </div>
                 </div>
                 <div class="mt-6">
@@ -501,8 +512,9 @@
         async function saveSettings() {
             const hourlyRate = parseCurrencyValue(document.getElementById('hourly-rate').value);
             const extraValue = parseCurrencyValue(document.getElementById('extra-value').value);
+            const discountValue = parseCurrencyValue(document.getElementById('discount-value').value);
 
-            if (hourlyRate < 0 || extraValue < 0) {
+            if (hourlyRate < 0 || extraValue < 0 || discountValue < 0) {
                 showToast('Os valores não podem ser negativos!', TOAST_TYPES.WARNING);
                 return;
             }
@@ -511,7 +523,7 @@
                 const response = await fetch('/settings', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
-                    body: JSON.stringify({ hourly_rate: hourlyRate, extra_value: extraValue })
+                    body: JSON.stringify({ hourly_rate: hourlyRate, extra_value: extraValue, discount_value: discountValue })
                 });
 
                 const data = await response.json();

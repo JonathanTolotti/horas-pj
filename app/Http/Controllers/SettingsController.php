@@ -41,6 +41,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'hourly_rate' => 'required|numeric|min:0',
             'extra_value' => 'required|numeric|min:0',
+            'discount_value' => 'required|numeric|min:0',
         ]);
 
         $settings = Setting::forUser(auth()->id());
@@ -48,7 +49,7 @@ class SettingsController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Configuracoes atualizadas com sucesso!',
+            'message' => 'Configurações atualizadas com sucesso!',
             'settings' => $settings,
         ]);
     }

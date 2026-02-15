@@ -124,37 +124,10 @@ class ExportController extends Controller
             // BOM para UTF-8 (Excel reconhecer acentos)
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Cabeçalho do relatório
-            fputcsv($handle, ['RELATÓRIO DE HORAS'], ';');
-            fputcsv($handle, ['Período: ' . $data['month_label']], ';');
-            fputcsv($handle, ['Gerado em: ' . now()->format('d/m/Y H:i')], ';');
-            fputcsv($handle, [], ';');
-
-            // Resumo
-            fputcsv($handle, ['RESUMO'], ';');
-            fputcsv($handle, ['Total de Horas', number_format($data['stats']['total_hours'], 1, ',', '.')], ';');
-            fputcsv($handle, ['Valor/Hora', 'R$ ' . number_format($data['stats']['hourly_rate'], 2, ',', '.')], ';');
-            fputcsv($handle, ['Total a Receber', 'R$ ' . number_format($data['stats']['total_with_extra'], 2, ',', '.')], ';');
-            fputcsv($handle, [], ';');
-
-            // Detalhamento por empresa (se houver)
-            if (!empty($data['stats']['company_revenues'])) {
-                fputcsv($handle, ['DETALHAMENTO POR EMPRESA'], ';');
-                fputcsv($handle, ['Empresa', 'CNPJ', 'Valor'], ';');
-                foreach ($data['stats']['company_revenues'] as $company) {
-                    fputcsv($handle, [
-                        $company['name'],
-                        $company['cnpj'],
-                        'R$ ' . number_format($company['revenue'], 2, ',', '.'),
-                    ], ';');
-                }
-                fputcsv($handle, [], ';');
-            }
-
-            // Lançamentos
-            fputcsv($handle, ['LANÇAMENTOS'], ';');
+            // Cabeçalho das colunas
             fputcsv($handle, ['Data', 'Início', 'Fim', 'Horas', 'Projeto', 'Descrição'], ';');
 
+            // Registros
             foreach ($data['entries'] as $entry) {
                 fputcsv($handle, [
                     $entry->date->format('d/m/Y'),

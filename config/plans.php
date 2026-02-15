@@ -27,6 +27,7 @@ return [
         'view_by_day' => 'premium',
         'export_pdf' => 'premium',
         'export_excel' => 'premium',
+        'import_csv' => 'premium',
         'multiple_projects' => 'premium',
         'multiple_companies' => 'premium',
     ],

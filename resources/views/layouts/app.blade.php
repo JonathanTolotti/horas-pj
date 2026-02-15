@@ -124,6 +124,20 @@
             </main>
         </div>
 
+        <!-- Global Modals -->
+        @auth
+            @include('imports.modal')
+            <x-premium-modal feature="esta funcionalidade" />
+        @endauth
+
+        <!-- Global JS Variables -->
+        <script>
+            const CSRF_TOKEN = '{{ csrf_token() }}';
+        </script>
+
+        <!-- Global Import Functions -->
+        <script src="{{ asset('js/import.js') }}?v={{ @filemtime(public_path('js/import.js')) ?: time() }}"></script>
+
         @stack('scripts')
     </body>
 </html>

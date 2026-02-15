@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
@@ -75,6 +76,12 @@ Route::middleware(['auth', 'verified', 'premium:export_pdf'])->prefix('export')-
 
 Route::middleware(['auth', 'verified', 'premium:export_excel'])->group(function () {
     Route::get('/export/excel', [ExportController::class, 'excel'])->name('export.excel');
+});
+
+// Rotas de importacao (Premium)
+Route::middleware(['auth', 'verified', 'premium:import_csv'])->prefix('import')->group(function () {
+    Route::post('/csv/preview', [ImportController::class, 'preview'])->name('import.preview');
+    Route::post('/csv', [ImportController::class, 'import'])->name('import.csv');
 });
 
 require __DIR__.'/auth.php';

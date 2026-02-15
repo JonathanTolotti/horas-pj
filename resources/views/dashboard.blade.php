@@ -2,7 +2,7 @@
     <!-- Toast Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-    <!-- Modal de Confirmacao -->
+    <!-- Modal de Confirmação -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
@@ -14,7 +14,7 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white" id="confirm-title">Confirmar</h3>
             </div>
-            <p class="text-gray-400 mb-6" id="confirm-message">Deseja realmente realizar esta acao?</p>
+            <p class="text-gray-400 mb-6" id="confirm-message">Deseja realmente realizar esta ação?</p>
             <div class="flex gap-3 justify-end">
                 <button onclick="closeConfirmModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                     Cancelar
@@ -35,7 +35,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">Controle de Horas</h1>
-                <p class="text-gray-400 text-sm sm:text-base">Gestao de tempo e faturamento PJ</p>
+                <p class="text-gray-400 text-sm sm:text-base">Gestão de tempo e faturamento PJ</p>
             </div>
             <div class="flex items-center gap-4 sm:gap-6">
                 <!-- Month Filter -->
@@ -73,8 +73,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                     </svg>
                                     <div>
-                                        <div class="font-medium">Relatorio PDF</div>
-                                        <div class="text-xs text-gray-500">Relatorio completo do mes</div>
+                                        <div class="font-medium">Relatório PDF</div>
+                                        <div class="text-xs text-gray-500">Relatório completo do mês</div>
                                     </div>
                                 </a>
                                 <a href="{{ route('export.excel', ['month' => $currentMonth]) }}"
@@ -94,8 +94,19 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                     </svg>
                                     <div>
-                                        <div class="font-medium">Relatorio para NF</div>
+                                        <div class="font-medium">Relatório para NF</div>
                                         <div class="text-xs text-gray-500">Selecione uma empresa</div>
+                                    </div>
+                                </button>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <button onclick="openImportModal()"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                    <div>
+                                        <div class="font-medium">Importar CSV</div>
+                                        <div class="text-xs text-gray-500">Lançar horas em lote</div>
                                     </div>
                                 </button>
                             @else
@@ -105,8 +116,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                     </svg>
                                     <div class="flex-1 text-left">
-                                        <div class="font-medium">Relatorio PDF</div>
-                                        <div class="text-xs text-gray-500">Relatorio completo do mes</div>
+                                        <div class="font-medium">Relatório PDF</div>
+                                        <div class="text-xs text-gray-500">Relatório completo do mês</div>
                                     </div>
                                     <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -132,8 +143,22 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                     </svg>
                                     <div class="flex-1 text-left">
-                                        <div class="font-medium">Relatorio para NF</div>
+                                        <div class="font-medium">Relatório para NF</div>
                                         <div class="text-xs text-gray-500">Selecione uma empresa</div>
+                                    </div>
+                                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </button>
+                                <div class="border-t border-gray-700 my-1"></div>
+                                <button onclick="showPremiumModal('importacao de CSV')"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-700 transition-colors">
+                                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                    <div class="flex-1 text-left">
+                                        <div class="font-medium">Importar CSV</div>
+                                        <div class="text-xs text-gray-500">Lançar horas em lote</div>
                                     </div>
                                     <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -165,7 +190,7 @@
                     <span class="text-3xl font-bold text-white sensitive-value" id="total-hours">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</span>
                 </div>
                 <p class="text-gray-400 text-sm">Total de Horas</p>
-                <p class="text-xs text-gray-500 mt-1">No periodo atual</p>
+                <p class="text-xs text-gray-500 mt-1">No período atual</p>
             </div>
 
             <!-- Valor Hora -->
@@ -198,29 +223,45 @@
                 <p class="text-xs text-gray-500 mt-1">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }} x R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</p>
             </div>
 
-            <!-- Valor Extra -->
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-orange-500/50 transition-all">
+            <!-- Valor Extra (Acréscimo) -->
+{{--            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-emerald-500/50 transition-all">--}}
+{{--                <div class="flex items-center justify-between mb-4">--}}
+{{--                    <div class="bg-emerald-500/10 p-3 rounded-lg">--}}
+{{--                        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">--}}
+{{--                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>--}}
+{{--                        </svg>--}}
+{{--                    </div>--}}
+{{--                    <span class="text-3xl font-bold text-emerald-400 sensitive-value" id="extra-value">+R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</span>--}}
+{{--                </div>--}}
+{{--                <p class="text-gray-400 text-sm">Acréscimo</p>--}}
+{{--                <p class="text-xs text-gray-500 mt-1">Valor fixo mensal</p>--}}
+{{--            </div>--}}
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 transition-all">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="bg-orange-500/10 p-3 rounded-lg">
-                        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    <div class="bg-indigo-500/10 p-3 rounded-lg">
+                        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold text-white sensitive-value" id="extra-value">R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</span>
+                    <div class="text-right">
+                        <div class="text-xl font-bold text-emerald-400 sensitive-value" id="extra-value">+R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</div>
+                        <div class="text-xl font-bold text-red-400 sensitive-value" id="discount-value">-R$ {{ number_format($stats['discount_value'] ?? 0, 2, ',', '.') }}</div>
+                    </div>
                 </div>
-                <p class="text-gray-400 text-sm">Valor Extra</p>
-                <p class="text-xs text-gray-500 mt-1">Valor fixo mensal</p>
+                <p class="text-gray-400 text-sm">Ajustes Mensais</p>
+                <p class="text-xs text-gray-500 mt-1">Acréscimo e desconto fixos</p>
             </div>
+
         </div>
 
         <!-- Total Geral -->
         <div class="bg-gradient-to-r from-cyan-900/30 to-purple-900/30 border border-cyan-500/30 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-gray-400 text-sm">Total Geral do Mes</p>
-                    <p class="text-xs text-gray-500 mt-1">Horas + Valor Extra</p>
+                    <p class="text-gray-400 text-sm">Total Final do Mês</p>
+                    <p class="text-xs text-gray-500 mt-1">Horas + acréscimo - desconto</p>
                 </div>
-                <span class="text-4xl font-bold text-white sensitive-value" id="total-with-extra">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>
+                <span class="text-4xl font-bold text-white sensitive-value" id="total-final">R$ {{ number_format($stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>
             </div>
         </div>
 
@@ -242,7 +283,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Inicio</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Início</label>
                         <input type="text" id="entry-start" name="start_time" placeholder="00:00" maxlength="5"
                             class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent font-mono"/>
                     </div>
@@ -267,7 +308,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Descricao</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Descrição</label>
                         <input type="text" id="entry-description" name="description" placeholder="Ex: Desenvolvimento de features"
                             class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
                     </div>
@@ -294,7 +335,7 @@
             </form>
         </div>
 
-        <!-- Tabela de Lancamentos -->
+        <!-- Tabela de Lançamentos -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
             <div class="p-4 sm:p-6 border-b border-gray-800">
                 <div class="flex items-center justify-between">
@@ -304,7 +345,7 @@
                         </svg>
                         <span id="entries-title">Últimos lançamentos</span>
                     </h2>
-                    <!-- Toggle Visualizacao -->
+                    <!-- Toggle Visualização -->
                     <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
                         <button onclick="setViewMode('entries')" id="view-entries-btn"
                             class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 bg-cyan-600 text-white"
@@ -339,12 +380,12 @@
                         <thead class="bg-gray-800/50">
                             <tr>
                                 <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</th>
-                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horario</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horário</th>
                                 <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Horas</th>
                                 <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Projeto</th>
-                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descricao</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descrição</th>
                                 <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Valor</th>
-                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acoes</th>
+                                <th class="px-4 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="entries-table" class="divide-y divide-gray-800">
@@ -376,7 +417,7 @@
                             @empty
                                 <tr id="empty-row">
                                     <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                                        Nenhum lancamento encontrado para este mes.
+                                        Nenhum lançamento encontrado para este mês.
                                     </td>
                                 </tr>
                             @endforelse
@@ -411,7 +452,7 @@
                         </div>
                     @empty
                         <div id="empty-card" class="p-8 text-center text-gray-500">
-                            Nenhum lancamento encontrado para este mes.
+                            Nenhum lançamento encontrado para este mês.
                         </div>
                     @endforelse
                 </div>
@@ -449,7 +490,7 @@
                                             <svg class="w-4 h-4 transform transition-transform" id="chevron-{{ $dateKey }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                             </svg>
-                                            <span class="text-xs">Ver horarios</span>
+                                            <span class="text-xs">Ver horários</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -475,7 +516,7 @@
                             @empty
                                 <tr id="empty-daily-row">
                                     <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                                        Nenhum lancamento encontrado para este mes.
+                                        Nenhum lançamento encontrado para este mês.
                                     </td>
                                 </tr>
                             @endforelse
@@ -502,7 +543,7 @@
                                 <svg class="w-4 h-4 transform transition-transform" id="chevron-{{ $dateKey }}-mobile" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
-                                Ver horarios
+                                Ver horários
                             </button>
                             <div id="details-{{ $dateKey }}-mobile" class="hidden mt-3 space-y-2 border-t border-gray-700 pt-3">
                                 @foreach($dayData['entries'] as $entry)
@@ -522,18 +563,18 @@
                         </div>
                     @empty
                         <div class="p-8 text-center text-gray-500">
-                            Nenhum lancamento encontrado para este mes.
+                            Nenhum lançamento encontrado para este mês.
                         </div>
                     @endforelse
                 </div>
             </div>
 
-            <!-- Paginacao -->
+            <!-- Paginação -->
             @if($entries->hasPages())
                 <div class="p-4 border-t border-gray-800">
                     <div class="flex items-center justify-between">
                         <p class="text-sm text-gray-400">
-                            Mostrando {{ $entries->firstItem() }} a {{ $entries->lastItem() }} de {{ $entries->total() }} lancamentos
+                            Mostrando {{ $entries->firstItem() }} a {{ $entries->lastItem() }} de {{ $entries->total() }} lançamentos
                         </p>
                         <div class="flex gap-2">
                             @if($entries->onFirstPage())
@@ -543,9 +584,9 @@
                             @endif
 
                             @if($entries->hasMorePages())
-                                <a href="{{ $entries->nextPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Proximo</a>
+                                <a href="{{ $entries->nextPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Próximo</a>
                             @else
-                                <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Proximo</span>
+                                <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Próximo</span>
                             @endif
                         </div>
                     </div>
@@ -553,20 +594,20 @@
             @endif
         </div>
 
-        <!-- Divisao por Empresa -->
+        <!-- Divisão por Empresa -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                 <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
-                Faturamento por Empresa (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</span>)
+                Faturamento por Empresa (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>)
             </h2>
 
             @if(count($stats['company_revenues']) > 0 || $stats['unassigned_revenue'] > 0)
                 @php
                     $colors = ['blue', 'emerald', 'purple', 'cyan', 'amber', 'rose'];
                     $colorIndex = 0;
-                    $totalRevenue = $stats['total_with_extra'];
+                    $totalRevenue = $stats['total_final'] ?? $stats['total_with_extra'];
                 @endphp
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($stats['company_revenues'] as $company)
@@ -601,7 +642,7 @@
                                 </div>
                                 <span class="text-xs bg-gray-500/20 text-gray-300 px-2 py-1 rounded-full font-medium">{{ number_format($unassignedPercentage, 1) }}%</span>
                             </div>
-                            <h3 class="text-white font-semibold mb-1">Nao Atribuido</h3>
+                            <h3 class="text-white font-semibold mb-1">Não Atribuído</h3>
                             <p class="text-gray-400 text-sm mb-3">Projetos sem empresa ou com porcentagem &lt; 100%</p>
                             <p class="text-2xl font-bold text-gray-400 sensitive-value unassigned-revenue">R$ {{ number_format($stats['unassigned_revenue'], 2, ',', '.') }}</p>
                         </div>
@@ -613,7 +654,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                     <p class="mb-2">Nenhuma empresa cadastrada.</p>
-                    <p class="text-sm">Acesse <a href="{{ route('settings') }}" class="text-cyan-400 hover:text-cyan-300">Configuracoes</a> para cadastrar empresas e vincular aos projetos.</p>
+                    <p class="text-sm">Acesse <a href="{{ route('settings') }}" class="text-cyan-400 hover:text-cyan-300">Configurações</a> para cadastrar empresas e vincular aos projetos.</p>
                 </div>
             @endif
         </div>
@@ -623,6 +664,7 @@
     <script>
         const HOURLY_RATE = {{ $stats['hourly_rate'] }};
         const EXTRA_VALUE = {{ $stats['extra_value'] }};
+        const DISCOUNT_VALUE = {{ $stats['discount_value'] ?? 0 }};
         const CSRF_TOKEN = '{{ csrf_token() }}';
         const CURRENT_MONTH = '{{ $currentMonth }}';
         const CAN_VIEW_BY_DAY = {{ $canViewByDay ? 'true' : 'false' }};
@@ -634,7 +676,10 @@
     <!-- Premium Modal -->
     <x-premium-modal feature="visualizacao por dia" />
 
-    <!-- Modal de Exportacao NF -->
+    <!-- Import CSV Modal -->
+    @include('imports.modal')
+
+    <!-- Modal de Exportação NF -->
     <div id="nf-export-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeNfExportModal()"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
@@ -644,9 +689,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold text-white">Relatorio para Nota Fiscal</h3>
+                <h3 class="text-lg font-semibold text-white">Relatório para Nota Fiscal</h3>
             </div>
-            <p class="text-gray-400 mb-4">Selecione a empresa para gerar o relatorio:</p>
+            <p class="text-gray-400 mb-4">Selecione a empresa para gerar o relatório:</p>
 
             <form action="{{ route('export.nf') }}" method="GET">
                 <input type="hidden" name="month" value="{{ $currentMonth }}">

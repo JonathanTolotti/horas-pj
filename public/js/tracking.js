@@ -709,7 +709,24 @@ function removeEntry(id) {
 function updateStats(stats) {
     document.getElementById('total-hours').textContent = formatHours(parseFloat(stats.total_hours));
     document.getElementById('total-revenue').textContent = formatCurrency(stats.total_revenue);
-    document.getElementById('total-with-extra').textContent = formatCurrency(stats.total_with_extra);
+
+    // Update extra value
+    const extraValueEl = document.getElementById('extra-value');
+    if (extraValueEl) {
+        extraValueEl.textContent = '+' + formatCurrency(stats.extra_value);
+    }
+
+    // Update discount value
+    const discountValueEl = document.getElementById('discount-value');
+    if (discountValueEl && stats.discount_value !== undefined) {
+        discountValueEl.textContent = '-' + formatCurrency(stats.discount_value);
+    }
+
+    // Update total final (with extra and discount)
+    const totalFinalEl = document.getElementById('total-final');
+    if (totalFinalEl && stats.total_final !== undefined) {
+        totalFinalEl.textContent = formatCurrency(stats.total_final);
+    }
 
     // Update company revenues (dynamic cards)
     if (stats.company_revenues) {
