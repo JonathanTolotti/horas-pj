@@ -13,14 +13,26 @@ class SettingsController extends Controller
 {
     public function index(): View
     {
-        $settings = Setting::forUser(auth()->id());
-        $projects = Project::forUser(auth()->id())->with('companies')->orderBy('name')->get();
-        $companies = Company::forUser(auth()->id())->orderBy('name')->get();
+        $user = auth()->user();
+        $settings = Setting::forUser($user->id);
+        $projects = Project::forUser($user->id)->with('companies')->orderBy('name')->get();
+        $companies = Company::forUser($user->id)->orderBy('name')->get();
+
+        // Limites do plano
+        $projectLimit = $user->getLimit('projects');
+        $companyLimit = $user->getLimit('companies');
+        $canAddProject = $projectLimit === null || $projects->count() < $projectLimit;
+        $canAddCompany = $companyLimit === null || $companies->count() < $companyLimit;
 
         return view('settings', [
             'settings' => $settings,
             'projects' => $projects,
             'companies' => $companies,
+            'canAddProject' => $canAddProject,
+            'canAddCompany' => $canAddCompany,
+            'projectLimit' => $projectLimit,
+            'companyLimit' => $companyLimit,
+            'isPremium' => $user->isPremium(),
         ]);
     }
 
@@ -43,19 +55,34 @@ class SettingsController extends Controller
 
     public function storeProject(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        $limit = $user->getLimit('projects');
+
+        // Verificar limite de projetos para plano Free
+        if ($limit !== null) {
+            $currentCount = Project::forUser($user->id)->count();
+            if ($currentCount >= $limit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Limite de {$limit} projeto(s) atingido. Faça upgrade para Premium para criar projetos ilimitados.",
+                    'premium_required' => true,
+                ], 403);
+            }
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'active' => 'boolean',
             'is_default' => 'boolean',
         ]);
 
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = $user->id;
         $validated['active'] = $validated['active'] ?? true;
         $validated['is_default'] = $validated['is_default'] ?? false;
 
         // Se este projeto será o padrão, remover padrão dos outros
         if ($validated['is_default']) {
-            Project::forUser(auth()->id())->update(['is_default' => false]);
+            Project::forUser($user->id)->update(['is_default' => false]);
         }
 
         $project = Project::create($validated);
@@ -123,13 +150,28 @@ class SettingsController extends Controller
 
     public function storeCompany(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        $limit = $user->getLimit('companies');
+
+        // Verificar limite de empresas para plano Free
+        if ($limit !== null) {
+            $currentCount = Company::forUser($user->id)->count();
+            if ($currentCount >= $limit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Limite de {$limit} empresa(s) atingido. Faça upgrade para Premium para cadastrar empresas ilimitadas.",
+                    'premium_required' => true,
+                ], 403);
+            }
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'cnpj' => ['required', 'string', 'size:18', 'regex:/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/'],
             'active' => 'boolean',
         ]);
 
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = $user->id;
         $validated['active'] = $validated['active'] ?? true;
 
         $company = Company::create($validated);
