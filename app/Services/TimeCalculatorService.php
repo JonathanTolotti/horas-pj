@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\OnCallPeriod;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\TimeEntry;
@@ -22,9 +23,11 @@ class TimeCalculatorService
 
     public function getTotalHoursForMonth(int $userId, string $monthReference): float
     {
-        return TimeEntry::forUser($userId)
+        $sum = TimeEntry::forUser($userId)
             ->forMonth($monthReference)
             ->sum('hours');
+
+        return round((float) $sum, 2);
     }
 
     public function getHourlyRate(int $userId): float
@@ -45,9 +48,28 @@ class TimeCalculatorService
         return (float) $settings->discount_value;
     }
 
+    public function getOnCallHourlyRate(int $userId): ?float
+    {
+        $settings = Setting::forUser($userId);
+        return $settings->on_call_hourly_rate ? (float) $settings->on_call_hourly_rate : null;
+    }
+
     public function calculateTotalRevenue(float $totalHours, float $hourlyRate): float
     {
         return round($totalHours * $hourlyRate, 2);
+    }
+
+    public function calculateTotalRevenueFromEntries(int $userId, string $monthReference): float
+    {
+        $hourlyRate = $this->getHourlyRate($userId);
+        $entries = TimeEntry::forUser($userId)->forMonth($monthReference)->get();
+
+        $total = 0;
+        foreach ($entries as $entry) {
+            $total += round((float) $entry->hours * $hourlyRate, 2);
+        }
+
+        return $total;
     }
 
     public function getProjects(int $userId): array
@@ -105,11 +127,12 @@ class TimeCalculatorService
 
     public function calculateRevenueByCompany(int $userId, string $monthReference): array
     {
-        $hourlyRate = $this->getHourlyRate($userId);
         $extraValue = $this->getExtraValue($userId);
         $discountValue = $this->getDiscountValue($userId);
-        $totalHours = $this->getTotalHoursForMonth($userId, $monthReference);
-        $totalRevenue = ($totalHours * $hourlyRate) + $extraValue - $discountValue;
+
+        // Usar o mesmo método de cálculo para consistência
+        $hoursRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
+        $totalRevenue = round($hoursRevenue + $extraValue - $discountValue, 2);
 
         $companies = Company::forUser($userId)->active()->with('projects')->get();
         $companyRevenues = [];
@@ -174,11 +197,10 @@ class TimeCalculatorService
 
     public function getUnassignedRevenue(int $userId, string $monthReference): float
     {
-        $hourlyRate = $this->getHourlyRate($userId);
-        $totalRevenue = $this->getTotalHoursForMonth($userId, $monthReference) * $hourlyRate;
+        $hoursRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
         $extraValue = $this->getExtraValue($userId);
         $discountValue = $this->getDiscountValue($userId);
-        $totalFinal = $totalRevenue + $extraValue - $discountValue;
+        $totalFinal = round($hoursRevenue + $extraValue - $discountValue, 2);
 
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
         $assignedRevenue = array_sum(array_column($companyRevenues, 'revenue'));
@@ -186,11 +208,30 @@ class TimeCalculatorService
         $unassigned = round($totalFinal - $assignedRevenue, 2);
 
         // Ignorar diferenças de arredondamento muito pequenas
-        if (abs($unassigned) <= 0.03) {
+        if (abs($unassigned) <= 0.05) {
             return 0;
         }
 
         return $unassigned;
+    }
+
+    public function getOnCallStats(int $userId, string $monthReference): array
+    {
+        $periods = OnCallPeriod::forUser($userId)->forMonth($monthReference)->get();
+
+        $totalOnCallHours = 0;
+        $totalOnCallRevenue = 0;
+
+        foreach ($periods as $period) {
+            $totalOnCallHours += (float) $period->on_call_hours;
+            $totalOnCallRevenue += (float) $period->on_call_hours * (float) $period->hourly_rate;
+        }
+
+        return [
+            'total_on_call_hours' => round($totalOnCallHours, 2),
+            'total_on_call_revenue' => round($totalOnCallRevenue, 2),
+            'periods_count' => $periods->count(),
+        ];
     }
 
     public function getMonthlyStats(int $userId, string $monthReference): array
@@ -199,11 +240,22 @@ class TimeCalculatorService
         $hourlyRate = $this->getHourlyRate($userId);
         $extraValue = $this->getExtraValue($userId);
         $discountValue = $this->getDiscountValue($userId);
-        $totalRevenue = $this->calculateTotalRevenue($totalHours, $hourlyRate);
-        $totalWithExtra = $totalRevenue + $extraValue;
-        $totalFinal = $totalWithExtra - $discountValue;
+
+        // Calcular receita somando cada lançamento individualmente para evitar erros de arredondamento
+        $totalRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
+
+        $totalWithExtra = round($totalRevenue + $extraValue, 2);
+        $totalFinal = round($totalWithExtra - $discountValue, 2);
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
         $unassignedRevenue = $this->getUnassignedRevenue($userId, $monthReference);
+
+        // Estatísticas de sobreaviso
+        $onCallStats = $this->getOnCallStats($userId, $monthReference);
+        $onCallHours = $onCallStats['total_on_call_hours'];
+        $onCallRevenue = $onCallStats['total_on_call_revenue'];
+
+        // Total final incluindo sobreaviso
+        $totalFinalWithOnCall = round($totalFinal + $onCallRevenue, 2);
 
         return [
             'total_hours' => $totalHours,
@@ -215,6 +267,9 @@ class TimeCalculatorService
             'total_final' => $totalFinal,
             'company_revenues' => $companyRevenues,
             'unassigned_revenue' => $unassignedRevenue,
+            'on_call_hours' => $onCallHours,
+            'on_call_revenue' => $onCallRevenue,
+            'total_final_with_on_call' => $totalFinalWithOnCall,
         ];
     }
 

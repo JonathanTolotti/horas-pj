@@ -254,14 +254,34 @@
 
         </div>
 
+        <!-- Card de Sobreaviso (se houver) -->
+        @if($stats['on_call_hours'] > 0 || $onCallPeriods->count() > 0)
+        <div class="bg-gradient-to-r from-orange-900/30 to-amber-900/30 border border-orange-500/30 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="bg-orange-500/20 p-3 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Sobreaviso do Mês</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $onCallPeriods->count() }} {{ $onCallPeriods->count() == 1 ? 'período' : 'períodos' }} • {{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }} horas</p>
+                    </div>
+                </div>
+                <span class="text-3xl font-bold text-orange-400 sensitive-value" id="on-call-revenue">R$ {{ number_format($stats['on_call_revenue'], 2, ',', '.') }}</span>
+            </div>
+        </div>
+        @endif
+
         <!-- Total Geral -->
         <div class="bg-gradient-to-r from-cyan-900/30 to-purple-900/30 border border-cyan-500/30 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-400 text-sm">Total Final do Mês</p>
-                    <p class="text-xs text-gray-500 mt-1">Horas + acréscimo - desconto</p>
+                    <p class="text-xs text-gray-500 mt-1">Horas + acréscimo - desconto{{ $stats['on_call_revenue'] > 0 ? ' + sobreaviso' : '' }}</p>
                 </div>
-                <span class="text-4xl font-bold text-white sensitive-value" id="total-final">R$ {{ number_format($stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>
+                <span class="text-4xl font-bold text-white sensitive-value" id="total-final">R$ {{ number_format($stats['total_final_with_on_call'] ?? $stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>
             </div>
         </div>
 
@@ -599,13 +619,115 @@
             </div>
         </div>
 
+        <!-- Seção de Sobreaviso -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    Períodos de Sobreaviso
+                </h2>
+                <div class="flex items-center gap-2">
+                    @if($onCallPeriods->count() > 0)
+                    <button onclick="recalculateOnCall()"
+                        class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm"
+                        title="Recalcular vínculos com lançamentos">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span class="hidden sm:inline">Recalcular</span>
+                    </button>
+                    @endif
+                    <button onclick="openOnCallModal()"
+                        class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-orange-500/30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Novo Período
+                    </button>
+                </div>
+            </div>
+
+            <div id="on-call-list">
+                @forelse($onCallPeriods as $period)
+                    <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-orange-500/30 transition-colors mb-3" data-on-call-id="{{ $period->id }}">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-orange-500/20 p-2 rounded-lg">
+                                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-white font-medium">
+                                        {{ $period->start_datetime->format('d/m/Y H:i') }} - {{ $period->end_datetime->format('d/m/Y H:i') }}
+                                    </p>
+                                    @if($period->project)
+                                        <span class="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">{{ $period->project->name }}</span>
+                                    @endif
+                                    @if($period->description)
+                                        <p class="text-gray-500 text-sm mt-1">{{ $period->description }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 text-sm">
+                                <div class="text-center">
+                                    <p class="text-gray-500 text-xs">Total</p>
+                                    <p class="text-white font-mono">{{ sprintf('%02d:%02d', floor($period->total_hours), round(($period->total_hours - floor($period->total_hours)) * 60)) }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-500 text-xs">Trabalhado</p>
+                                    <p class="text-cyan-400 font-mono">{{ sprintf('%02d:%02d', floor($period->worked_hours), round(($period->worked_hours - floor($period->worked_hours)) * 60)) }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-500 text-xs">Sobreaviso</p>
+                                    <p class="text-orange-400 font-mono font-semibold">{{ sprintf('%02d:%02d', floor($period->on_call_hours), round(($period->on_call_hours - floor($period->on_call_hours)) * 60)) }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-500 text-xs">Valor/h</p>
+                                    <p class="text-gray-300 sensitive-value">R$ {{ number_format($period->hourly_rate, 2, ',', '.') }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-500 text-xs">Total</p>
+                                    <p class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($period->on_call_hours * $period->hourly_rate, 2, ',', '.') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="editOnCall({{ $period->id }}, '{{ $period->start_datetime->format('Y-m-d\TH:i') }}', '{{ $period->end_datetime->format('Y-m-d\TH:i') }}', {{ $period->project_id ?? 'null' }}, {{ $period->hourly_rate }}, '{{ addslashes($period->description ?? '') }}')"
+                                class="p-2 text-gray-400 hover:text-white transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button onclick="deleteOnCall({{ $period->id }})"
+                                class="p-2 text-gray-400 hover:text-red-400 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <div id="no-on-call" class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        <p class="mb-2">Nenhum período de sobreaviso cadastrado.</p>
+                        <p class="text-sm">Clique em "Novo Período" para adicionar um período de sobreaviso.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
         <!-- Divisão por Empresa -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                 <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
-                Faturamento por Empresa (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>)
+                Faturamento por Empresa (Total: <span class="sensitive-value">R$ {{ number_format($stats['total_final_with_on_call'] ?? $stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>)
             </h2>
 
             @if(count($stats['company_revenues']) > 0 || $stats['unassigned_revenue'] > 0)
@@ -743,6 +865,211 @@
         function closeNfExportModal() {
             document.getElementById('nf-export-modal').classList.add('hidden');
         }
+    </script>
+    @endpush
+
+    <!-- Modal de Sobreaviso -->
+    <div id="on-call-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeOnCallModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-orange-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white" id="on-call-modal-title">Novo Período de Sobreaviso</h3>
+            </div>
+            <form id="on-call-form" onsubmit="return false;">
+                <input type="hidden" id="on-call-id" value="">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Início</label>
+                            <input type="datetime-local" id="on-call-start"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Fim</label>
+                            <input type="datetime-local" id="on-call-end"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Projeto (opcional)</label>
+                        <select id="on-call-project"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="">Geral (todos os projetos)</option>
+                            @foreach($projects as $project)
+                                <option value="{{ $project->id }}">{{ $project->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora (Sobreaviso)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400">R$</span>
+                            <input type="text" id="on-call-rate" inputmode="decimal" placeholder="Deixe vazio para usar padrão"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-12 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                onkeyup="formatCurrencyInputOnCall(this)" onblur="formatCurrencyInputOnCall(this)"/>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Se vazio, usa o valor configurado ou 1/3 do valor/hora normal</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Descrição (opcional)</label>
+                        <input type="text" id="on-call-description" placeholder="Ex: Plantão de fim de semana"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+                    </div>
+                </div>
+                <div class="flex gap-3 justify-end mt-6">
+                    <button type="button" onclick="closeOnCallModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="saveOnCall()" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors">
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        // Formatação de moeda para sobreaviso
+        function formatCurrencyInputOnCall(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            value = (parseInt(value) / 100).toFixed(2);
+            value = value.replace('.', ',');
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            input.value = value;
+        }
+
+        function parseCurrencyValueOnCall(value) {
+            if (!value) return null;
+            return parseFloat(value.replace(/\./g, '').replace(',', '.')) || null;
+        }
+
+        // Modal de Sobreaviso
+        function openOnCallModal(id = null, start = '', end = '', projectId = null, rate = '', description = '') {
+            document.getElementById('on-call-modal-title').textContent = id ? 'Editar Período de Sobreaviso' : 'Novo Período de Sobreaviso';
+            document.getElementById('on-call-id').value = id || '';
+            document.getElementById('on-call-start').value = start;
+            document.getElementById('on-call-end').value = end;
+            document.getElementById('on-call-project').value = projectId || '';
+            document.getElementById('on-call-rate').value = rate ? parseFloat(rate).toFixed(2).replace('.', ',') : '';
+            document.getElementById('on-call-description').value = description;
+            document.getElementById('on-call-modal').classList.remove('hidden');
+        }
+
+        function closeOnCallModal() {
+            document.getElementById('on-call-modal').classList.add('hidden');
+        }
+
+        function editOnCall(id, start, end, projectId, rate, description) {
+            openOnCallModal(id, start, end, projectId, rate, description);
+        }
+
+        async function saveOnCall() {
+            const id = document.getElementById('on-call-id').value;
+            const startDatetime = document.getElementById('on-call-start').value;
+            const endDatetime = document.getElementById('on-call-end').value;
+            const projectId = document.getElementById('on-call-project').value || null;
+            const hourlyRate = parseCurrencyValueOnCall(document.getElementById('on-call-rate').value);
+            const description = document.getElementById('on-call-description').value;
+
+            if (!startDatetime || !endDatetime) {
+                showToast('Por favor, informe o período de sobreaviso!', TOAST_TYPES.WARNING);
+                return;
+            }
+
+            if (new Date(endDatetime) <= new Date(startDatetime)) {
+                showToast('A data de fim deve ser posterior à data de início!', TOAST_TYPES.WARNING);
+                return;
+            }
+
+            try {
+                const url = id ? `/on-call/${id}` : '/on-call';
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        start_datetime: startDatetime,
+                        end_datetime: endDatetime,
+                        project_id: projectId,
+                        hourly_rate: hourlyRate,
+                        description: description || null
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Erro ao salvar');
+
+                showToast(data.message, TOAST_TYPES.SUCCESS);
+                closeOnCallModal();
+                location.reload();
+            } catch (error) {
+                showToast(error.message, TOAST_TYPES.ERROR);
+            }
+        }
+
+        function deleteOnCall(id) {
+            showConfirm('Deseja realmente excluir este período de sobreaviso?', async () => {
+                try {
+                    const response = await fetch(`/on-call/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': CSRF_TOKEN,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Erro ao excluir');
+
+                    showToast(data.message, TOAST_TYPES.SUCCESS);
+                    location.reload();
+                } catch (error) {
+                    showToast(error.message, TOAST_TYPES.ERROR);
+                }
+            }, 'Excluir Sobreaviso');
+        }
+
+        async function recalculateOnCall() {
+            try {
+                const response = await fetch('/on-call/recalculate?month=' + CURRENT_MONTH, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF_TOKEN,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Erro ao recalcular');
+
+                showToast(data.message, TOAST_TYPES.SUCCESS);
+                location.reload();
+            } catch (error) {
+                showToast(error.message, TOAST_TYPES.ERROR);
+            }
+        }
+
+        // Fechar modal de sobreaviso com Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeOnCallModal();
+            }
+        });
     </script>
     @endpush
 </x-app-layout>

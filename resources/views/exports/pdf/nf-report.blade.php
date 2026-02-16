@@ -267,9 +267,35 @@
                     <td class="label">Valor por Hora:</td>
                     <td class="value">R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</td>
                 </tr>
+                <tr>
+                    <td class="label">Valor das Horas:</td>
+                    <td class="value">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</td>
+                </tr>
+                @if(($stats['on_call_hours'] ?? 0) > 0)
+                <tr>
+                    <td class="label">Horas de Sobreaviso:</td>
+                    <td class="value">{{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Valor do Sobreaviso:</td>
+                    <td class="value">R$ {{ number_format($stats['on_call_revenue'], 2, ',', '.') }}</td>
+                </tr>
+                @endif
+                @if(($stats['extra_value'] ?? 0) > 0)
+                <tr>
+                    <td class="label">Acréscimo:</td>
+                    <td class="value">R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</td>
+                </tr>
+                @endif
+                @if(($stats['discount_value'] ?? 0) > 0)
+                <tr>
+                    <td class="label">Desconto:</td>
+                    <td class="value">- R$ {{ number_format($stats['discount_value'], 2, ',', '.') }}</td>
+                </tr>
+                @endif
                 @php
                     $companyData = collect($stats['company_revenues'])->firstWhere('id', $company->id);
-                    $companyValue = $companyData['revenue'] ?? $stats['total_with_extra'];
+                    $companyValue = $companyData['revenue'] ?? ($stats['total_final_with_on_call'] ?? $stats['total_final'] ?? $stats['total_with_extra']);
                 @endphp
                 <tr class="total">
                     <td class="label">VALOR TOTAL:</td>
@@ -296,8 +322,8 @@
                     @foreach($entries as $entry)
                     <tr>
                         <td>{{ $entry->date->format('d/m/Y') }}</td>
-                        <td class="text-center">{{ substr($entry->start_time, 0, 5) }}</td>
-                        <td class="text-center">{{ substr($entry->end_time, 0, 5) }}</td>
+                        <td class="text-center">{{ $entry->start_time ? substr($entry->start_time, 0, 5) : '-' }}</td>
+                        <td class="text-center">{{ $entry->end_time ? substr($entry->end_time, 0, 5) : '-' }}</td>
                         <td class="text-right">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</td>
                         <td>{{ Str::limit($entry->description, 60) }}</td>
                     </tr>
@@ -329,6 +355,7 @@
             <div class="footer-note">
                 <p>Documento gerado em {{ $generated_at->format('d/m/Y') }} às {{ $generated_at->format('H:i') }}</p>
                 <p>Este documento serve como comprovante das horas trabalhadas para fins de emissão de Nota Fiscal.</p>
+                <p style="margin-top: 10px;">Documento gerado por: https://horas.jonathantolotti.com.br</p>
             </div>
         </div>
     </div>

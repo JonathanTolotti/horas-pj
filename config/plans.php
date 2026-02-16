@@ -30,5 +30,6 @@ return [
         'import_csv' => 'premium',
         'multiple_projects' => 'premium',
         'multiple_companies' => 'premium',
+        'analytics' => 'premium',
     ],
 ];

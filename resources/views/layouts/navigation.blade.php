@@ -1,3 +1,4 @@
+@php $isPremiumUser = Auth::user()->isPremium(); @endphp
 <nav x-data="{ open: false }" class="bg-gray-900 border-b border-gray-800">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,13 +20,48 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('reports.index') }}"
-                       class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                        Relatórios
-                    </a>
+                    <!-- Dropdown Relatórios -->
+                    <div x-data="{ openReports: false }" class="relative inline-flex items-center">
+                        <button @click="openReports = !openReports" @click.outside="openReports = false"
+                           class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Relatórios
+                            <svg class="w-4 h-4 ml-1 transition-transform" :class="{ 'rotate-180': openReports }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="openReports"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute left-0 top-full mt-1 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 py-1"
+                             style="display: none;">
+                            <a href="{{ route('reports.index') }}"
+                               class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('reports.*') ? 'text-cyan-400 bg-gray-700/50' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} transition-colors">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Exportar PDFs
+                            </a>
+                            <a href="{{ route('analytics.index') }}"
+                               class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('analytics.*') ? 'text-purple-400 bg-gray-700/50' : ($isPremiumUser ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-500') }} transition-colors">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                Analytics
+                                @if(!$isPremiumUser)
+                                <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                @endif
+                            </a>
+                        </div>
+                    </div>
                     <a href="{{ route('settings') }}"
                        class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('settings') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,26 +70,18 @@
                         </svg>
                         Configurações
                     </a>
-                    @if(Auth::user()->isPremium())
-                    <button onclick="openImportModal()"
-                       class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600 text-sm font-medium leading-5 transition duration-150 ease-in-out">
+                    <button onclick="{{ $isPremiumUser ? 'openImportModal()' : "showPremiumModal('importação de CSV')" }}"
+                       class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent {{ $isPremiumUser ? 'text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'text-gray-500 hover:text-gray-400' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                         </svg>
                         Importar
-                    </button>
-                    @else
-                    <button onclick="showPremiumModal('importacao de CSV')"
-                       class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-gray-500 hover:text-gray-400 text-sm font-medium leading-5 transition duration-150 ease-in-out">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                        Importar
+                        @if(!$isPremiumUser)
                         <svg class="w-3 h-3 ml-1 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
+                        @endif
                     </button>
-                    @endif
                 </div>
             </div>
 
@@ -155,13 +183,40 @@
                 </svg>
                 Dashboard
             </a>
-            <a href="{{ route('reports.index') }}"
-               class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('reports.*') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                Relatórios
-            </a>
+            <!-- Submenu Relatórios Mobile -->
+            <div x-data="{ openMobileReports: false }">
+                <button @click="openMobileReports = !openMobileReports"
+                   class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Relatórios
+                    <svg class="w-4 h-4 ml-auto transition-transform" :class="{ 'rotate-180': openMobileReports }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="openMobileReports" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="bg-gray-800/50">
+                    <a href="{{ route('reports.index') }}"
+                       class="flex items-center w-full ps-10 pe-4 py-2 {{ request()->routeIs('reports.*') ? 'text-cyan-400' : 'text-gray-400 hover:text-gray-300' }} text-start text-sm font-medium transition duration-150 ease-in-out">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Exportar PDFs
+                    </a>
+                    <a href="{{ route('analytics.index') }}"
+                       class="flex items-center w-full ps-10 pe-4 py-2 {{ request()->routeIs('analytics.*') ? 'text-purple-400' : ($isPremiumUser ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500') }} text-start text-sm font-medium transition duration-150 ease-in-out">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Analytics
+                        @if(!$isPremiumUser)
+                        <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        @endif
+                    </a>
+                </div>
+            </div>
             <a href="{{ route('settings') }}"
                class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('settings') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,26 +225,18 @@
                 </svg>
                 Configurações
             </a>
-            @if(Auth::user()->isPremium())
-            <button onclick="openImportModal()"
-               class="block w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600 text-start text-base font-medium transition duration-150 ease-in-out flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="{{ $isPremiumUser ? 'openImportModal()' : "showPremiumModal('importação de CSV')" }}"
+               class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 border-transparent {{ $isPremiumUser ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' : 'text-gray-500 hover:text-gray-400 hover:bg-gray-800' }} text-start text-base font-medium transition duration-150 ease-in-out">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
                 Importar CSV
-            </button>
-            @else
-            <button onclick="showPremiumModal('importacao de CSV')"
-               class="block w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-gray-500 hover:text-gray-400 hover:bg-gray-800 text-start text-base font-medium transition duration-150 ease-in-out flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                Importar CSV
+                @if(!$isPremiumUser)
                 <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
+                @endif
             </button>
-            @endif
         </div>
 
         <!-- Responsive Settings Options -->

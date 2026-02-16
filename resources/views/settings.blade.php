@@ -193,7 +193,7 @@
             </h2>
 
             <form id="settings-form" onsubmit="return false;">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora</label>
                         <div class="relative">
@@ -204,6 +204,19 @@
                                 onkeyup="formatCurrencyInput(this)" onblur="formatCurrencyInput(this)"/>
                         </div>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora (Sobreaviso)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400">R$</span>
+                            <input type="text" id="on-call-hourly-rate" inputmode="decimal"
+                                value="{{ number_format($settings->on_call_hourly_rate ?? 0, 2, ',', '.') }}"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-12 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                onkeyup="formatCurrencyInput(this)" onblur="formatCurrencyInput(this)"/>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Ex: 1/3 do valor normal (deixe 0 para calcular automaticamente)</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Acréscimo Mensal</label>
                         <div class="relative">
@@ -501,7 +514,11 @@
             document.getElementById('confirm-title').textContent = title;
             document.getElementById('confirm-message').textContent = message;
             confirmCallback = callback;
-            document.getElementById('confirm-btn').onclick = function() { closeConfirmModal(); if (confirmCallback) confirmCallback(); };
+            document.getElementById('confirm-btn').onclick = function() {
+                const cb = confirmCallback;
+                closeConfirmModal();
+                if (cb) cb();
+            };
             modal.classList.remove('hidden');
         }
 
@@ -532,11 +549,12 @@
         // Save Settings
         async function saveSettings() {
             const hourlyRate = parseCurrencyValue(document.getElementById('hourly-rate').value);
+            const onCallHourlyRate = parseCurrencyValue(document.getElementById('on-call-hourly-rate').value);
             const extraValue = parseCurrencyValue(document.getElementById('extra-value').value);
             const discountValue = parseCurrencyValue(document.getElementById('discount-value').value);
             const autoSaveTracking = document.getElementById('auto-save-tracking').checked;
 
-            if (hourlyRate < 0 || extraValue < 0 || discountValue < 0) {
+            if (hourlyRate < 0 || extraValue < 0 || discountValue < 0 || onCallHourlyRate < 0) {
                 showToast('Os valores não podem ser negativos!', TOAST_TYPES.WARNING);
                 return;
             }
@@ -547,6 +565,7 @@
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
                     body: JSON.stringify({
                         hourly_rate: hourlyRate,
+                        on_call_hourly_rate: onCallHourlyRate > 0 ? onCallHourlyRate : null,
                         extra_value: extraValue,
                         discount_value: discountValue,
                         auto_save_tracking: autoSaveTracking

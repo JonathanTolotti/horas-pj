@@ -40,6 +40,7 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'hourly_rate' => 'required|numeric|min:0',
+            'on_call_hourly_rate' => 'nullable|numeric|min:0',
             'extra_value' => 'required|numeric|min:0',
             'discount_value' => 'required|numeric|min:0',
             'auto_save_tracking' => 'boolean',

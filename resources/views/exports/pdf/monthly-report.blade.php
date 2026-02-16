@@ -233,13 +233,87 @@
                     </td>
                     <td>
                         <div class="summary-card">
-                            <div class="label">Total a Receber</div>
-                            <div class="value highlight">R$ {{ number_format($stats['total_with_extra'], 2, ',', '.') }}</div>
+                            <div class="label">Faturamento (Horas)</div>
+                            <div class="value">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</div>
                         </div>
                     </td>
                 </tr>
+                @if(($stats['on_call_hours'] ?? 0) > 0)
+                <tr>
+                    <td>
+                        <div class="summary-card">
+                            <div class="label">Horas Sobreaviso</div>
+                            <div class="value" style="color: #f97316;">{{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="summary-card">
+                            <div class="label">Valor Sobreaviso</div>
+                            <div class="value" style="color: #f97316;">R$ {{ number_format($stats['on_call_revenue'] ?? 0, 2, ',', '.') }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="summary-card">
+                            <div class="label">Total a Receber</div>
+                            <div class="value highlight">R$ {{ number_format($stats['total_final_with_on_call'] ?? $stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</div>
+                        </div>
+                    </td>
+                </tr>
+                @else
+                <tr>
+                    <td colspan="3">
+                        <div class="summary-card" style="margin-top: 10px;">
+                            <div class="label">Total a Receber (com ajustes)</div>
+                            <div class="value highlight">R$ {{ number_format($stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</div>
+                            @if(($stats['extra_value'] ?? 0) > 0 || ($stats['discount_value'] ?? 0) > 0)
+                            <div style="font-size: 8pt; color: #6b7280; margin-top: 5px;">
+                                @if(($stats['extra_value'] ?? 0) > 0)
+                                    Acréscimo: +R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}
+                                @endif
+                                @if(($stats['discount_value'] ?? 0) > 0)
+                                    | Desconto: -R$ {{ number_format($stats['discount_value'], 2, ',', '.') }}
+                                @endif
+                            </div>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @endif
             </table>
         </div>
+
+        <!-- On-Call Periods -->
+        @if(!empty($onCallPeriods) && $onCallPeriods->count() > 0)
+        <div class="companies">
+            <div class="companies-title">Períodos de Sobreaviso</div>
+            <table class="companies-table">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Projeto</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Trabalhado</th>
+                        <th class="text-center">Sobreaviso</th>
+                        <th class="text-right">Valor/h</th>
+                        <th class="text-right">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($onCallPeriods as $period)
+                    <tr>
+                        <td>{{ $period->start_datetime->format('d/m H:i') }} - {{ $period->end_datetime->format('d/m H:i') }}</td>
+                        <td>{{ $period->project?->name ?? 'Geral' }}</td>
+                        <td class="text-center">{{ sprintf('%02d:%02d', floor($period->total_hours), round(($period->total_hours - floor($period->total_hours)) * 60)) }}</td>
+                        <td class="text-center">{{ sprintf('%02d:%02d', floor($period->worked_hours), round(($period->worked_hours - floor($period->worked_hours)) * 60)) }}</td>
+                        <td class="text-center" style="color: #f97316; font-weight: bold;">{{ sprintf('%02d:%02d', floor($period->on_call_hours), round(($period->on_call_hours - floor($period->on_call_hours)) * 60)) }}</td>
+                        <td class="text-right">R$ {{ number_format($period->hourly_rate, 2, ',', '.') }}</td>
+                        <td class="text-right" style="color: #f97316; font-weight: bold;">R$ {{ number_format($period->on_call_hours * $period->hourly_rate, 2, ',', '.') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
 
         <!-- Companies -->
         @if(!empty($stats['company_revenues']))
@@ -285,8 +359,8 @@
                     @foreach($entries as $entry)
                     <tr>
                         <td>{{ $entry->date->format('d/m/Y') }}</td>
-                        <td class="text-center">{{ substr($entry->start_time, 0, 5) }}</td>
-                        <td class="text-center">{{ substr($entry->end_time, 0, 5) }}</td>
+                        <td class="text-center">{{ $entry->start_time ? substr($entry->start_time, 0, 5) : '-' }}</td>
+                        <td class="text-center">{{ $entry->end_time ? substr($entry->end_time, 0, 5) : '-' }}</td>
                         <td class="text-right">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</td>
                         <td>{{ $entry->project?->name ?? '-' }}</td>
                         <td class="description">{{ Str::limit($entry->description, 50) }}</td>
@@ -302,6 +376,7 @@
         <!-- Footer -->
         <div class="footer">
             <p>Controle de Horas PJ - {{ $user->name }}</p>
+            <p style="margin-top: 5px;">Documento gerado por: https://horas.jonathantolotti.com.br</p>
         </div>
     </div>
 </body>

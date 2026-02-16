@@ -352,8 +352,8 @@
                     <tr>
                         <th>Mês</th>
                         <th class="text-right">Horas</th>
-                        <th class="text-right">Faturado (Horas)</th>
-                        <th class="text-right">Valor Extra</th>
+                        <th class="text-right">Faturado</th>
+                        <th class="text-right">Ajustes</th>
                         <th class="text-right">Total</th>
                         <th class="bar-cell">% do Ano</th>
                     </tr>
@@ -365,7 +365,7 @@
                         <td>{{ $month['month_name'] }}</td>
                         <td class="text-right">{{ sprintf('%02d:%02d', floor($month['hours']), round(($month['hours'] - floor($month['hours'])) * 60)) }}</td>
                         <td class="text-right">R$ {{ number_format($month['hours_revenue'], 2, ',', '.') }}</td>
-                        <td class="text-right">R$ {{ number_format($month['extra_value'], 2, ',', '.') }}</td>
+                        <td class="text-right">R$ {{ number_format(($month['extra_value'] ?? 0) - ($month['discount_value'] ?? 0), 2, ',', '.') }}</td>
                         <td class="text-right">R$ {{ number_format($month['revenue'], 2, ',', '.') }}</td>
                         <td class="bar-cell">
                             <div class="bar-container">
@@ -380,7 +380,7 @@
                         <td><strong>TOTAL</strong></td>
                         <td class="text-right"><strong>{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($total_hours * $hourly_rate, 2, ',', '.') }}</strong></td>
-                        <td class="text-right"><strong>R$ {{ number_format($extra_value * count($monthly_data), 2, ',', '.') }}</strong></td>
+                        <td class="text-right"><strong>R$ {{ number_format(($extra_value - $discount_value) * count($monthly_data), 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($total_revenue, 2, ',', '.') }}</strong></td>
                         <td></td>
                     </tr>
@@ -418,12 +418,20 @@
         <!-- Footer -->
         <div class="footer">
             <p class="note">
-                Valor/Hora: R$ {{ number_format($hourly_rate, 2, ',', '.') }} |
-                Valor Extra Mensal: R$ {{ number_format($extra_value, 2, ',', '.') }}
+                Valor/Hora: R$ {{ number_format($hourly_rate, 2, ',', '.') }}
+                @if(($extra_value ?? 0) > 0)
+                | Acréscimo Mensal: R$ {{ number_format($extra_value, 2, ',', '.') }}
+                @endif
+                @if(($discount_value ?? 0) > 0)
+                | Desconto Mensal: R$ {{ number_format($discount_value, 2, ',', '.') }}
+                @endif
             </p>
             <p class="disclaimer">
                 Este relatório é um resumo dos lançamentos registrados no sistema e serve como apoio para a declaração de Imposto de Renda.
                 Consulte seu contador para garantir o correto preenchimento da declaração.
+            </p>
+            <p class="disclaimer" style="margin-top: 10px;">
+                Documento gerado por: https://horas.jonathantolotti.com.br
             </p>
         </div>
     </div>

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\OnCallController;
 use App\Models\Company;
+use App\Models\OnCallPeriod;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Services\TimeCalculatorService;
@@ -51,6 +53,13 @@ class TimeEntryController extends Controller
         $canViewByDay = $user->canUseFeature('view_by_day');
         $entriesByDay = $canViewByDay ? $this->groupEntriesByDay($allEntries, $stats['hourly_rate']) : [];
 
+        // Buscar períodos de sobreaviso
+        $onCallPeriods = OnCallPeriod::forUser(auth()->id())
+            ->forMonth($monthReference)
+            ->with('project')
+            ->orderBy('start_datetime', 'desc')
+            ->get();
+
         return view('dashboard', [
             'entries' => $entries,
             'entriesByDay' => $entriesByDay,
@@ -63,6 +72,7 @@ class TimeEntryController extends Controller
             'canViewByDay' => $canViewByDay,
             'isPremium' => $user->isPremium(),
             'subscriptionAlert' => $user->getSubscriptionAlert(),
+            'onCallPeriods' => $onCallPeriods,
         ]);
     }
 
@@ -106,6 +116,9 @@ class TimeEntryController extends Controller
             'month_reference' => $date->format('Y-m'),
         ]);
 
+        // Vincular ao período de sobreaviso se aplicável
+        OnCallController::linkEntryToOnCallPeriod($entry);
+
         $entry->load('project');
 
         $stats = $this->calculator->getMonthlyStats(
@@ -140,6 +153,10 @@ class TimeEntryController extends Controller
         }
 
         $monthReference = $timeEntry->month_reference;
+
+        // Desvincular do período de sobreaviso se aplicável
+        OnCallController::unlinkEntryFromOnCallPeriod($timeEntry);
+
         $timeEntry->delete();
 
         $stats = $this->calculator->getMonthlyStats(auth()->id(), $monthReference);
@@ -181,13 +198,17 @@ class TimeEntryController extends Controller
     {
         return $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
             ->map(function ($dayEntries) use ($hourlyRate) {
-                $totalHours = $dayEntries->sum('hours');
+                // Somar o valor individual de cada lançamento para evitar erros de arredondamento
+                $totalValue = $dayEntries->sum(function ($entry) use ($hourlyRate) {
+                    return round((float) $entry->hours * $hourlyRate, 2);
+                });
+                $totalHours = round((float) $dayEntries->sum('hours'), 2);
 
                 return [
                     'date' => $dayEntries->first()->date,
                     'entries' => $dayEntries,
                     'total_hours' => $totalHours,
-                    'total_value' => $totalHours * $hourlyRate,
+                    'total_value' => $totalValue,
                     'entries_count' => $dayEntries->count(),
                 ];
             })

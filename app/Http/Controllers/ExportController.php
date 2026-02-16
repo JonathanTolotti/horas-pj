@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\OnCallPeriod;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Services\TimeCalculatorService;
@@ -131,8 +132,8 @@ class ExportController extends Controller
             foreach ($data['entries'] as $entry) {
                 fputcsv($handle, [
                     $entry->date->format('d/m/Y'),
-                    substr($entry->start_time, 0, 5),
-                    substr($entry->end_time, 0, 5),
+                    $entry->start_time ? substr($entry->start_time, 0, 5) : '-',
+                    $entry->end_time ? substr($entry->end_time, 0, 5) : '-',
                     sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)),
                     $entry->project?->name ?? '-',
                     $entry->description,
@@ -197,6 +198,13 @@ class ExportController extends Controller
         // Empresas do usuário
         $companies = Company::forUser($userId)->active()->orderBy('name')->get();
 
+        // Períodos de sobreaviso
+        $onCallPeriods = OnCallPeriod::forUser($userId)
+            ->forMonth($monthReference)
+            ->with('project')
+            ->orderBy('start_datetime', 'asc')
+            ->get();
+
         return [
             'entries' => $entries,
             'stats' => $stats,
@@ -204,6 +212,7 @@ class ExportController extends Controller
             'month_label' => $monthLabel,
             'projects' => $projects,
             'companies' => $companies,
+            'onCallPeriods' => $onCallPeriods,
             'user' => $user,
             'generated_at' => now(),
         ];
@@ -222,8 +231,11 @@ class ExportController extends Controller
         $monthlyData = [];
         $totalHours = 0;
         $totalRevenue = 0;
+        $totalOnCallHours = 0;
+        $totalOnCallRevenue = 0;
         $hourlyRate = $this->calculator->getHourlyRate($userId);
         $extraValue = $this->calculator->getExtraValue($userId);
+        $discountValue = $this->calculator->getDiscountValue($userId);
 
         for ($month = 1; $month <= 12; $month++) {
             $monthReference = sprintf('%d-%02d', $year, $month);
@@ -235,19 +247,29 @@ class ExportController extends Controller
             }
 
             $hours = $this->calculator->getTotalHoursForMonth($userId, $monthReference);
-            $revenue = ($hours * $hourlyRate) + $extraValue;
+            $onCallStats = $this->calculator->getOnCallStats($userId, $monthReference);
+            $onCallHours = $onCallStats['total_on_call_hours'];
+            $onCallRevenue = $onCallStats['total_on_call_revenue'];
+
+            // Total de horas (normais + sobreaviso)
+            $totalMonthHours = $hours + $onCallHours;
+            // Faturamento das horas (normais + sobreaviso)
+            $hoursRevenue = ($hours * $hourlyRate) + $onCallRevenue;
+            // Receita total do mês
+            $revenue = $hoursRevenue + $extraValue - $discountValue;
 
             $monthlyData[] = [
                 'month' => $month,
                 'month_name' => ucfirst($monthDate->isoFormat('MMMM')),
                 'month_short' => ucfirst($monthDate->isoFormat('MMM')),
-                'hours' => $hours,
+                'hours' => $totalMonthHours,
                 'revenue' => $revenue,
                 'extra_value' => $extraValue,
-                'hours_revenue' => $hours * $hourlyRate,
+                'discount_value' => $discountValue,
+                'hours_revenue' => $hoursRevenue,
             ];
 
-            $totalHours += $hours;
+            $totalHours += $totalMonthHours;
             $totalRevenue += $revenue;
         }
 
@@ -318,8 +340,11 @@ class ExportController extends Controller
             'monthly_data' => $monthlyData,
             'total_hours' => $totalHours,
             'total_revenue' => $totalRevenue,
+            'total_on_call_hours' => $totalOnCallHours,
+            'total_on_call_revenue' => $totalOnCallRevenue,
             'hourly_rate' => $hourlyRate,
             'extra_value' => $extraValue,
+            'discount_value' => $discountValue,
             'company_revenues' => $companyRevenues,
             'months_worked' => $monthsWorked,
             'average_monthly_hours' => $averageMonthlyHours,

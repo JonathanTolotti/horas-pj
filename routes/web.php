@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\OnCallController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
@@ -43,8 +45,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tracking/start', [TrackingController::class, 'start'])->name('tracking.start');
     Route::post('/tracking/stop', [TrackingController::class, 'stop'])->name('tracking.stop');
 
+    // On-Call (Sobreaviso)
+    Route::get('/on-call', [OnCallController::class, 'index'])->name('on-call.index');
+    Route::post('/on-call', [OnCallController::class, 'store'])->name('on-call.store');
+    Route::put('/on-call/{onCall}', [OnCallController::class, 'update'])->name('on-call.update');
+    Route::delete('/on-call/{onCall}', [OnCallController::class, 'destroy'])->name('on-call.destroy');
+    Route::get('/on-call/stats', [OnCallController::class, 'stats'])->name('on-call.stats');
+    Route::post('/on-call/recalculate', [OnCallController::class, 'recalculate'])->name('on-call.recalculate');
+
     // Reports
     Route::get('/reports', [ExportController::class, 'index'])->name('reports.index');
+
+    // Analytics (Premium)
+    Route::prefix('analytics')->group(function () {
+        Route::get('/', [AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('/summary', [AnalyticsController::class, 'summary'])->name('analytics.summary');
+        Route::get('/monthly-comparison', [AnalyticsController::class, 'monthlyComparison'])->name('analytics.monthly');
+        Route::get('/hours-by-weekday', [AnalyticsController::class, 'hoursByWeekday'])->name('analytics.weekday');
+        Route::get('/hours-by-project', [AnalyticsController::class, 'hoursByProject'])->name('analytics.project');
+        Route::get('/revenue-trend', [AnalyticsController::class, 'revenueTrend'])->name('analytics.trend');
+    });
 });
 
 Route::middleware('auth')->group(function () {
