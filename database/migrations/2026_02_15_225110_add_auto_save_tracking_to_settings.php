@@ -6,13 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::table('settings', function (Blueprint $table) {
-            $table->boolean('auto_save_tracking')->default(false)->after('discount_value');
-        });
+        if (!Schema::hasColumn('settings', 'auto_save_tracking')) {
+            Schema::table('settings', function (Blueprint $table) {
+                $table->boolean('auto_save_tracking')->default(false)->after('discount_value');
+            });
+        }
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('settings', function (Blueprint $table) {
