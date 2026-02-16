@@ -300,7 +300,7 @@
                     <td>
                         <div class="summary-card">
                             <div class="label">Total de Horas</div>
-                            <div class="value">{{ number_format($total_hours, 1, ',', '.') }}h</div>
+                            <div class="value">{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</div>
                         </div>
                     </td>
                     <td>
@@ -363,7 +363,7 @@
                     @foreach($monthly_data as $month)
                     <tr>
                         <td>{{ $month['month_name'] }}</td>
-                        <td class="text-right">{{ number_format($month['hours'], 1, ',', '.') }}h</td>
+                        <td class="text-right">{{ sprintf('%02d:%02d', floor($month['hours']), round(($month['hours'] - floor($month['hours'])) * 60)) }}</td>
                         <td class="text-right">R$ {{ number_format($month['hours_revenue'], 2, ',', '.') }}</td>
                         <td class="text-right">R$ {{ number_format($month['extra_value'], 2, ',', '.') }}</td>
                         <td class="text-right">R$ {{ number_format($month['revenue'], 2, ',', '.') }}</td>
@@ -378,7 +378,7 @@
                 <tfoot>
                     <tr>
                         <td><strong>TOTAL</strong></td>
-                        <td class="text-right"><strong>{{ number_format($total_hours, 1, ',', '.') }}h</strong></td>
+                        <td class="text-right"><strong>{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($total_hours * $hourly_rate, 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($extra_value * count($monthly_data), 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($total_revenue, 2, ',', '.') }}</strong></td>

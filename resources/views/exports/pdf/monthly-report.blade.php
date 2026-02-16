@@ -222,7 +222,7 @@
                     <td>
                         <div class="summary-card">
                             <div class="label">Total de Horas</div>
-                            <div class="value">{{ number_format($stats['total_hours'], 1, ',', '.') }}h</div>
+                            <div class="value">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</div>
                         </div>
                     </td>
                     <td>
@@ -287,7 +287,7 @@
                         <td>{{ $entry->date->format('d/m/Y') }}</td>
                         <td class="text-center">{{ substr($entry->start_time, 0, 5) }}</td>
                         <td class="text-center">{{ substr($entry->end_time, 0, 5) }}</td>
-                        <td class="text-right">{{ number_format($entry->hours, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</td>
                         <td>{{ $entry->project?->name ?? '-' }}</td>
                         <td class="description">{{ Str::limit($entry->description, 50) }}</td>
                     </tr>

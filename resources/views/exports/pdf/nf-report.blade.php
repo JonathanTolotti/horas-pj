@@ -261,7 +261,7 @@
             <table class="summary-table">
                 <tr>
                     <td class="label">Total de Horas Trabalhadas:</td>
-                    <td class="value">{{ number_format($stats['total_hours'], 1, ',', '.') }} horas</td>
+                    <td class="value">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</td>
                 </tr>
                 <tr>
                     <td class="label">Valor por Hora:</td>
@@ -298,7 +298,7 @@
                         <td>{{ $entry->date->format('d/m/Y') }}</td>
                         <td class="text-center">{{ substr($entry->start_time, 0, 5) }}</td>
                         <td class="text-center">{{ substr($entry->end_time, 0, 5) }}</td>
-                        <td class="text-right">{{ number_format($entry->hours, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</td>
                         <td>{{ Str::limit($entry->description, 60) }}</td>
                     </tr>
                     @endforeach
@@ -306,7 +306,8 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-right">Total:</td>
-                        <td class="text-right">{{ number_format($entries->sum('hours'), 2, ',', '.') }}</td>
+                        @php $totalHours = $entries->sum('hours'); @endphp
+                        <td class="text-right">{{ sprintf('%02d:%02d', floor($totalHours), round(($totalHours - floor($totalHours)) * 60)) }}</td>
                         <td></td>
                     </tr>
                 </tfoot>

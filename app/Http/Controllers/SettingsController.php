@@ -42,6 +42,7 @@ class SettingsController extends Controller
             'hourly_rate' => 'required|numeric|min:0',
             'extra_value' => 'required|numeric|min:0',
             'discount_value' => 'required|numeric|min:0',
+            'auto_save_tracking' => 'boolean',
         ]);
 
         $settings = Setting::forUser(auth()->id());
@@ -75,6 +76,7 @@ class SettingsController extends Controller
             'name' => 'required|string|max:255',
             'active' => 'boolean',
             'is_default' => 'boolean',
+            'default_description' => 'nullable|string|max:255',
         ]);
 
         $validated['user_id'] = $user->id;
@@ -108,6 +110,7 @@ class SettingsController extends Controller
             'name' => 'required|string|max:255',
             'active' => 'boolean',
             'is_default' => 'boolean',
+            'default_description' => 'nullable|string|max:255',
         ]);
 
         // Se este projeto será o padrão, remover padrão dos outros

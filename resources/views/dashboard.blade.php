@@ -325,9 +325,14 @@
 
                     <button type="button" onclick="toggleTracking()" id="track-btn"
                         class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-emerald-500/30">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Play Icon -->
+                        <svg id="track-icon-play" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <!-- Pause Icon (hidden by default) -->
+                        <svg id="track-icon-pause" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span id="track-btn-text">Iniciar Tracking</span>
                     </button>
@@ -456,6 +461,30 @@
                         </div>
                     @endforelse
                 </div>
+
+                <!-- Paginação (apenas na visualização por batidas) -->
+                @if($entries->hasPages())
+                    <div class="p-4 border-t border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-gray-400">
+                                Mostrando {{ $entries->firstItem() }} a {{ $entries->lastItem() }} de {{ $entries->total() }} lançamentos
+                            </p>
+                            <div class="flex gap-2">
+                                @if($entries->onFirstPage())
+                                    <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Anterior</span>
+                                @else
+                                    <a href="{{ $entries->previousPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Anterior</a>
+                                @endif
+
+                                @if($entries->hasMorePages())
+                                    <a href="{{ $entries->nextPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Próximo</a>
+                                @else
+                                    <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Próximo</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- ========== VISUALIZAÇÃO POR DIA ========== -->
@@ -568,30 +597,6 @@
                     @endforelse
                 </div>
             </div>
-
-            <!-- Paginação -->
-            @if($entries->hasPages())
-                <div class="p-4 border-t border-gray-800">
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm text-gray-400">
-                            Mostrando {{ $entries->firstItem() }} a {{ $entries->lastItem() }} de {{ $entries->total() }} lançamentos
-                        </p>
-                        <div class="flex gap-2">
-                            @if($entries->onFirstPage())
-                                <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Anterior</span>
-                            @else
-                                <a href="{{ $entries->previousPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Anterior</a>
-                            @endif
-
-                            @if($entries->hasMorePages())
-                                <a href="{{ $entries->nextPageUrl() }}&month={{ $currentMonth }}" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Próximo</a>
-                            @else
-                                <span class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Próximo</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endif
         </div>
 
         <!-- Divisão por Empresa -->
@@ -665,7 +670,6 @@
         const HOURLY_RATE = {{ $stats['hourly_rate'] }};
         const EXTRA_VALUE = {{ $stats['extra_value'] }};
         const DISCOUNT_VALUE = {{ $stats['discount_value'] ?? 0 }};
-        const CSRF_TOKEN = '{{ csrf_token() }}';
         const CURRENT_MONTH = '{{ $currentMonth }}';
         const CAN_VIEW_BY_DAY = {{ $canViewByDay ? 'true' : 'false' }};
         const IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};

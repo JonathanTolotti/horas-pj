@@ -15,6 +15,7 @@ class Project extends Model
         'name',
         'active',
         'is_default',
+        'default_description',
     ];
 
     protected $casts = [

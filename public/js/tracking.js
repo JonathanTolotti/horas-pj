@@ -403,9 +403,15 @@ async function startTracking() {
 function startTrackingUI(startTime) {
     const btn = document.getElementById('track-btn');
     const btnText = document.getElementById('track-btn-text');
+    const iconPlay = document.getElementById('track-icon-play');
+    const iconPause = document.getElementById('track-icon-pause');
 
     btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
     btn.classList.add('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
+
+    // Toggle icons: hide play, show pause
+    if (iconPlay) iconPlay.classList.add('hidden');
+    if (iconPause) iconPause.classList.remove('hidden');
 
     // Update button text with elapsed time
     trackingInterval = setInterval(() => {
@@ -448,18 +454,42 @@ async function stopTracking() {
             // Clear tracking start time
             trackingStartTime = null;
 
-            // Update form field with end time
-            document.getElementById('entry-end').value = data.end_time;
-
             // Reset button UI
             const btn = document.getElementById('track-btn');
             const btnText = document.getElementById('track-btn-text');
+            const iconPlay = document.getElementById('track-icon-play');
+            const iconPause = document.getElementById('track-icon-pause');
 
             btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
             btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
             btnText.textContent = 'Iniciar Tracking';
 
-            showToast('Tracking parado. Preencha a descricao e adicione o lancamento.', TOAST_TYPES.INFO);
+            // Toggle icons: show play, hide pause
+            if (iconPlay) iconPlay.classList.remove('hidden');
+            if (iconPause) iconPause.classList.add('hidden');
+
+            // Check if auto-saved
+            if (data.auto_saved && data.entry) {
+                // Add entry to table and cards
+                addEntryToTable(data.entry);
+                addEntryToCards(data.entry);
+
+                // Update stats
+                if (data.stats) {
+                    updateStats(data.stats);
+                }
+
+                // Clear form fields
+                document.getElementById('entry-start').value = '';
+                document.getElementById('entry-end').value = '';
+                document.getElementById('entry-description').value = '';
+
+                showToast('Lançamento salvo automaticamente!', TOAST_TYPES.SUCCESS);
+            } else {
+                // Update form field with end time for manual save
+                document.getElementById('entry-end').value = data.end_time;
+                showToast('Tracking parado. Preencha a descrição e adicione o lançamento.', TOAST_TYPES.INFO);
+            }
         }
     } catch (error) {
         showToast('Erro ao parar tracking', TOAST_TYPES.ERROR);
@@ -536,9 +566,16 @@ async function addEntry() {
 
                 const btn = document.getElementById('track-btn');
                 const btnText = document.getElementById('track-btn-text');
+                const iconPlay = document.getElementById('track-icon-play');
+                const iconPause = document.getElementById('track-icon-pause');
+
                 btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
                 btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
                 btnText.textContent = 'Iniciar Tracking';
+
+                // Toggle icons: show play, hide pause
+                if (iconPlay) iconPlay.classList.remove('hidden');
+                if (iconPause) iconPause.classList.add('hidden');
 
                 // Also stop on server
                 fetch('/tracking/stop', {

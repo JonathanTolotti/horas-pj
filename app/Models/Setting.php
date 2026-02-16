@@ -12,12 +12,14 @@ class Setting extends Model
         'hourly_rate',
         'extra_value',
         'discount_value',
+        'auto_save_tracking',
     ];
 
     protected $casts = [
         'hourly_rate' => 'decimal:2',
         'extra_value' => 'decimal:2',
         'discount_value' => 'decimal:2',
+        'auto_save_tracking' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -29,7 +31,7 @@ class Setting extends Model
     {
         return self::firstOrCreate(
             ['user_id' => $userId],
-            ['hourly_rate' => 150.00, 'extra_value' => 0.00, 'discount_value' => 0.00]
+            ['hourly_rate' => 150.00, 'extra_value' => 0.00, 'discount_value' => 0.00, 'auto_save_tracking' => false]
         );
     }
 }

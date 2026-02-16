@@ -133,7 +133,7 @@ class ExportController extends Controller
                     $entry->date->format('d/m/Y'),
                     substr($entry->start_time, 0, 5),
                     substr($entry->end_time, 0, 5),
-                    number_format($entry->hours, 2, ',', '.'),
+                    sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)),
                     $entry->project?->name ?? '-',
                     $entry->description,
                 ], ';');

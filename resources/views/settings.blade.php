@@ -46,6 +46,12 @@
                         <input type="text" id="project-name" placeholder="Ex: Projeto Alpha"
                             class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Descricao Padrao</label>
+                        <input type="text" id="project-default-description" placeholder="Ex: Desenvolvimento de features"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
+                        <p class="text-xs text-gray-500 mt-1">Usada ao salvar tracking automaticamente</p>
+                    </div>
                     <div class="flex items-center gap-6">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" id="project-active" checked
@@ -173,7 +179,7 @@
 
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">Configuracoes</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">Configurações</h1>
             <p class="text-gray-400 text-sm sm:text-base">Gerencie valores e projetos</p>
         </div>
 
@@ -221,6 +227,22 @@
                         <p class="text-xs text-gray-500 mt-1">Ex: Impostos, taxas, deduções</p>
                     </div>
                 </div>
+
+                <!-- Opcao de Auto-Save Tracking -->
+                <div class="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="auto-save-tracking" {{ $settings->auto_save_tracking ? 'checked' : '' }}
+                            class="w-5 h-5 mt-0.5 rounded bg-gray-800 border-gray-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                        <div>
+                            <span class="text-white font-medium">Salvar automaticamente ao parar tracking</span>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Quando ativado, ao parar o tracking o lançamento sera salvo automaticamente
+                                usando o projeto padrão e sua descrição padrão.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+
                 <div class="mt-6">
                     <button type="button" onclick="saveSettings()"
                         class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-emerald-500/30">
@@ -364,7 +386,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                     </svg>
                                 </button>
-                                <button onclick="editProject({{ $project->id }}, '{{ addslashes($project->name) }}', {{ $project->active ? 'true' : 'false' }}, {{ $project->is_default ? 'true' : 'false' }})"
+                                <button onclick="editProject({{ $project->id }}, '{{ addslashes($project->name) }}', {{ $project->active ? 'true' : 'false' }}, {{ $project->is_default ? 'true' : 'false' }}, '{{ addslashes($project->default_description ?? '') }}')"
                                     class="p-2 text-gray-400 hover:text-white transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -421,8 +443,6 @@
 
     @push('scripts')
     <script>
-        const CSRF_TOKEN = '{{ csrf_token() }}';
-
         // Formatacao de moeda
         function formatCurrencyInput(input) {
             let value = input.value.replace(/\D/g, '');
@@ -491,10 +511,11 @@
         }
 
         // Project Modal
-        function openProjectModal(id = null, name = '', active = true, isDefault = false) {
+        function openProjectModal(id = null, name = '', active = true, isDefault = false, defaultDescription = '') {
             document.getElementById('project-modal-title').textContent = id ? 'Editar Projeto' : 'Novo Projeto';
             document.getElementById('project-id').value = id || '';
             document.getElementById('project-name').value = name;
+            document.getElementById('project-default-description').value = defaultDescription || '';
             document.getElementById('project-active').checked = active;
             document.getElementById('project-default').checked = isDefault;
             document.getElementById('project-modal').classList.remove('hidden');
@@ -504,8 +525,8 @@
             document.getElementById('project-modal').classList.add('hidden');
         }
 
-        function editProject(id, name, active, isDefault) {
-            openProjectModal(id, name, active, isDefault);
+        function editProject(id, name, active, isDefault, defaultDescription = '') {
+            openProjectModal(id, name, active, isDefault, defaultDescription);
         }
 
         // Save Settings
@@ -513,6 +534,7 @@
             const hourlyRate = parseCurrencyValue(document.getElementById('hourly-rate').value);
             const extraValue = parseCurrencyValue(document.getElementById('extra-value').value);
             const discountValue = parseCurrencyValue(document.getElementById('discount-value').value);
+            const autoSaveTracking = document.getElementById('auto-save-tracking').checked;
 
             if (hourlyRate < 0 || extraValue < 0 || discountValue < 0) {
                 showToast('Os valores não podem ser negativos!', TOAST_TYPES.WARNING);
@@ -523,7 +545,12 @@
                 const response = await fetch('/settings', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
-                    body: JSON.stringify({ hourly_rate: hourlyRate, extra_value: extraValue, discount_value: discountValue })
+                    body: JSON.stringify({
+                        hourly_rate: hourlyRate,
+                        extra_value: extraValue,
+                        discount_value: discountValue,
+                        auto_save_tracking: autoSaveTracking
+                    })
                 });
 
                 const data = await response.json();
@@ -538,6 +565,7 @@
         async function saveProject() {
             const id = document.getElementById('project-id').value;
             const name = document.getElementById('project-name').value;
+            const defaultDescription = document.getElementById('project-default-description').value;
             const active = document.getElementById('project-active').checked;
             const isDefault = document.getElementById('project-default').checked;
 
@@ -553,7 +581,12 @@
                 const response = await fetch(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
-                    body: JSON.stringify({ name, active, is_default: isDefault })
+                    body: JSON.stringify({
+                        name,
+                        active,
+                        is_default: isDefault,
+                        default_description: defaultDescription || null
+                    })
                 });
 
                 const data = await response.json();
