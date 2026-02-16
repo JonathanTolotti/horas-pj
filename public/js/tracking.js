@@ -78,50 +78,96 @@ function initializeTimeMasks() {
 }
 
 function handleTimeInput(e) {
-    let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const input = e.target;
+    let cursorPos = input.selectionStart;
+    const oldLen = input.value.length;
 
-    if (value.length >= 2) {
-        value = value.substring(0, 2) + ':' + value.substring(2, 4);
+    let digits = input.value.replace(/\D/g, ''); // Remove non-digits
+
+    // Limit to 4 digits
+    digits = digits.substring(0, 4);
+
+    // Format as HH:mm
+    let newValue = '';
+    if (digits.length === 0) {
+        newValue = '';
+    } else if (digits.length <= 2) {
+        newValue = digits;
+    } else {
+        newValue = digits.substring(0, 2) + ':' + digits.substring(2);
     }
 
-    e.target.value = value.substring(0, 5);
+    // Only update if value changed
+    if (input.value !== newValue) {
+        input.value = newValue;
+
+        // Adjust cursor position for the colon
+        const newLen = newValue.length;
+        if (newLen > oldLen && cursorPos >= 2 && newValue.includes(':')) {
+            cursorPos = Math.min(cursorPos + 1, newLen);
+        } else {
+            cursorPos = Math.min(cursorPos, newLen);
+        }
+
+        input.setSelectionRange(cursorPos, cursorPos);
+    }
 }
 
 function handleTimeKeydown(e) {
+    const input = e.target;
+
     // Allow: backspace, delete, tab, escape, enter
     if ([8, 9, 27, 13, 46].includes(e.keyCode)) {
+        // If Ctrl+Backspace, clear everything
+        if (e.ctrlKey && e.keyCode === 8) {
+            setTimeout(() => { input.value = ''; }, 0);
+        }
         return;
     }
+
     // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
     if ((e.keyCode === 65 || e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 88) && e.ctrlKey) {
         return;
     }
+
     // Allow: home, end, left, right
     if (e.keyCode >= 35 && e.keyCode <= 39) {
         return;
     }
+
     // Block if not a number
-    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+    const isNumber = (e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105);
+    if (!isNumber || e.shiftKey) {
         e.preventDefault();
+        return;
     }
-    // Block if already at max length
-    if (e.target.value.length >= 5 && ![8, 46].includes(e.keyCode)) {
-        e.preventDefault();
-    }
+
+    // Allow typing - handleTimeInput will handle the formatting and max length
 }
 
 function validateTimeInput(e) {
     const value = e.target.value;
     if (!value) return;
 
-    const parts = value.split(':');
-    if (parts.length !== 2) {
+    // Remove non-digits and pad
+    let digits = value.replace(/\D/g, '');
+
+    if (digits.length === 0) {
         e.target.value = '';
         return;
     }
 
-    let hours = parseInt(parts[0], 10);
-    let minutes = parseInt(parts[1], 10);
+    // Pad with zeros if needed
+    if (digits.length === 1) {
+        digits = '0' + digits + '00';
+    } else if (digits.length === 2) {
+        digits = digits + '00';
+    } else if (digits.length === 3) {
+        digits = '0' + digits;
+    }
+
+    let hours = parseInt(digits.substring(0, 2), 10);
+    let minutes = parseInt(digits.substring(2, 4), 10);
 
     // Validate and fix hours
     if (isNaN(hours) || hours < 0) hours = 0;
