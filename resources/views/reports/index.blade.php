@@ -260,7 +260,4 @@
         }
     </script>
     @endpush
-
-    <!-- Premium Modal -->
-    <x-premium-modal feature="exportação de relatórios" />
 </x-app-layout>

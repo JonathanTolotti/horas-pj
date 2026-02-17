@@ -634,7 +634,7 @@ async function addEntry() {
                 }).catch(() => {});
             }
 
-            showToast('Lancamento adicionado com sucesso!', TOAST_TYPES.SUCCESS);
+            showToast('Lançamento adicionado com sucesso!', TOAST_TYPES.SUCCESS);
         }
     } catch (error) {
         showToast(error.message, TOAST_TYPES.ERROR);

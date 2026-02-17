@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCompanyRequest;
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\Company;
 use App\Models\Project;
 use App\Models\Setting;
@@ -36,16 +39,9 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function updateSettings(Request $request): JsonResponse
+    public function updateSettings(UpdateSettingsRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'hourly_rate' => 'required|numeric|min:0',
-            'on_call_hourly_rate' => 'nullable|numeric|min:0',
-            'extra_value' => 'required|numeric|min:0',
-            'discount_value' => 'required|numeric|min:0',
-            'auto_save_tracking' => 'boolean',
-        ]);
-
+        $validated = $request->validated();
         $settings = Setting::forUser(auth()->id());
         $settings->update($validated);
 
@@ -56,7 +52,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function storeProject(Request $request): JsonResponse
+    public function storeProject(StoreProjectRequest $request): JsonResponse
     {
         $user = auth()->user();
         $limit = $user->getLimit('projects');
@@ -73,13 +69,7 @@ class SettingsController extends Controller
             }
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'active' => 'boolean',
-            'is_default' => 'boolean',
-            'default_description' => 'nullable|string|max:255',
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = $user->id;
         $validated['active'] = $validated['active'] ?? true;
         $validated['is_default'] = $validated['is_default'] ?? false;
@@ -98,7 +88,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function updateProject(Request $request, Project $project): JsonResponse
+    public function updateProject(StoreProjectRequest $request, Project $project): JsonResponse
     {
         if ($project->user_id !== auth()->id()) {
             return response()->json([
@@ -107,12 +97,7 @@ class SettingsController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'active' => 'boolean',
-            'is_default' => 'boolean',
-            'default_description' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         // Se este projeto será o padrão, remover padrão dos outros
         if ($validated['is_default'] ?? false) {
@@ -153,7 +138,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function storeCompany(Request $request): JsonResponse
+    public function storeCompany(StoreCompanyRequest $request): JsonResponse
     {
         $user = auth()->user();
         $limit = $user->getLimit('companies');
@@ -170,12 +155,7 @@ class SettingsController extends Controller
             }
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'cnpj' => ['required', 'string', 'size:18', 'regex:/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/'],
-            'active' => 'boolean',
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = $user->id;
         $validated['active'] = $validated['active'] ?? true;
 
@@ -188,7 +168,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function updateCompany(Request $request, Company $company): JsonResponse
+    public function updateCompany(StoreCompanyRequest $request, Company $company): JsonResponse
     {
         if ($company->user_id !== auth()->id()) {
             return response()->json([
@@ -197,12 +177,7 @@ class SettingsController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'cnpj' => ['required', 'string', 'size:18', 'regex:/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/'],
-            'active' => 'boolean',
-        ]);
-
+        $validated = $request->validated();
         $company->update($validated);
 
         return response()->json([

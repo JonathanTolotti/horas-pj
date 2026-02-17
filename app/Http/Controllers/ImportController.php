@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImportCsvRequest;
 use App\Services\CsvImportService;
 use App\Services\TimeCalculatorService;
 use Illuminate\Http\JsonResponse;
@@ -21,12 +22,8 @@ class ImportController extends Controller
     /**
      * Preview CSV import
      */
-    public function preview(Request $request): JsonResponse
+    public function preview(ImportCsvRequest $request): JsonResponse
     {
-        $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:2048',
-        ]);
-
         $file = $request->file('file');
         $content = file_get_contents($file->getRealPath());
 
@@ -48,13 +45,8 @@ class ImportController extends Controller
     /**
      * Execute CSV import
      */
-    public function import(Request $request): JsonResponse
+    public function import(ImportCsvRequest $request): JsonResponse
     {
-        $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:2048',
-            'ignore_overlaps' => 'boolean',
-        ]);
-
         $file = $request->file('file');
         $content = file_get_contents($file->getRealPath());
 

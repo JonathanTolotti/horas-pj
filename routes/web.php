@@ -45,13 +45,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tracking/start', [TrackingController::class, 'start'])->name('tracking.start');
     Route::post('/tracking/stop', [TrackingController::class, 'stop'])->name('tracking.stop');
 
-    // On-Call (Sobreaviso)
+    // On-Call (Sobreaviso) - apenas leitura para todos
     Route::get('/on-call', [OnCallController::class, 'index'])->name('on-call.index');
-    Route::post('/on-call', [OnCallController::class, 'store'])->name('on-call.store');
-    Route::put('/on-call/{onCall}', [OnCallController::class, 'update'])->name('on-call.update');
-    Route::delete('/on-call/{onCall}', [OnCallController::class, 'destroy'])->name('on-call.destroy');
     Route::get('/on-call/stats', [OnCallController::class, 'stats'])->name('on-call.stats');
-    Route::post('/on-call/recalculate', [OnCallController::class, 'recalculate'])->name('on-call.recalculate');
 
     // Reports
     Route::get('/reports', [ExportController::class, 'index'])->name('reports.index');
@@ -102,6 +98,14 @@ Route::middleware(['auth', 'verified', 'premium:export_excel'])->group(function 
 Route::middleware(['auth', 'verified', 'premium:import_csv'])->prefix('import')->group(function () {
     Route::post('/csv/preview', [ImportController::class, 'preview'])->name('import.preview');
     Route::post('/csv', [ImportController::class, 'import'])->name('import.csv');
+});
+
+// Rotas de Sobreaviso (Premium)
+Route::middleware(['auth', 'verified', 'premium:on_call'])->group(function () {
+    Route::post('/on-call', [OnCallController::class, 'store'])->name('on-call.store');
+    Route::put('/on-call/{onCall}', [OnCallController::class, 'update'])->name('on-call.update');
+    Route::delete('/on-call/{onCall}', [OnCallController::class, 'destroy'])->name('on-call.destroy');
+    Route::post('/on-call/recalculate', [OnCallController::class, 'recalculate'])->name('on-call.recalculate');
 });
 
 require __DIR__.'/auth.php';

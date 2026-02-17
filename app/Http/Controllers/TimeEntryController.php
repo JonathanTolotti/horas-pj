@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\OnCallController;
+use App\Http\Requests\StoreTimeEntryRequest;
 use App\Models\Company;
 use App\Models\OnCallPeriod;
 use App\Models\Project;
@@ -51,6 +51,7 @@ class TimeEntryController extends Controller
 
         $user = auth()->user();
         $canViewByDay = $user->canUseFeature('view_by_day');
+        $canUseOnCall = $user->canUseFeature('on_call');
         $entriesByDay = $canViewByDay ? $this->groupEntriesByDay($allEntries, $stats['hourly_rate']) : [];
 
         // Buscar períodos de sobreaviso
@@ -70,22 +71,16 @@ class TimeEntryController extends Controller
             'companies' => $companies,
             'defaultProjectId' => $defaultProject?->id,
             'canViewByDay' => $canViewByDay,
+            'canUseOnCall' => $canUseOnCall,
             'isPremium' => $user->isPremium(),
             'subscriptionAlert' => $user->getSubscriptionAlert(),
             'onCallPeriods' => $onCallPeriods,
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreTimeEntryRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'description' => 'required|string|max:1000',
-            'project_id' => 'nullable|exists:projects,id',
-        ]);
-
+        $validated = $request->validated();
         $date = Carbon::parse($validated['date']);
 
         if ($this->calculator->hasOverlappingEntry(
@@ -116,9 +111,9 @@ class TimeEntryController extends Controller
             'month_reference' => $date->format('Y-m'),
         ]);
 
-        // Vincular ao período de sobreaviso se aplicável
-        OnCallController::linkEntryToOnCallPeriod($entry);
+        // Vinculo com sobreaviso e feito automaticamente pelo TimeEntryObserver
 
+        $entry->refresh();
         $entry->load('project');
 
         $stats = $this->calculator->getMonthlyStats(
@@ -154,9 +149,7 @@ class TimeEntryController extends Controller
 
         $monthReference = $timeEntry->month_reference;
 
-        // Desvincular do período de sobreaviso se aplicável
-        OnCallController::unlinkEntryFromOnCallPeriod($timeEntry);
-
+        // Desvinculo com sobreaviso e feito automaticamente pelo TimeEntryObserver
         $timeEntry->delete();
 
         $stats = $this->calculator->getMonthlyStats(auth()->id(), $monthReference);

@@ -275,8 +275,13 @@ class TimeCalculatorService
 
     public function hasOverlappingEntry(int $userId, string $date, string $startTime, string $endTime, ?int $excludeId = null): bool
     {
+        // Usar Carbon para garantir formato consistente entre SQLite e MySQL
+        $parsedDate = Carbon::parse($date);
+        $startOfDay = $parsedDate->copy()->startOfDay();
+        $endOfDay = $parsedDate->copy()->endOfDay();
+
         $query = TimeEntry::forUser($userId)
-            ->where('date', $date)
+            ->whereBetween('date', [$startOfDay, $endOfDay])
             ->where(function ($q) use ($startTime, $endTime) {
                 $q->where(function ($sub) use ($startTime, $endTime) {
                     $sub->where('start_time', '<', $endTime)

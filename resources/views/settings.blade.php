@@ -451,9 +451,6 @@
         </div>
     </div>
 
-    <!-- Premium Modal -->
-    <x-premium-modal feature="criacao de multiplos projetos e empresas" />
-
     @push('scripts')
     <script>
         // Formatacao de moeda

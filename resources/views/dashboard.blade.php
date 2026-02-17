@@ -627,28 +627,42 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
                     Períodos de Sobreaviso
+                    @if(!$canUseOnCall)
+                        <span class="ml-2 px-2 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">Premium</span>
+                    @endif
                 </h2>
                 <div class="flex items-center gap-2">
-                    @if($onCallPeriods->count() > 0)
-                    <button onclick="recalculateOnCall()"
-                        class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm"
-                        title="Recalcular vínculos com lançamentos">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                        </svg>
-                        <span class="hidden sm:inline">Recalcular</span>
-                    </button>
+                    @if($canUseOnCall)
+                        @if($onCallPeriods->count() > 0)
+                        <button onclick="recalculateOnCall()"
+                            class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm"
+                            title="Recalcular vínculos com lançamentos">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span class="hidden sm:inline">Recalcular</span>
+                        </button>
+                        @endif
+                        <button onclick="openOnCallModal()"
+                            class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-orange-500/30">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Novo Período
+                        </button>
+                    @else
+                        <button onclick="showPremiumModal('sobreaviso')"
+                            class="bg-gray-700 text-gray-400 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-600">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            Novo Período
+                        </button>
                     @endif
-                    <button onclick="openOnCallModal()"
-                        class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-orange-500/30">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Novo Período
-                    </button>
                 </div>
             </div>
 
+            @if($canUseOnCall)
             <div id="on-call-list">
                 @forelse($onCallPeriods as $period)
                     <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-orange-500/30 transition-colors mb-3" data-on-call-id="{{ $period->id }}">
@@ -719,6 +733,27 @@
                     </div>
                 @endforelse
             </div>
+            @else
+            <!-- Bloqueio Premium - Sobreaviso -->
+            <div class="text-center py-8">
+                <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-xl p-8 max-w-md mx-auto">
+                    <div class="bg-amber-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Funcionalidade Premium</h3>
+                    <p class="text-gray-400 text-sm mb-4">
+                        O controle de sobreaviso está disponível apenas para assinantes Premium.
+                        Registre períodos de sobreaviso e calcule automaticamente as horas trabalhadas versus horas de disponibilidade.
+                    </p>
+                    <button onclick="showPremiumModal('sobreaviso')"
+                        class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-amber-500/30">
+                        Desbloquear Sobreaviso
+                    </button>
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Divisão por Empresa -->
@@ -794,13 +829,11 @@
         const DISCOUNT_VALUE = {{ $stats['discount_value'] ?? 0 }};
         const CURRENT_MONTH = '{{ $currentMonth }}';
         const CAN_VIEW_BY_DAY = {{ $canViewByDay ? 'true' : 'false' }};
+        const CAN_USE_ON_CALL = {{ $canUseOnCall ? 'true' : 'false' }};
         const IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
     </script>
     <script src="{{ asset('js/tracking.js') }}?v={{ filemtime(public_path('js/tracking.js')) }}"></script>
     @endpush
-
-    <!-- Premium Modal -->
-    <x-premium-modal feature="visualizacao por dia" />
 
     <!-- Import CSV Modal -->
     @include('imports.modal')
@@ -869,72 +902,176 @@
     @endpush
 
     <!-- Modal de Sobreaviso -->
-    <div id="on-call-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeOnCallModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="bg-orange-500/20 p-2 rounded-lg">
-                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
+    <div id="on-call-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="min-h-screen px-4 flex items-center justify-center">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" onclick="closeOnCallModal()"></div>
+            <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg my-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-orange-500/20 p-2 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white" id="on-call-modal-title">Novo Período de Sobreaviso</h3>
                 </div>
-                <h3 class="text-lg font-semibold text-white" id="on-call-modal-title">Novo Período de Sobreaviso</h3>
+                <form id="on-call-form" onsubmit="return false;">
+                    <input type="hidden" id="on-call-id" value="">
+                    <div class="space-y-4">
+                        <!-- Inicio -->
+                        <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <label class="block text-sm font-medium text-orange-400 mb-3">Início do Sobreaviso</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Data</label>
+                                    <input type="text" id="on-call-start-date" placeholder="Selecione..."
+                                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer" readonly/>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Hora</label>
+                                    <input type="text" id="on-call-start-time" placeholder="00:00" maxlength="5"
+                                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono"/>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Fim -->
+                        <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <label class="block text-sm font-medium text-orange-400 mb-3">Fim do Sobreaviso</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Data</label>
+                                    <input type="text" id="on-call-end-date" placeholder="Selecione..."
+                                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer" readonly/>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Hora</label>
+                                    <input type="text" id="on-call-end-time" placeholder="00:00" maxlength="5"
+                                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Projeto (opcional)</label>
+                            <select id="on-call-project"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                <option value="">Geral (todos os projetos)</option>
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}">{{ $project->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora (Sobreaviso)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400">R$</span>
+                                <input type="text" id="on-call-rate" inputmode="decimal" placeholder="Deixe vazio para usar padrão"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-12 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    onkeyup="formatCurrencyInputOnCall(this)" onblur="formatCurrencyInputOnCall(this)"/>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Se vazio, usa o valor configurado ou 1/3 do valor/hora normal</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Descrição (opcional)</label>
+                            <input type="text" id="on-call-description" placeholder="Ex: Plantão de fim de semana"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 justify-end mt-6">
+                        <button type="button" onclick="closeOnCallModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="button" onclick="saveOnCall()" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
             </div>
-            <form id="on-call-form" onsubmit="return false;">
-                <input type="hidden" id="on-call-id" value="">
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2">Início</label>
-                            <input type="datetime-local" id="on-call-start"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2">Fim</label>
-                            <input type="datetime-local" id="on-call-end"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Projeto (opcional)</label>
-                        <select id="on-call-project"
-                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <option value="">Geral (todos os projetos)</option>
-                            @foreach($projects as $project)
-                                <option value="{{ $project->id }}">{{ $project->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora (Sobreaviso)</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400">R$</span>
-                            <input type="text" id="on-call-rate" inputmode="decimal" placeholder="Deixe vazio para usar padrão"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-12 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                onkeyup="formatCurrencyInputOnCall(this)" onblur="formatCurrencyInputOnCall(this)"/>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">Se vazio, usa o valor configurado ou 1/3 do valor/hora normal</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Descrição (opcional)</label>
-                        <input type="text" id="on-call-description" placeholder="Ex: Plantão de fim de semana"
-                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
-                    </div>
-                </div>
-                <div class="flex gap-3 justify-end mt-6">
-                    <button type="button" onclick="closeOnCallModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
-                        Cancelar
-                    </button>
-                    <button type="button" onclick="saveOnCall()" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors">
-                        Salvar
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
     @push('scripts')
     <script>
+        // Flatpickr para sobreaviso (apenas data)
+        let onCallStartDatePicker, onCallEndDatePicker;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const flatpickrConfig = {
+                locale: 'pt',
+                dateFormat: 'd/m/Y',
+                disableMobile: true,
+                allowInput: false
+            };
+
+            onCallStartDatePicker = flatpickr('#on-call-start-date', flatpickrConfig);
+            onCallEndDatePicker = flatpickr('#on-call-end-date', flatpickrConfig);
+
+            // Inicializar máscaras de hora para sobreaviso
+            initializeOnCallTimeMasks();
+        });
+
+        // Máscara de hora para sobreaviso (igual ao dashboard)
+        function initializeOnCallTimeMasks() {
+            const timeInputs = document.querySelectorAll('#on-call-start-time, #on-call-end-time');
+            timeInputs.forEach(input => {
+                input.addEventListener('input', handleOnCallTimeInput);
+                input.addEventListener('blur', validateOnCallTimeInput);
+                input.addEventListener('keydown', handleOnCallTimeKeydown);
+            });
+        }
+
+        function handleOnCallTimeInput(e) {
+            const input = e.target;
+            let cursorPos = input.selectionStart;
+            const oldLen = input.value.length;
+
+            let digits = input.value.replace(/\D/g, '');
+            digits = digits.substring(0, 4);
+
+            let newValue = '';
+            if (digits.length === 0) {
+                newValue = '';
+            } else if (digits.length <= 2) {
+                newValue = digits;
+            } else {
+                newValue = digits.substring(0, 2) + ':' + digits.substring(2);
+            }
+
+            if (input.value !== newValue) {
+                input.value = newValue;
+                const newLen = newValue.length;
+                const newPos = cursorPos + (newLen - oldLen);
+                input.setSelectionRange(Math.max(0, newPos), Math.max(0, newPos));
+            }
+        }
+
+        function validateOnCallTimeInput(e) {
+            const input = e.target;
+            const value = input.value;
+
+            if (!value) return;
+
+            const match = value.match(/^(\d{1,2}):?(\d{0,2})$/);
+            if (match) {
+                let hours = parseInt(match[1]) || 0;
+                let minutes = parseInt(match[2]) || 0;
+
+                hours = Math.min(23, Math.max(0, hours));
+                minutes = Math.min(59, Math.max(0, minutes));
+
+                input.value = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+            } else {
+                input.value = '';
+            }
+        }
+
+        function handleOnCallTimeKeydown(e) {
+            const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+            if (allowedKeys.includes(e.key)) return;
+            if (e.ctrlKey || e.metaKey) return;
+            if (!/^\d$/.test(e.key)) {
+                e.preventDefault();
+            }
+        }
+
         // Formatação de moeda para sobreaviso
         function formatCurrencyInputOnCall(input) {
             let value = input.value.replace(/\D/g, '');
@@ -953,12 +1090,57 @@
             return parseFloat(value.replace(/\./g, '').replace(',', '.')) || null;
         }
 
+        // Converte data BR + hora para formato ISO
+        function buildDatetime(dateStr, timeStr) {
+            if (!dateStr || !timeStr) return null;
+            // dateStr: dd/mm/yyyy, timeStr: HH:mm
+            const [day, month, year] = dateStr.split('/');
+            return `${year}-${month}-${day}T${timeStr}`;
+        }
+
+        // Extrai data e hora de formato ISO
+        function parseDatetime(isoStr) {
+            if (!isoStr) return { date: '', time: '' };
+            // isoStr: yyyy-mm-ddTHH:mm ou yyyy-mm-dd HH:mm
+            const normalized = isoStr.replace(' ', 'T');
+            const [datePart, timePart] = normalized.split('T');
+            const [year, month, day] = datePart.split('-');
+            return {
+                date: `${day}/${month}/${year}`,
+                time: timePart ? timePart.substring(0, 5) : '00:00'
+            };
+        }
+
         // Modal de Sobreaviso
         function openOnCallModal(id = null, start = '', end = '', projectId = null, rate = '', description = '') {
+            if (!CAN_USE_ON_CALL) {
+                showPremiumModal('sobreaviso');
+                return;
+            }
+
             document.getElementById('on-call-modal-title').textContent = id ? 'Editar Período de Sobreaviso' : 'Novo Período de Sobreaviso';
             document.getElementById('on-call-id').value = id || '';
-            document.getElementById('on-call-start').value = start;
-            document.getElementById('on-call-end').value = end;
+
+            // Parse e set das datas/horas
+            const startParsed = parseDatetime(start);
+            const endParsed = parseDatetime(end);
+
+            if (startParsed.date) {
+                onCallStartDatePicker.setDate(startParsed.date, false, 'd/m/Y');
+                document.getElementById('on-call-start-time').value = startParsed.time;
+            } else {
+                onCallStartDatePicker.clear();
+                document.getElementById('on-call-start-time').value = '';
+            }
+
+            if (endParsed.date) {
+                onCallEndDatePicker.setDate(endParsed.date, false, 'd/m/Y');
+                document.getElementById('on-call-end-time').value = endParsed.time;
+            } else {
+                onCallEndDatePicker.clear();
+                document.getElementById('on-call-end-time').value = '';
+            }
+
             document.getElementById('on-call-project').value = projectId || '';
             document.getElementById('on-call-rate').value = rate ? parseFloat(rate).toFixed(2).replace('.', ',') : '';
             document.getElementById('on-call-description').value = description;
@@ -974,20 +1156,30 @@
         }
 
         async function saveOnCall() {
+            if (!CAN_USE_ON_CALL) {
+                showPremiumModal('sobreaviso');
+                return;
+            }
+
             const id = document.getElementById('on-call-id').value;
-            const startDatetime = document.getElementById('on-call-start').value;
-            const endDatetime = document.getElementById('on-call-end').value;
+            const startDate = document.getElementById('on-call-start-date').value;
+            const startTime = document.getElementById('on-call-start-time').value;
+            const endDate = document.getElementById('on-call-end-date').value;
+            const endTime = document.getElementById('on-call-end-time').value;
             const projectId = document.getElementById('on-call-project').value || null;
             const hourlyRate = parseCurrencyValueOnCall(document.getElementById('on-call-rate').value);
             const description = document.getElementById('on-call-description').value;
 
-            if (!startDatetime || !endDatetime) {
-                showToast('Por favor, informe o período de sobreaviso!', TOAST_TYPES.WARNING);
+            if (!startDate || !startTime || !endDate || !endTime) {
+                showToast('Por favor, informe data e hora de início e fim!', TOAST_TYPES.WARNING);
                 return;
             }
 
+            const startDatetime = buildDatetime(startDate, startTime);
+            const endDatetime = buildDatetime(endDate, endTime);
+
             if (new Date(endDatetime) <= new Date(startDatetime)) {
-                showToast('A data de fim deve ser posterior à data de início!', TOAST_TYPES.WARNING);
+                showToast('A data/hora de fim deve ser posterior à de início!', TOAST_TYPES.WARNING);
                 return;
             }
 
@@ -1023,6 +1215,10 @@
         }
 
         function deleteOnCall(id) {
+            if (!CAN_USE_ON_CALL) {
+                showPremiumModal('sobreaviso');
+                return;
+            }
             showConfirm('Deseja realmente excluir este período de sobreaviso?', async () => {
                 try {
                     const response = await fetch(`/on-call/${id}`, {
@@ -1045,6 +1241,10 @@
         }
 
         async function recalculateOnCall() {
+            if (!CAN_USE_ON_CALL) {
+                showPremiumModal('sobreaviso');
+                return;
+            }
             try {
                 const response = await fetch('/on-call/recalculate?month=' + CURRENT_MONTH, {
                     method: 'POST',

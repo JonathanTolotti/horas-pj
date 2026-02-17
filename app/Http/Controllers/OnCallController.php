@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreOnCallRequest;
 use App\Models\OnCallPeriod;
 use App\Models\Setting;
 use App\Models\TimeEntry;
@@ -38,16 +39,9 @@ class OnCallController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreOnCallRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'start_datetime' => 'required|date',
-            'end_datetime' => 'required|date|after:start_datetime',
-            'project_id' => 'nullable|exists:projects,id',
-            'hourly_rate' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
+        $validated = $request->validated();
         $userId = Auth::id();
 
         // Se não informar taxa, usa a configuração padrão
@@ -84,20 +78,13 @@ class OnCallController extends Controller
         ]);
     }
 
-    public function update(Request $request, OnCallPeriod $onCall): JsonResponse
+    public function update(StoreOnCallRequest $request, OnCallPeriod $onCall): JsonResponse
     {
         if ($onCall->user_id !== Auth::id()) {
             return response()->json(['success' => false, 'message' => 'Não autorizado.'], 403);
         }
 
-        $validated = $request->validate([
-            'start_datetime' => 'required|date',
-            'end_datetime' => 'required|date|after:start_datetime',
-            'project_id' => 'nullable|exists:projects,id',
-            'hourly_rate' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
+        $validated = $request->validated();
         $startDatetime = Carbon::parse($validated['start_datetime']);
         $endDatetime = Carbon::parse($validated['end_datetime']);
 
