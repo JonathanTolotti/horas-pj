@@ -29,6 +29,10 @@
             if (localStorage.getItem('view_mode') === 'daily') {
                 document.documentElement.classList.add('view-mode-daily');
             }
+            // Mark desktop viewport so nav is shown immediately (before Tailwind loads)
+            if (window.innerWidth >= 640) {
+                document.documentElement.classList.add('is-sm');
+            }
         </script>
         <style>
             /* Hide elements with x-cloak until Alpine.js initializes */
@@ -112,6 +116,17 @@
                 background-color: #0891b2 !important;
                 color: white !important;
             }
+            /* Critical: prevent FOUC caused by Vite dev mode injecting CSS via JS.
+               Before the Tailwind bundle loads, class="hidden" has no effect,
+               so hidden elements (like dropdowns) briefly flash. */
+            .hidden { display: none !important; }
+            /* Nav visibility controlled by JS-set class (same pattern as privacy-mode).
+               The script in <head> runs before body renders, so is-sm is set
+               before any nav element is painted. No dependency on Tailwind loading. */
+            .nav-desktop { display: none; }
+            .nav-right    { display: none; }
+            html.is-sm .nav-desktop { display: flex; }
+            html.is-sm .nav-right   { display: flex; }
         </style>
     </head>
     <body class="font-sans antialiased bg-gray-950 text-gray-100">

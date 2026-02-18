@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TimeEntry;
 use App\Models\Project;
-use App\Models\Setting;
+use App\Services\TimeCalculatorService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,14 +13,16 @@ use Illuminate\View\View;
 
 class AnalyticsController extends Controller
 {
+    public function __construct(
+        protected TimeCalculatorService $calculator
+    ) {}
+
     public function index(): View
     {
         $user = auth()->user();
-        $settings = Setting::forUser($user->id);
 
         return view('analytics', [
             'isPremium' => $user->isPremium(),
-            'hourlyRate' => $settings->hourly_rate,
         ]);
     }
 
@@ -30,25 +32,19 @@ class AnalyticsController extends Controller
     public function monthlyComparison(): JsonResponse
     {
         $userId = auth()->id();
-        $settings = Setting::forUser($userId);
 
-        // Últimos 12 meses
         $months = collect();
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $monthRef = $date->format('Y-m');
 
-            $hours = TimeEntry::forUser($userId)
-                ->forMonth($monthRef)
-                ->sum('hours');
-
-            $revenue = $hours * $settings->hourly_rate;
+            $stats = $this->calculator->getMonthlyStats($userId, $monthRef);
 
             $months->push([
-                'month' => $date->translatedFormat('M/y'),
+                'month'      => $date->translatedFormat('M/y'),
                 'month_full' => $date->translatedFormat('F Y'),
-                'hours' => round($hours, 2),
-                'revenue' => round($revenue, 2),
+                'hours'      => $stats['total_hours'],
+                'revenue'    => $stats['total_final_with_on_call'],
             ]);
         }
 
@@ -62,22 +58,20 @@ class AnalyticsController extends Controller
     {
         $userId = auth()->id();
 
-        // Últimos 3 meses para ter dados representativos
         $startDate = now()->subMonths(3)->startOfDay();
 
         $entries = TimeEntry::forUser($userId)
             ->where('date', '>=', $startDate)
             ->get();
 
-        // Agrupar por dia da semana (0=Dom, 6=Sáb)
         $weekdays = [
-            0 => ['name' => 'Domingo', 'short' => 'Dom', 'hours' => 0, 'count' => 0],
-            1 => ['name' => 'Segunda', 'short' => 'Seg', 'hours' => 0, 'count' => 0],
-            2 => ['name' => 'Terça', 'short' => 'Ter', 'hours' => 0, 'count' => 0],
-            3 => ['name' => 'Quarta', 'short' => 'Qua', 'hours' => 0, 'count' => 0],
-            4 => ['name' => 'Quinta', 'short' => 'Qui', 'hours' => 0, 'count' => 0],
-            5 => ['name' => 'Sexta', 'short' => 'Sex', 'hours' => 0, 'count' => 0],
-            6 => ['name' => 'Sábado', 'short' => 'Sáb', 'hours' => 0, 'count' => 0],
+            0 => ['name' => 'Domingo',  'short' => 'Dom', 'hours' => 0, 'count' => 0],
+            1 => ['name' => 'Segunda',  'short' => 'Seg', 'hours' => 0, 'count' => 0],
+            2 => ['name' => 'Terça',    'short' => 'Ter', 'hours' => 0, 'count' => 0],
+            3 => ['name' => 'Quarta',   'short' => 'Qua', 'hours' => 0, 'count' => 0],
+            4 => ['name' => 'Quinta',   'short' => 'Qui', 'hours' => 0, 'count' => 0],
+            5 => ['name' => 'Sexta',    'short' => 'Sex', 'hours' => 0, 'count' => 0],
+            6 => ['name' => 'Sábado',   'short' => 'Sáb', 'hours' => 0, 'count' => 0],
         ];
 
         foreach ($entries as $entry) {
@@ -86,9 +80,8 @@ class AnalyticsController extends Controller
             $weekdays[$dayOfWeek]['count']++;
         }
 
-        // Calcular média
         foreach ($weekdays as $key => $day) {
-            $weekdays[$key]['hours'] = round($day['hours'], 2);
+            $weekdays[$key]['hours']   = round($day['hours'], 2);
             $weekdays[$key]['average'] = $day['count'] > 0
                 ? round($day['hours'] / $day['count'], 2)
                 : 0;
@@ -115,12 +108,9 @@ class AnalyticsController extends Controller
         $data = $projects->map(function ($item) {
             return [
                 'project' => $item->project?->name ?? 'Sem Projeto',
-                'hours' => round($item->total_hours, 2),
+                'hours'   => round($item->total_hours, 2),
             ];
-        });
-
-        // Ordenar por horas (decrescente)
-        $data = $data->sortByDesc('hours')->values();
+        })->sortByDesc('hours')->values();
 
         return response()->json($data);
     }
@@ -131,22 +121,18 @@ class AnalyticsController extends Controller
     public function revenueTrend(): JsonResponse
     {
         $userId = auth()->id();
-        $settings = Setting::forUser($userId);
 
-        $data = collect();
-        $totalRevenue = 0;
+        $data          = collect();
+        $totalRevenue  = 0;
         $monthsWithData = 0;
 
-        // Últimos 6 meses
         for ($i = 5; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
+            $date     = now()->subMonths($i);
             $monthRef = $date->format('Y-m');
 
-            $hours = TimeEntry::forUser($userId)
-                ->forMonth($monthRef)
-                ->sum('hours');
-
-            $revenue = $hours * $settings->hourly_rate;
+            $stats   = $this->calculator->getMonthlyStats($userId, $monthRef);
+            $hours   = $stats['total_hours'];
+            $revenue = $stats['total_final_with_on_call'];
 
             if ($hours > 0) {
                 $monthsWithData++;
@@ -154,28 +140,27 @@ class AnalyticsController extends Controller
             }
 
             $data->push([
-                'month' => $date->translatedFormat('M/y'),
-                'revenue' => round($revenue, 2),
-                'hours' => round($hours, 2),
-                'type' => 'actual',
+                'month'   => $date->translatedFormat('M/y'),
+                'revenue' => $revenue,
+                'hours'   => $hours,
+                'type'    => 'actual',
             ]);
         }
 
-        // Calcular previsão para os próximos 2 meses
         $average = $monthsWithData > 0 ? $totalRevenue / $monthsWithData : 0;
 
         for ($i = 1; $i <= 2; $i++) {
             $date = now()->addMonths($i);
             $data->push([
-                'month' => $date->translatedFormat('M/y'),
+                'month'   => $date->translatedFormat('M/y'),
                 'revenue' => round($average, 2),
-                'hours' => round($average / ($settings->hourly_rate ?: 1), 2),
-                'type' => 'forecast',
+                'hours'   => 0,
+                'type'    => 'forecast',
             ]);
         }
 
         return response()->json([
-            'data' => $data,
+            'data'    => $data,
             'average' => round($average, 2),
         ]);
     }
@@ -185,29 +170,21 @@ class AnalyticsController extends Controller
      */
     public function summary(): JsonResponse
     {
-        $userId = auth()->id();
-        $settings = Setting::forUser($userId);
+        $userId       = auth()->id();
         $currentMonth = now()->format('Y-m');
-        $lastMonth = now()->subMonth()->format('Y-m');
+        $lastMonth    = now()->subMonth()->format('Y-m');
 
-        // Horas do mês atual
-        $currentMonthHours = TimeEntry::forUser($userId)
-            ->forMonth($currentMonth)
-            ->sum('hours');
+        $current = $this->calculator->getMonthlyStats($userId, $currentMonth);
+        $last    = $this->calculator->getMonthlyStats($userId, $lastMonth);
 
-        // Horas do mês anterior
-        $lastMonthHours = TimeEntry::forUser($userId)
-            ->forMonth($lastMonth)
-            ->sum('hours');
-
-        // Variação percentual
-        $variation = $lastMonthHours > 0
-            ? round((($currentMonthHours - $lastMonthHours) / $lastMonthHours) * 100, 1)
+        $lastHours = $last['total_hours'];
+        $variation = $lastHours > 0
+            ? round((($current['total_hours'] - $lastHours) / $lastHours) * 100, 1)
             : 0;
 
         // Total do ano
         $yearStart = now()->startOfYear()->format('Y-m');
-        $yearEnd = now()->format('Y-m');
+        $yearEnd   = now()->format('Y-m');
         $yearHours = TimeEntry::forUser($userId)
             ->where('month_reference', '>=', $yearStart)
             ->where('month_reference', '<=', $yearEnd)
@@ -219,7 +196,7 @@ class AnalyticsController extends Controller
             ->distinct('date')
             ->count('date');
 
-        $dailyAverage = $daysWorked > 0 ? $currentMonthHours / $daysWorked : 0;
+        $dailyAverage = $daysWorked > 0 ? $current['total_hours'] / $daysWorked : 0;
 
         // Projeto mais trabalhado do mês
         $topProject = TimeEntry::forUser($userId)
@@ -230,24 +207,34 @@ class AnalyticsController extends Controller
             ->with('project:id,name')
             ->first();
 
+        // Receita anual (soma dos meses com stats completas)
+        $yearRevenue = 0;
+        for ($m = 1; $m <= (int) now()->format('m'); $m++) {
+            $mRef = now()->format('Y') . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
+            $mStats = $this->calculator->getMonthlyStats($userId, $mRef);
+            $yearRevenue += $mStats['total_final_with_on_call'];
+        }
+
         return response()->json([
             'current_month' => [
-                'hours' => round($currentMonthHours, 2),
-                'revenue' => round($currentMonthHours * $settings->hourly_rate, 2),
-                'days_worked' => $daysWorked,
+                'hours'         => $current['total_hours'],
+                'revenue'       => $current['total_final_with_on_call'],
+                'days_worked'   => $daysWorked,
                 'daily_average' => round($dailyAverage, 2),
+                'on_call_hours'   => $current['on_call_hours'],
+                'on_call_revenue' => $current['on_call_revenue'],
             ],
             'last_month' => [
-                'hours' => round($lastMonthHours, 2),
-                'revenue' => round($lastMonthHours * $settings->hourly_rate, 2),
+                'hours'   => $last['total_hours'],
+                'revenue' => $last['total_final_with_on_call'],
             ],
             'variation' => $variation,
             'year' => [
-                'hours' => round($yearHours, 2),
-                'revenue' => round($yearHours * $settings->hourly_rate, 2),
+                'hours'   => round($yearHours, 2),
+                'revenue' => round($yearRevenue, 2),
             ],
             'top_project' => $topProject ? [
-                'name' => $topProject->project?->name ?? 'Sem Projeto',
+                'name'  => $topProject->project?->name ?? 'Sem Projeto',
                 'hours' => round($topProject->total_hours, 2),
             ] : null,
         ]);

@@ -241,6 +241,18 @@
                     </div>
                 </div>
 
+                <!-- Nota sobre ajustes mensais -->
+                <div class="mt-4 p-3 bg-indigo-900/20 border border-indigo-700/40 rounded-lg flex items-start gap-2">
+                    <svg class="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-xs text-indigo-300">
+                        Estes são os valores <strong>padrão</strong> aplicados a meses sem ajuste específico.
+                        Para definir valores diferentes em um mês individual, use o botão de edição no card
+                        "Ajustes Mensais" do dashboard.
+                    </p>
+                </div>
+
                 <!-- Opcao de Auto-Save Tracking -->
                 <div class="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
                     <label class="flex items-start gap-3 cursor-pointer">

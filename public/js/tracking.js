@@ -793,6 +793,12 @@ function updateStats(stats) {
     document.getElementById('total-hours').textContent = formatHours(parseFloat(stats.total_hours));
     document.getElementById('total-revenue').textContent = formatCurrency(stats.total_revenue);
 
+    // Update hourly rate
+    const hourlyRateEl = document.getElementById('hourly-rate');
+    if (hourlyRateEl && stats.hourly_rate !== undefined) {
+        hourlyRateEl.textContent = formatCurrency(stats.hourly_rate);
+    }
+
     // Update extra value
     const extraValueEl = document.getElementById('extra-value');
     if (extraValueEl) {
@@ -805,10 +811,13 @@ function updateStats(stats) {
         discountValueEl.textContent = '-' + formatCurrency(stats.discount_value);
     }
 
-    // Update total final (with extra and discount)
+    // Update total final (with extra and discount; prefer total_final_with_on_call if present)
     const totalFinalEl = document.getElementById('total-final');
-    if (totalFinalEl && stats.total_final !== undefined) {
-        totalFinalEl.textContent = formatCurrency(stats.total_final);
+    if (totalFinalEl) {
+        const finalValue = stats.total_final_with_on_call ?? stats.total_final;
+        if (finalValue !== undefined) {
+            totalFinalEl.textContent = formatCurrency(finalValue);
+        }
     }
 
     // Update company revenues (dynamic cards)
