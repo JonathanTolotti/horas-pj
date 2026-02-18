@@ -120,6 +120,39 @@
                Before the Tailwind bundle loads, class="hidden" has no effect,
                so hidden elements (like dropdowns) briefly flash. */
             .hidden { display: none !important; }
+            /* Restore Tailwind responsive display utilities overridden by .hidden above */
+            @media (min-width: 640px) {
+                .sm\:block { display: block !important; }
+                .sm\:flex { display: flex !important; }
+                .sm\:inline { display: inline !important; }
+                .sm\:inline-block { display: inline-block !important; }
+                .sm\:grid { display: grid !important; }
+                .sm\:hidden { display: none !important; }
+            }
+            @media (min-width: 768px) {
+                .md\:block { display: block !important; }
+                .md\:flex { display: flex !important; }
+                .md\:inline { display: inline !important; }
+                .md\:inline-block { display: inline-block !important; }
+                .md\:grid { display: grid !important; }
+                .md\:hidden { display: none !important; }
+            }
+            @media (min-width: 1024px) {
+                .lg\:block { display: block !important; }
+                .lg\:flex { display: flex !important; }
+                .lg\:inline { display: inline !important; }
+                .lg\:inline-block { display: inline-block !important; }
+                .lg\:grid { display: grid !important; }
+                .lg\:hidden { display: none !important; }
+            }
+            @media (min-width: 1280px) {
+                .xl\:block { display: block !important; }
+                .xl\:flex { display: flex !important; }
+                .xl\:inline { display: inline !important; }
+                .xl\:inline-block { display: inline-block !important; }
+                .xl\:grid { display: grid !important; }
+                .xl\:hidden { display: none !important; }
+            }
             /* Nav visibility controlled by JS-set class (same pattern as privacy-mode).
                The script in <head> runs before body renders, so is-sm is set
                before any nav element is painted. No dependency on Tailwind loading. */
