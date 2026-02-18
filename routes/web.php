@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\MonthlyAdjustmentController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\OnCallController;
@@ -20,6 +21,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/time-entries', [TimeEntryController::class, 'store'])->name('time-entries.store');
     Route::delete('/time-entries/{timeEntry}', [TimeEntryController::class, 'destroy'])->name('time-entries.destroy');
     Route::get('/time-entries/stats', [TimeEntryController::class, 'stats'])->name('time-entries.stats');
+
+    // Monthly Adjustments
+    Route::put('/monthly-adjustments/{month}', [MonthlyAdjustmentController::class, 'update'])
+        ->name('monthly-adjustments.update');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');

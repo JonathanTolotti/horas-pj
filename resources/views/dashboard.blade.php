@@ -248,8 +248,19 @@
                         <div class="text-xl font-bold text-red-400 sensitive-value" id="discount-value">-R$ {{ number_format($stats['discount_value'] ?? 0, 2, ',', '.') }}</div>
                     </div>
                 </div>
-                <p class="text-gray-400 text-sm">Ajustes Mensais</p>
-                <p class="text-xs text-gray-500 mt-1">Acréscimo e desconto fixos</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Ajustes Mensais</p>
+                        <p class="text-xs text-gray-500 mt-1">Acréscimo e desconto fixos</p>
+                    </div>
+                    <button onclick="openMonthlyAdjustmentModal()"
+                        class="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 px-2.5 py-1.5 rounded-lg transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                        Editar
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -1268,8 +1279,154 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeOnCallModal();
+                closeMonthlyAdjustmentModal();
             }
         });
+    </script>
+    @endpush
+
+    <!-- Modal de Ajustes Mensais -->
+    <div id="monthly-adjustment-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeMonthlyAdjustmentModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-indigo-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-white">Ajustes do Mês</h3>
+                    <p class="text-xs text-gray-500" id="monthly-adjustment-month-label"></p>
+                </div>
+            </div>
+            <form id="monthly-adjustment-form" onsubmit="return false;">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Valor por Hora</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                            <input type="text" id="adj-hourly-rate" inputmode="decimal"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-12 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                onkeyup="formatCurrencyInputOnCall(this)" onblur="formatCurrencyInputOnCall(this)"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Acréscimo</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400">+R$</span>
+                            <input type="text" id="adj-extra-value" inputmode="decimal"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-14 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                onkeyup="formatCurrencyInputOnCall(this)" onblur="formatCurrencyInputOnCall(this)"/>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Ex: Home Office, ajuda de custo</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Desconto</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-red-400">-R$</span>
+                            <input type="text" id="adj-discount-value" inputmode="decimal"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-14 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                onkeyup="formatCurrencyInputOnCall(this)" onblur="formatCurrencyInputOnCall(this)"/>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Ex: Impostos, taxas, deduções</p>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-4">
+                    Estes valores se aplicam somente ao mês selecionado. Os valores padrão ficam em
+                    <a href="{{ route('settings') }}" class="text-indigo-400 hover:underline">Configurações</a>.
+                </p>
+                <div class="flex gap-3 justify-end mt-6">
+                    <button type="button" onclick="closeMonthlyAdjustmentModal()"
+                        class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="saveMonthlyAdjustment()"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function openMonthlyAdjustmentModal() {
+            const months = {
+                '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+                '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+                '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+            };
+            const [year, month] = CURRENT_MONTH.split('-');
+            document.getElementById('monthly-adjustment-month-label').textContent =
+                `${months[month]} ${year}`;
+
+            document.getElementById('adj-hourly-rate').value = formatCurrencyValue(HOURLY_RATE);
+            document.getElementById('adj-extra-value').value = formatCurrencyValue(EXTRA_VALUE);
+            document.getElementById('adj-discount-value').value = formatCurrencyValue(DISCOUNT_VALUE);
+
+            document.getElementById('monthly-adjustment-modal').classList.remove('hidden');
+        }
+
+        function closeMonthlyAdjustmentModal() {
+            document.getElementById('monthly-adjustment-modal').classList.add('hidden');
+        }
+
+        function formatCurrencyValue(value) {
+            return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function parseAdjValue(value) {
+            if (!value) return 0;
+            return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
+        }
+
+        async function saveMonthlyAdjustment() {
+            const hourlyRate = parseAdjValue(document.getElementById('adj-hourly-rate').value);
+            const extraValue = parseAdjValue(document.getElementById('adj-extra-value').value);
+            const discountValue = parseAdjValue(document.getElementById('adj-discount-value').value);
+
+            try {
+                const response = await fetch(`/monthly-adjustments/${CURRENT_MONTH}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        hourly_rate: hourlyRate,
+                        extra_value: extraValue,
+                        discount_value: discountValue,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errors = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || 'Erro ao salvar ajustes.');
+                    throw new Error(errors);
+                }
+
+                closeMonthlyAdjustmentModal();
+
+                // Atualizar variáveis globais e UI
+                const s = data.stats;
+                window.HOURLY_RATE = s.hourly_rate;
+                window.EXTRA_VALUE = s.extra_value;
+                window.DISCOUNT_VALUE = s.discount_value;
+
+                updateStats(s);
+
+                showToast(data.message, TOAST_TYPES.SUCCESS);
+            } catch (error) {
+                showToast(error.message, TOAST_TYPES.ERROR);
+            }
+        }
     </script>
     @endpush
 </x-app-layout>

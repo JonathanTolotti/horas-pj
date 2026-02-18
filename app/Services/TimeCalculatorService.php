@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\MonthlyAdjustment;
 use App\Models\OnCallPeriod;
 use App\Models\Project;
 use App\Models\Setting;
@@ -30,22 +31,37 @@ class TimeCalculatorService
         return round((float) $sum, 2);
     }
 
-    public function getHourlyRate(int $userId): float
+    public function getHourlyRate(int $userId, ?string $monthReference = null): float
     {
-        $settings = Setting::forUser($userId);
-        return (float) $settings->hourly_rate;
+        if ($monthReference) {
+            $adjustment = MonthlyAdjustment::forUser($userId)->forMonth($monthReference)->first();
+            if ($adjustment) {
+                return (float) $adjustment->hourly_rate;
+            }
+        }
+        return (float) Setting::forUser($userId)->hourly_rate;
     }
 
-    public function getExtraValue(int $userId): float
+    public function getExtraValue(int $userId, ?string $monthReference = null): float
     {
-        $settings = Setting::forUser($userId);
-        return (float) $settings->extra_value;
+        if ($monthReference) {
+            $adjustment = MonthlyAdjustment::forUser($userId)->forMonth($monthReference)->first();
+            if ($adjustment) {
+                return (float) $adjustment->extra_value;
+            }
+        }
+        return (float) Setting::forUser($userId)->extra_value;
     }
 
-    public function getDiscountValue(int $userId): float
+    public function getDiscountValue(int $userId, ?string $monthReference = null): float
     {
-        $settings = Setting::forUser($userId);
-        return (float) $settings->discount_value;
+        if ($monthReference) {
+            $adjustment = MonthlyAdjustment::forUser($userId)->forMonth($monthReference)->first();
+            if ($adjustment) {
+                return (float) $adjustment->discount_value;
+            }
+        }
+        return (float) (Setting::forUser($userId)->discount_value ?? 0);
     }
 
     public function getOnCallHourlyRate(int $userId): ?float
@@ -61,7 +77,7 @@ class TimeCalculatorService
 
     public function calculateTotalRevenueFromEntries(int $userId, string $monthReference): float
     {
-        $hourlyRate = $this->getHourlyRate($userId);
+        $hourlyRate = $this->getHourlyRate($userId, $monthReference);
         $entries = TimeEntry::forUser($userId)->forMonth($monthReference)->get();
 
         $total = 0;
@@ -127,8 +143,8 @@ class TimeCalculatorService
 
     public function calculateRevenueByCompany(int $userId, string $monthReference): array
     {
-        $extraValue = $this->getExtraValue($userId);
-        $discountValue = $this->getDiscountValue($userId);
+        $extraValue = $this->getExtraValue($userId, $monthReference);
+        $discountValue = $this->getDiscountValue($userId, $monthReference);
 
         // Usar o mesmo método de cálculo para consistência
         $hoursRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
@@ -198,8 +214,8 @@ class TimeCalculatorService
     public function getUnassignedRevenue(int $userId, string $monthReference): float
     {
         $hoursRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
-        $extraValue = $this->getExtraValue($userId);
-        $discountValue = $this->getDiscountValue($userId);
+        $extraValue = $this->getExtraValue($userId, $monthReference);
+        $discountValue = $this->getDiscountValue($userId, $monthReference);
         $totalFinal = round($hoursRevenue + $extraValue - $discountValue, 2);
 
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
@@ -237,9 +253,9 @@ class TimeCalculatorService
     public function getMonthlyStats(int $userId, string $monthReference): array
     {
         $totalHours = $this->getTotalHoursForMonth($userId, $monthReference);
-        $hourlyRate = $this->getHourlyRate($userId);
-        $extraValue = $this->getExtraValue($userId);
-        $discountValue = $this->getDiscountValue($userId);
+        $hourlyRate = $this->getHourlyRate($userId, $monthReference);
+        $extraValue = $this->getExtraValue($userId, $monthReference);
+        $discountValue = $this->getDiscountValue($userId, $monthReference);
 
         // Calcular receita somando cada lançamento individualmente para evitar erros de arredondamento
         $totalRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
