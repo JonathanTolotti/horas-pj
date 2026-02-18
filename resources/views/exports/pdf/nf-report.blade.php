@@ -196,13 +196,15 @@
 
         /* Footer */
         .footer {
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 15px;
             border-top: 1px solid #e5e7eb;
+            page-break-before: avoid;
+            page-break-inside: avoid;
         }
 
         .signature-area {
-            margin-top: 50px;
+            margin-top: 20px;
             text-align: center;
         }
 
@@ -216,7 +218,7 @@
         }
 
         .footer-note {
-            margin-top: 30px;
+            margin-top: 12px;
             text-align: center;
             font-size: 8pt;
             color: #9ca3af;

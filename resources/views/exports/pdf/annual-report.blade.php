@@ -251,10 +251,12 @@
 
         /* Footer */
         .footer {
-            margin-top: 25px;
-            padding-top: 15px;
+            margin-top: 15px;
+            padding-top: 10px;
             border-top: 1px solid #e5e7eb;
             text-align: center;
+            page-break-before: avoid;
+            page-break-inside: avoid;
         }
 
         .footer .note {

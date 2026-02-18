@@ -191,12 +191,14 @@
 
         /* Footer */
         .footer {
-            margin-top: 30px;
-            padding-top: 15px;
+            margin-top: 15px;
+            padding-top: 10px;
             border-top: 1px solid #e5e7eb;
             text-align: center;
             font-size: 8pt;
             color: #9ca3af;
+            page-break-before: avoid;
+            page-break-inside: avoid;
         }
 
         /* Page break */
