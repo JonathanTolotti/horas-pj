@@ -461,6 +461,206 @@
                 @endforelse
             </div>
         </div>
+
+        <!-- Avisos e Lembretes -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    Avisos e Lembretes
+                </h2>
+                <button onclick="openNoticeModal()"
+                    class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-amber-500/30">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Novo Aviso
+                </button>
+            </div>
+
+            <div id="notices-list" class="space-y-3">
+                @forelse($notices as $notice)
+                    @php
+                        $colorDot = match($notice->color) {
+                            'yellow' => 'bg-yellow-400',
+                            'red'    => 'bg-red-400',
+                            'green'  => 'bg-green-400',
+                            default  => 'bg-blue-400',
+                        };
+                    @endphp
+                    <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors" data-notice-id="{{ $notice->id }}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-3 h-3 rounded-full shrink-0 {{ $colorDot }}"></span>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white font-medium">{{ $notice->title }}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full {{ $notice->type === 'persistent' ? 'bg-purple-500/20 text-purple-300' : 'bg-cyan-500/20 text-cyan-300' }}">
+                                        {{ $notice->type === 'persistent' ? 'Persistente' : 'Uma vez' }}
+                                    </span>
+                                    @if(!$notice->is_active)
+                                        <span class="text-xs bg-gray-500/20 text-gray-400 px-2 py-0.5 rounded-full">Inativo</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-gray-500 mt-0.5">
+                                    {{ $notice->start_date->format('d/m/Y') }}
+                                    @if($notice->end_date)
+                                        até {{ $notice->end_date->format('d/m/Y') }}
+                                    @else
+                                        · sem data de encerramento
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0 ml-3">
+                            <button onclick='editNotice({{ $notice->id }}, {{ json_encode($notice->title) }}, {{ json_encode($notice->message) }}, "{{ $notice->type }}", "{{ $notice->color }}", "{{ $notice->start_date->format('Y-m-d') }}", "{{ $notice->end_date?->format('Y-m-d') ?? '' }}", {{ $notice->is_active ? 'true' : 'false' }})'
+                                class="p-2 text-gray-400 hover:text-white transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button onclick="deleteNotice({{ $notice->id }})"
+                                class="p-2 text-gray-400 hover:text-red-400 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <div id="no-notices" class="text-center py-8 text-gray-500">
+                        Nenhum aviso cadastrado. Crie avisos para exibir lembretes no dashboard.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Aviso -->
+    <div id="notice-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeNoticeModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-amber-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white" id="notice-modal-title">Novo Aviso</h3>
+            </div>
+            <form id="notice-form" onsubmit="return false;">
+                <input type="hidden" id="notice-id" value="">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Título</label>
+                        <input type="text" id="notice-title" placeholder="Ex: Reunião de alinhamento"
+                            oninput="updateNoticePreview()"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Mensagem</label>
+                        <textarea id="notice-message" rows="3" placeholder="Detalhes do aviso..."
+                            oninput="updateNoticePreview()"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Tipo</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="notice-type" id="notice-type-one-time" value="one_time" checked
+                                    onchange="updateNoticePreview()"
+                                    class="w-4 h-4 text-amber-500 bg-gray-800 border-gray-700 focus:ring-amber-500 focus:ring-offset-gray-900"/>
+                                <span class="text-gray-300">Uma vez</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="notice-type" id="notice-type-persistent" value="persistent"
+                                    onchange="updateNoticePreview()"
+                                    class="w-4 h-4 text-amber-500 bg-gray-800 border-gray-700 focus:ring-amber-500 focus:ring-offset-gray-900"/>
+                                <span class="text-gray-300">Persistente</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">"Uma vez": o usuário pode fechar. "Persistente": não pode ser fechado.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Cor</label>
+                        <div class="flex gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="notice-color" id="notice-color-blue" value="blue" checked
+                                    onchange="updateNoticePreview()"
+                                    class="w-4 h-4 text-blue-500 bg-gray-800 border-gray-700 focus:ring-blue-500"/>
+                                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-400"></span><span class="text-gray-300 text-sm">Azul</span></span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="notice-color" id="notice-color-yellow" value="yellow"
+                                    onchange="updateNoticePreview()"
+                                    class="w-4 h-4 text-yellow-500 bg-gray-800 border-gray-700 focus:ring-yellow-500"/>
+                                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-yellow-400"></span><span class="text-gray-300 text-sm">Amarelo</span></span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="notice-color" id="notice-color-red" value="red"
+                                    onchange="updateNoticePreview()"
+                                    class="w-4 h-4 text-red-500 bg-gray-800 border-gray-700 focus:ring-red-500"/>
+                                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-400"></span><span class="text-gray-300 text-sm">Vermelho</span></span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="notice-color" id="notice-color-green" value="green"
+                                    onchange="updateNoticePreview()"
+                                    class="w-4 h-4 text-green-500 bg-gray-800 border-gray-700 focus:ring-green-500"/>
+                                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-green-400"></span><span class="text-gray-300 text-sm">Verde</span></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Data de Início</label>
+                            <input type="text" id="notice-start-date" placeholder="Selecione..." readonly
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent cursor-pointer"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Data de Encerramento <span class="text-gray-500">(opcional)</span></label>
+                            <input type="text" id="notice-end-date" placeholder="Selecione..." readonly
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent cursor-pointer"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="notice-active" checked
+                                class="w-5 h-5 rounded bg-gray-800 border-gray-700 text-amber-500 focus:ring-amber-500 focus:ring-offset-gray-900"/>
+                            <span class="text-gray-300">Ativo</span>
+                        </label>
+                    </div>
+
+                    <!-- Pré-visualização -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Pré-visualização</label>
+                        <div id="notice-preview" class="border rounded-lg px-4 py-3 flex items-start gap-3 bg-blue-900/40 border-blue-500/50 text-blue-200 transition-all">
+                            <svg id="notice-preview-icon" class="w-5 h-5 mt-0.5 shrink-0 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="flex-1 min-w-0">
+                                <p id="notice-preview-title" class="font-semibold text-sm">Título do aviso</p>
+                                <p id="notice-preview-message" class="text-sm mt-0.5 opacity-90">Mensagem do aviso...</p>
+                            </div>
+                            <button id="notice-preview-close" class="shrink-0 opacity-70 pointer-events-none" title="Botão de fechar (apenas no tipo &quot;Uma vez&quot;)">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Aparência real no dashboard.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 justify-end mt-6">
+                    <button type="button" onclick="closeNoticeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="saveNotice()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors">
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     @push('scripts')
@@ -659,8 +859,164 @@
                 closeProjectModal();
                 closeCompanyModal();
                 closeLinkCompanyModal();
+                closeNoticeModal();
             }
         });
+
+        // Flatpickr para avisos
+        let noticeStartPicker, noticeEndPicker;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const fpConfig = {
+                locale: 'pt',
+                dateFormat: 'd/m/Y',
+                disableMobile: true,
+                allowInput: false,
+            };
+
+            noticeStartPicker = flatpickr('#notice-start-date', {
+                ...fpConfig,
+                onChange: () => updateNoticePreview(),
+            });
+
+            noticeEndPicker = flatpickr('#notice-end-date', fpConfig);
+        });
+
+        function parseDateBrToIso(dateStr) {
+            if (!dateStr) return null;
+            const [day, month, year] = dateStr.split('/');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Notice Preview
+        const NOTICE_COLOR_CLASSES = {
+            blue:   { wrap: 'bg-blue-900/40 border-blue-500/50 text-blue-200',   icon: 'text-blue-400' },
+            yellow: { wrap: 'bg-yellow-900/40 border-yellow-500/50 text-yellow-200', icon: 'text-yellow-400' },
+            red:    { wrap: 'bg-red-900/40 border-red-500/50 text-red-200',       icon: 'text-red-400' },
+            green:  { wrap: 'bg-green-900/40 border-green-500/50 text-green-200', icon: 'text-green-400' },
+        };
+
+        function updateNoticePreview() {
+            const title   = document.getElementById('notice-title').value.trim() || 'Título do aviso';
+            const message = document.getElementById('notice-message').value.trim() || 'Mensagem do aviso...';
+            const color   = document.querySelector('input[name="notice-color"]:checked')?.value || 'blue';
+            const type    = document.querySelector('input[name="notice-type"]:checked')?.value || 'one_time';
+
+            const preview = document.getElementById('notice-preview');
+            const icon    = document.getElementById('notice-preview-icon');
+            const closeBtn = document.getElementById('notice-preview-close');
+
+            // Remover todas as classes de cor anteriores
+            const allWrap = Object.values(NOTICE_COLOR_CLASSES).map(c => c.wrap.split(' ')).flat();
+            const allIcon = Object.values(NOTICE_COLOR_CLASSES).map(c => c.icon.split(' ')).flat();
+            preview.classList.remove(...allWrap);
+            icon.classList.remove(...allIcon);
+
+            // Aplicar classes da cor selecionada
+            const cls = NOTICE_COLOR_CLASSES[color] || NOTICE_COLOR_CLASSES.blue;
+            cls.wrap.split(' ').forEach(c => preview.classList.add(c));
+            cls.icon.split(' ').forEach(c => icon.classList.add(c));
+
+            document.getElementById('notice-preview-title').textContent   = title;
+            document.getElementById('notice-preview-message').textContent = message;
+
+            // Mostrar/ocultar botão de fechar conforme tipo
+            closeBtn.style.display = type === 'one_time' ? '' : 'none';
+        }
+
+        // Notice Modal
+        function openNoticeModal() {
+            document.getElementById('notice-modal-title').textContent = 'Novo Aviso';
+            document.getElementById('notice-id').value = '';
+            document.getElementById('notice-title').value = '';
+            document.getElementById('notice-message').value = '';
+            document.getElementById('notice-type-one-time').checked = true;
+            document.getElementById('notice-color-blue').checked = true;
+            noticeStartPicker.setDate(new Date());
+            noticeEndPicker.clear();
+            document.getElementById('notice-active').checked = true;
+            document.getElementById('notice-modal').classList.remove('hidden');
+            updateNoticePreview();
+        }
+
+        function closeNoticeModal() {
+            document.getElementById('notice-modal').classList.add('hidden');
+        }
+
+        function editNotice(id, title, message, type, color, startDate, endDate, isActive) {
+            document.getElementById('notice-modal-title').textContent = 'Editar Aviso';
+            document.getElementById('notice-id').value = id;
+            document.getElementById('notice-title').value = title;
+            document.getElementById('notice-message').value = message;
+            document.querySelector(`input[name="notice-type"][value="${type}"]`).checked = true;
+            document.querySelector(`input[name="notice-color"][value="${color}"]`).checked = true;
+            noticeStartPicker.setDate(startDate);
+            endDate ? noticeEndPicker.setDate(endDate) : noticeEndPicker.clear();
+            document.getElementById('notice-active').checked = isActive;
+            document.getElementById('notice-modal').classList.remove('hidden');
+            updateNoticePreview();
+        }
+
+        async function saveNotice() {
+            const id = document.getElementById('notice-id').value;
+            const title = document.getElementById('notice-title').value.trim();
+            const message = document.getElementById('notice-message').value.trim();
+            const type = document.querySelector('input[name="notice-type"]:checked')?.value;
+            const color = document.querySelector('input[name="notice-color"]:checked')?.value;
+            const startDate = parseDateBrToIso(document.getElementById('notice-start-date').value);
+            const endDate = parseDateBrToIso(document.getElementById('notice-end-date').value) || null;
+            const isActive = document.getElementById('notice-active').checked;
+
+            if (!title) { showToast('Por favor, informe o título do aviso!', TOAST_TYPES.WARNING); return; }
+            if (!message) { showToast('Por favor, informe a mensagem do aviso!', TOAST_TYPES.WARNING); return; }
+            if (!startDate) { showToast('Por favor, informe a data de início!', TOAST_TYPES.WARNING); return; }
+
+            try {
+                const url = id ? `/notices/${id}` : '/notices';
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+                    body: JSON.stringify({ title, message, type, color, start_date: startDate, end_date: endDate, is_active: isActive })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    const errors = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || 'Erro ao salvar');
+                    throw new Error(errors);
+                }
+
+                showToast(data.message, TOAST_TYPES.SUCCESS);
+                closeNoticeModal();
+                location.reload();
+            } catch (error) {
+                showToast(error.message, TOAST_TYPES.ERROR);
+            }
+        }
+
+        function deleteNotice(id) {
+            showConfirm('Deseja realmente excluir este aviso?', async () => {
+                try {
+                    const response = await fetch(`/notices/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Erro ao excluir');
+
+                    showToast(data.message, TOAST_TYPES.SUCCESS);
+                    document.querySelector(`[data-notice-id="${id}"]`).remove();
+
+                    if (document.querySelectorAll('[data-notice-id]').length === 0) {
+                        document.getElementById('notices-list').innerHTML = '<div id="no-notices" class="text-center py-8 text-gray-500">Nenhum aviso cadastrado. Crie avisos para exibir lembretes no dashboard.</div>';
+                    }
+                } catch (error) {
+                    showToast(error.message, TOAST_TYPES.ERROR);
+                }
+            }, 'Excluir Aviso');
+        }
 
         // CNPJ Mask
         function formatCnpj(input) {

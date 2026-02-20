@@ -4,6 +4,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MonthlyAdjustmentController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\OnCallController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
@@ -53,6 +54,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // On-Call (Sobreaviso) - apenas leitura para todos
     Route::get('/on-call', [OnCallController::class, 'index'])->name('on-call.index');
     Route::get('/on-call/stats', [OnCallController::class, 'stats'])->name('on-call.stats');
+
+    // Avisos e Lembretes
+    Route::prefix('notices')->group(function () {
+        Route::get('/', [NoticeController::class, 'index'])->name('notices.index');
+        Route::post('/', [NoticeController::class, 'store'])->name('notices.store');
+        Route::put('/{notice}', [NoticeController::class, 'update'])->name('notices.update');
+        Route::delete('/{notice}', [NoticeController::class, 'destroy'])->name('notices.destroy');
+        Route::post('/{notice}/dismiss', [NoticeController::class, 'dismiss'])->name('notices.dismiss');
+    });
 
     // Reports
     Route::get('/reports', [ExportController::class, 'index'])->name('reports.index');

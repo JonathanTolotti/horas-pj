@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\Company;
+use App\Models\Notice;
 use App\Models\Project;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,7 @@ class SettingsController extends Controller
         $settings = Setting::forUser($user->id);
         $projects = Project::forUser($user->id)->with('companies')->orderBy('name')->get();
         $companies = Company::forUser($user->id)->orderBy('name')->get();
+        $notices = Notice::forUser($user->id)->orderBy('start_date', 'desc')->get();
 
         // Limites do plano
         $projectLimit = $user->getLimit('projects');
@@ -31,6 +33,7 @@ class SettingsController extends Controller
             'settings' => $settings,
             'projects' => $projects,
             'companies' => $companies,
+            'notices' => $notices,
             'canAddProject' => $canAddProject,
             'canAddCompany' => $canAddCompany,
             'projectLimit' => $projectLimit,

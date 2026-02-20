@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTimeEntryRequest;
 use App\Models\Company;
+use App\Models\Notice;
 use App\Models\OnCallPeriod;
 use App\Models\Project;
 use App\Models\TimeEntry;
@@ -61,6 +62,12 @@ class TimeEntryController extends Controller
             ->orderBy('start_datetime', 'desc')
             ->get();
 
+        // Buscar avisos ativos
+        $activeNotices = Notice::forUser(auth()->id())
+            ->visible()
+            ->orderBy('start_date')
+            ->get();
+
         return view('dashboard', [
             'entries' => $entries,
             'entriesByDay' => $entriesByDay,
@@ -75,6 +82,7 @@ class TimeEntryController extends Controller
             'isPremium' => $user->isPremium(),
             'subscriptionAlert' => $user->getSubscriptionAlert(),
             'onCallPeriods' => $onCallPeriods,
+            'activeNotices' => $activeNotices,
         ]);
     }
 

@@ -31,6 +31,44 @@
         <!-- Subscription Alert Banner -->
         <x-subscription-alert :alert="$subscriptionAlert" />
 
+        <!-- Avisos e Lembretes -->
+        @if($activeNotices->count() > 0)
+            <div id="notices-container" class="space-y-2">
+                @foreach($activeNotices as $notice)
+                    @php
+                        $colorClasses = match($notice->color) {
+                            'yellow' => 'bg-yellow-900/40 border-yellow-500/50 text-yellow-200',
+                            'red'    => 'bg-red-900/40 border-red-500/50 text-red-200',
+                            'green'  => 'bg-green-900/40 border-green-500/50 text-green-200',
+                            default  => 'bg-blue-900/40 border-blue-500/50 text-blue-200',
+                        };
+                        $iconColor = match($notice->color) {
+                            'yellow' => 'text-yellow-400',
+                            'red'    => 'text-red-400',
+                            'green'  => 'text-green-400',
+                            default  => 'text-blue-400',
+                        };
+                    @endphp
+                    <div id="notice-{{ $notice->id }}" class="border rounded-lg px-4 py-3 flex items-start gap-3 {{ $colorClasses }}">
+                        <svg class="w-5 h-5 mt-0.5 shrink-0 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-sm">{{ $notice->title }}</p>
+                            <p class="text-sm mt-0.5 opacity-90">{{ $notice->message }}</p>
+                        </div>
+                        @if($notice->type === 'one_time')
+                            <button onclick="dismissNotice({{ $notice->id }})" class="shrink-0 opacity-70 hover:opacity-100 transition-opacity" title="Fechar aviso">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
@@ -1425,6 +1463,25 @@
                 showToast(data.message, TOAST_TYPES.SUCCESS);
             } catch (error) {
                 showToast(error.message, TOAST_TYPES.ERROR);
+            }
+        }
+
+        // Dispensar aviso do tipo "uma vez"
+        async function dismissNotice(noticeId) {
+            try {
+                await fetch(`/notices/${noticeId}/dismiss`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN }
+                });
+                const el = document.getElementById(`notice-${noticeId}`);
+                if (el) el.remove();
+
+                const container = document.getElementById('notices-container');
+                if (container && container.children.length === 0) {
+                    container.remove();
+                }
+            } catch (e) {
+                // silencia erros de rede
             }
         }
     </script>
