@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateSettingsRequest;
+use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\Notice;
 use App\Models\Project;
@@ -29,6 +30,8 @@ class SettingsController extends Controller
         $canAddProject = $projectLimit === null || $projects->count() < $projectLimit;
         $canAddCompany = $companyLimit === null || $companies->count() < $companyLimit;
 
+        $auditLogs = AuditLog::forUser($user->id)->orderBy('created_at', 'desc')->limit(30)->get();
+
         return view('settings', [
             'settings' => $settings,
             'projects' => $projects,
@@ -39,7 +42,24 @@ class SettingsController extends Controller
             'projectLimit' => $projectLimit,
             'companyLimit' => $companyLimit,
             'isPremium' => $user->isPremium(),
+            'auditLogs' => $auditLogs,
         ]);
+    }
+
+    public function auditLogsPartial(Request $request): \Illuminate\View\View
+    {
+        $validFilters = ['all', 'setting', 'project', 'company', 'company_project'];
+        $filter = in_array($request->query('filter'), $validFilters)
+            ? $request->query('filter')
+            : 'all';
+
+        $query = AuditLog::forUser(auth()->id())->orderBy('created_at', 'desc');
+        if ($filter !== 'all') {
+            $query->where('entity_type', $filter);
+        }
+        $auditLogs = $query->limit(30)->get();
+
+        return view('partials.audit-logs', compact('auditLogs'));
     }
 
     public function updateSettings(UpdateSettingsRequest $request): JsonResponse
@@ -259,6 +279,21 @@ class SettingsController extends Controller
             'percentage' => $validated['percentage'],
         ]);
 
+        AuditLog::record(
+            userId: auth()->id(),
+            entityType: 'company_project',
+            entityId: null,
+            entityLabel: "{$project->name} ← {$company->name}",
+            action: 'created',
+            oldValues: null,
+            newValues: [
+                'project_id' => $project->id,
+                'company_id' => $company->id,
+                'percentage' => $validated['percentage'],
+            ],
+            ipAddress: request()->ip(),
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Empresa vinculada com sucesso!',
@@ -290,9 +325,22 @@ class SettingsController extends Controller
             ], 422);
         }
 
+        $oldPercentage = $project->companies()->where('company_id', $company->id)->first()?->pivot?->percentage;
+
         $project->companies()->updateExistingPivot($company->id, [
             'percentage' => $validated['percentage'],
         ]);
+
+        AuditLog::record(
+            userId: auth()->id(),
+            entityType: 'company_project',
+            entityId: null,
+            entityLabel: "{$project->name} ← {$company->name}",
+            action: 'updated',
+            oldValues: ['percentage' => $oldPercentage],
+            newValues: ['percentage' => $validated['percentage']],
+            ipAddress: request()->ip(),
+        );
 
         return response()->json([
             'success' => true,
@@ -309,7 +357,20 @@ class SettingsController extends Controller
             ], 403);
         }
 
+        $oldPercentage = $project->companies()->where('company_id', $company->id)->first()?->pivot?->percentage;
+
         $project->companies()->detach($company->id);
+
+        AuditLog::record(
+            userId: auth()->id(),
+            entityType: 'company_project',
+            entityId: null,
+            entityLabel: "{$project->name} ← {$company->name}",
+            action: 'deleted',
+            oldValues: ['percentage' => $oldPercentage],
+            newValues: null,
+            ipAddress: request()->ip(),
+        );
 
         return response()->json([
             'success' => true,

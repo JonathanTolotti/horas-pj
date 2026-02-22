@@ -535,6 +535,67 @@
                 @endforelse
             </div>
         </div>
+
+        <!-- Histórico de Alterações -->
+        <details class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden" id="audit-details">
+            <summary class="flex items-center justify-between p-6 cursor-pointer list-none select-none hover:bg-gray-800/50 transition-colors">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Histórico de Alterações
+                    <span class="text-sm font-normal text-gray-500">(últimas 30)</span>
+                </h2>
+                <svg id="audit-chevron" class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </summary>
+
+            <div class="px-6 pb-6">
+                <!-- Filtros por módulo -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button data-audit-filter="all"
+                        data-active-class="bg-gray-600 text-white"
+                        data-inactive-class="bg-gray-800 text-gray-400 hover:text-white"
+                        onclick="loadAuditLogs('all')"
+                        class="text-xs px-3 py-1 rounded-full transition-colors bg-gray-600 text-white">
+                        Todos
+                    </button>
+                    <button data-audit-filter="setting"
+                        data-active-class="bg-emerald-600 text-white"
+                        data-inactive-class="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                        onclick="loadAuditLogs('setting')"
+                        class="text-xs px-3 py-1 rounded-full transition-colors bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20">
+                        Configurações
+                    </button>
+                    <button data-audit-filter="project"
+                        data-active-class="bg-cyan-600 text-white"
+                        data-inactive-class="bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
+                        onclick="loadAuditLogs('project')"
+                        class="text-xs px-3 py-1 rounded-full transition-colors bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20">
+                        Projetos
+                    </button>
+                    <button data-audit-filter="company"
+                        data-active-class="bg-blue-600 text-white"
+                        data-inactive-class="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
+                        onclick="loadAuditLogs('company')"
+                        class="text-xs px-3 py-1 rounded-full transition-colors bg-blue-500/10 text-blue-400 hover:bg-blue-500/20">
+                        Empresas
+                    </button>
+                    <button data-audit-filter="company_project"
+                        data-active-class="bg-purple-600 text-white"
+                        data-inactive-class="bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                        onclick="loadAuditLogs('company_project')"
+                        class="text-xs px-3 py-1 rounded-full transition-colors bg-purple-500/10 text-purple-400 hover:bg-purple-500/20">
+                        Vínculos
+                    </button>
+                </div>
+
+                <div id="audit-logs-container" class="space-y-2">
+                    @include('partials.audit-logs', ['auditLogs' => $auditLogs])
+                </div>
+            </div>
+        </details>
     </div>
 
     <!-- Modal de Aviso -->
@@ -665,6 +726,43 @@
 
     @push('scripts')
     <script>
+        // Rotacionar chevron do historico de alteracoes
+        document.getElementById('audit-details').addEventListener('toggle', function () {
+            const chevron = document.getElementById('audit-chevron');
+            chevron.style.transform = this.open ? 'rotate(180deg)' : '';
+        });
+
+        // Filtro de auditoria via AJAX
+        let currentAuditFilter = 'all';
+
+        async function loadAuditLogs(filter) {
+            if (filter === currentAuditFilter) return;
+            currentAuditFilter = filter;
+
+            // Atualizar estilos dos botoes
+            document.querySelectorAll('[data-audit-filter]').forEach(btn => {
+                const isActive = btn.dataset.auditFilter === filter;
+                const activeClasses = btn.dataset.activeClass.split(' ');
+                const inactiveClasses = btn.dataset.inactiveClass.split(' ');
+                btn.classList.remove(...activeClasses, ...inactiveClasses);
+                btn.classList.add(...(isActive ? activeClasses : inactiveClasses));
+            });
+
+            // Mostrar loading
+            const container = document.getElementById('audit-logs-container');
+            container.innerHTML = '<p class="text-center py-8 text-gray-500">Carregando...</p>';
+
+            try {
+                const response = await fetch(`/settings/audit-logs?filter=${filter}`, {
+                    headers: { 'Accept': 'text/html', 'X-CSRF-TOKEN': CSRF_TOKEN }
+                });
+                if (!response.ok) throw new Error();
+                container.innerHTML = await response.text();
+            } catch {
+                container.innerHTML = '<p class="text-center py-8 text-red-400">Erro ao carregar.</p>';
+            }
+        }
+
         // Formatacao de moeda
         function formatCurrencyInput(input) {
             let value = input.value.replace(/\D/g, '');

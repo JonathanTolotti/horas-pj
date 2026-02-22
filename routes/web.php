@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [SettingsController::class, 'updateSettings'])->name('settings.update');
+    Route::get('/settings/audit-logs', [SettingsController::class, 'auditLogsPartial'])->name('settings.audit-logs');
 
     // Projects
     Route::post('/projects', [SettingsController::class, 'storeProject'])->name('projects.store');
