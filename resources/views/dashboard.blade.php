@@ -3,9 +3,9 @@
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <!-- Modal de Confirmação -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden">
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-4">
                 <div class="bg-red-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,23 +276,23 @@
 {{--            </div>--}}
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 transition-all">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="bg-indigo-500/10 p-3 rounded-lg">
+                    <div class="bg-indigo-500/10 p-3 rounded-lg shrink-0">
                         <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                         </svg>
                     </div>
-                    <div class="text-right">
-                        <div class="text-xl font-bold text-emerald-400 sensitive-value" id="extra-value">+R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</div>
-                        <div class="text-xl font-bold text-red-400 sensitive-value" id="discount-value">-R$ {{ number_format($stats['discount_value'] ?? 0, 2, ',', '.') }}</div>
+                    <div class="text-right min-w-0 ml-2">
+                        <div class="text-lg font-bold text-emerald-400 sensitive-value truncate" id="extra-value">+R$ {{ number_format($stats['extra_value'], 2, ',', '.') }}</div>
+                        <div class="text-lg font-bold text-red-400 sensitive-value truncate" id="discount-value">-R$ {{ number_format($stats['discount_value'] ?? 0, 2, ',', '.') }}</div>
                     </div>
                 </div>
-                <div class="flex items-center justify-between">
-                    <div>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0">
                         <p class="text-gray-400 text-sm">Ajustes Mensais</p>
                         <p class="text-xs text-gray-500 mt-1">Acréscimo e desconto fixos</p>
                     </div>
                     <button onclick="openMonthlyAdjustmentModal()"
-                        class="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 px-2.5 py-1.5 rounded-lg transition-all">
+                        class="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 px-2.5 py-1.5 rounded-lg transition-all shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
@@ -714,16 +714,16 @@
             @if($canUseOnCall)
             <div id="on-call-list">
                 @forelse($onCallPeriods as $period)
-                    <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-orange-500/30 transition-colors mb-3" data-on-call-id="{{ $period->id }}">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-                            <div class="flex items-center gap-3">
-                                <div class="bg-orange-500/20 p-2 rounded-lg">
+                    <div class="flex flex-col gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-orange-500/30 transition-colors mb-3 sm:flex-row sm:items-center sm:justify-between" data-on-call-id="{{ $period->id }}">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6 min-w-0">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <div class="bg-orange-500/20 p-2 rounded-lg shrink-0">
                                     <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
                                 </div>
-                                <div>
-                                    <p class="text-white font-medium">
+                                <div class="min-w-0">
+                                    <p class="text-white font-medium text-sm sm:text-base">
                                         {{ $period->start_datetime->format('d/m/Y H:i') }} - {{ $period->end_datetime->format('d/m/Y H:i') }}
                                     </p>
                                     @if($period->project)
@@ -734,7 +734,7 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4 text-sm">
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm pl-10 sm:pl-0">
                                 <div class="text-center">
                                     <p class="text-gray-500 text-xs">Total</p>
                                     <p class="text-white font-mono">{{ sprintf('%02d:%02d', floor($period->total_hours), round(($period->total_hours - floor($period->total_hours)) * 60)) }}</p>
@@ -752,12 +752,12 @@
                                     <p class="text-gray-300 sensitive-value">R$ {{ number_format($period->hourly_rate, 2, ',', '.') }}</p>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-gray-500 text-xs">Total</p>
+                                    <p class="text-gray-500 text-xs">Receita</p>
                                     <p class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($period->on_call_hours * $period->hourly_rate, 2, ',', '.') }}</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
                             <button onclick="editOnCall({{ $period->id }}, '{{ $period->start_datetime->format('Y-m-d\TH:i') }}', '{{ $period->end_datetime->format('Y-m-d\TH:i') }}', {{ $period->project_id ?? 'null' }}, {{ $period->hourly_rate }}, '{{ addslashes($period->description ?? '') }}')"
                                 class="p-2 text-gray-400 hover:text-white transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -888,9 +888,9 @@
     @include('imports.modal')
 
     <!-- Modal de Exportação NF -->
-    <div id="nf-export-modal" class="fixed inset-0 z-50 hidden">
+    <div id="nf-export-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeNfExportModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-4">
                 <div class="bg-amber-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1324,9 +1324,9 @@
     @endpush
 
     <!-- Modal de Ajustes Mensais -->
-    <div id="monthly-adjustment-modal" class="fixed inset-0 z-50 hidden">
+    <div id="monthly-adjustment-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeMonthlyAdjustmentModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-indigo-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

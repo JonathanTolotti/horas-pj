@@ -3,9 +3,9 @@
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <!-- Modal de Confirmacao -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden">
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-4">
                 <div class="bg-red-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,9 +27,9 @@
     </div>
 
     <!-- Modal de Projeto -->
-    <div id="project-modal" class="fixed inset-0 z-50 hidden">
+    <div id="project-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeProjectModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-cyan-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,9 +78,9 @@
     </div>
 
     <!-- Modal de Empresa -->
-    <div id="company-modal" class="fixed inset-0 z-50 hidden">
+    <div id="company-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeCompanyModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-blue-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,9 +124,9 @@
     </div>
 
     <!-- Modal de Vinculo Empresa-Projeto -->
-    <div id="link-company-modal" class="fixed inset-0 z-50 hidden">
+    <div id="link-company-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeLinkCompanyModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-purple-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -464,15 +464,15 @@
 
         <!-- Avisos e Lembretes -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-2 min-w-0">
+                    <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
                     Avisos e Lembretes
                 </h2>
                 <button onclick="openNoticeModal()"
-                    class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-amber-500/30">
+                    class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-amber-500/30 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -599,9 +599,9 @@
     </div>
 
     <!-- Modal de Aviso -->
-    <div id="notice-modal" class="fixed inset-0 z-50 hidden">
+    <div id="notice-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeNoticeModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-amber-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -645,7 +645,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Cor</label>
-                        <div class="flex gap-3">
+                        <div class="flex flex-wrap gap-x-4 gap-y-2">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="notice-color" id="notice-color-blue" value="blue" checked
                                     onchange="updateNoticePreview()"
@@ -672,14 +672,14 @@
                             </label>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-400 mb-2">Data de Início</label>
                             <input type="text" id="notice-start-date" placeholder="Selecione..." readonly
                                 class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent cursor-pointer"/>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2">Data de Encerramento <span class="text-gray-500">(opcional)</span></label>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Encerramento <span class="text-gray-500">(opcional)</span></label>
                             <input type="text" id="notice-end-date" placeholder="Selecione..." readonly
                                 class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent cursor-pointer"/>
                         </div>

@@ -1,7 +1,7 @@
 <!-- Modal de Importacao CSV -->
-<div id="import-csv-modal" class="fixed inset-0 z-50 hidden">
+<div id="import-csv-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeImportModal()"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div class="flex items-center gap-3 mb-4">
             <div class="bg-cyan-500/20 p-2 rounded-lg">
                 <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
