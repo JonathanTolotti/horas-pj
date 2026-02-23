@@ -1486,4 +1486,22 @@
         }
     </script>
     @endpush
+
+    @php
+        $hasModalChangelogs = ($unreadChangelogs ?? collect())
+            ->filter(fn($c) => in_array($c->notification_style, ['modal', 'both']))
+            ->isNotEmpty();
+    @endphp
+    @if($hasModalChangelogs)
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-abre o modal de novidades se há changelogs com estilo modal/both
+            setTimeout(function() {
+                window.dispatchEvent(new CustomEvent('open-changelog-modal'));
+            }, 600);
+        });
+    </script>
+    @endpush
+    @endif
 </x-app-layout>

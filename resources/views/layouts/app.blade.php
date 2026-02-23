@@ -176,6 +176,7 @@
         @auth
             @include('imports.modal')
             <x-premium-modal feature="esta funcionalidade" />
+            @include('partials.changelog-modal')
         @endauth
 
         <!-- Global JS Variables -->

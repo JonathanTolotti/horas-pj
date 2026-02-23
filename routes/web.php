@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\MonthlyAdjustmentController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ImportController;
@@ -65,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{notice}/dismiss', [NoticeController::class, 'dismiss'])->name('notices.dismiss');
     });
 
+    // Changelog
+    Route::get('/changelogs/unread-count', [ChangelogController::class, 'unreadCount'])->name('changelogs.unread-count');
+    Route::post('/changelogs/mark-all-read', [ChangelogController::class, 'markAllRead'])->name('changelogs.mark-all-read');
+    Route::post('/changelogs/{changelog}/read', [ChangelogController::class, 'markRead'])->name('changelogs.read');
+
     // Reports
     Route::get('/reports', [ExportController::class, 'index'])->name('reports.index');
 
@@ -122,6 +128,14 @@ Route::middleware(['auth', 'verified', 'premium:on_call'])->group(function () {
     Route::put('/on-call/{onCall}', [OnCallController::class, 'update'])->name('on-call.update');
     Route::delete('/on-call/{onCall}', [OnCallController::class, 'destroy'])->name('on-call.destroy');
     Route::post('/on-call/recalculate', [OnCallController::class, 'recalculate'])->name('on-call.recalculate');
+});
+
+// Admin routes
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/changelogs', [ChangelogController::class, 'adminIndex'])->name('admin.changelogs.index');
+    Route::post('/changelogs', [ChangelogController::class, 'store'])->name('admin.changelogs.store');
+    Route::put('/changelogs/{changelog}', [ChangelogController::class, 'update'])->name('admin.changelogs.update');
+    Route::delete('/changelogs/{changelog}', [ChangelogController::class, 'destroy'])->name('admin.changelogs.destroy');
 });
 
 require __DIR__.'/auth.php';
