@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\MonthlyAdjustmentController;
 use App\Http\Controllers\ExportController;
@@ -132,6 +133,12 @@ Route::middleware(['auth', 'verified', 'premium:on_call'])->group(function () {
 
 // Admin routes
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
+    Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('admin.users.toggle-admin');
+    Route::post('/users/{user}/activate-premium', [AdminController::class, 'activatePremium'])->name('admin.users.activate-premium');
+
     Route::get('/changelogs', [ChangelogController::class, 'adminIndex'])->name('admin.changelogs.index');
     Route::post('/changelogs', [ChangelogController::class, 'store'])->name('admin.changelogs.store');
     Route::put('/changelogs/{changelog}', [ChangelogController::class, 'update'])->name('admin.changelogs.update');

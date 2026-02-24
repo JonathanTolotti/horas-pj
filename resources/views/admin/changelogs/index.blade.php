@@ -1,6 +1,7 @@
-<x-app-layout>
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
-    <div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+@extends('layouts.admin')
+
+@section('content')
+    <div class="space-y-6">
 
         <!-- Header -->
         <div class="flex items-center justify-between">
@@ -144,7 +145,7 @@
         </div>
     </div>
 
-    <!-- Create/Edit Modal -->
+    <!-- Modal -->
     <div
         x-data="changelogAdmin()"
         @open-create-changelog.window="openCreate()"
@@ -287,34 +288,6 @@
 
     @push('scripts')
     <script>
-    const TOAST_TYPES = { SUCCESS: 'success', ERROR: 'error', WARNING: 'warning', INFO: 'info' };
-
-    function escapeHtml(text) {
-        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-        return String(text).replace(/[&<>"']/g, m => map[m]);
-    }
-
-    function showToast(message, type = TOAST_TYPES.INFO, duration = 4000) {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-        const styles = {
-            success: { bg: '#064e3b', border: '#10b981', text: '#a7f3d0', icon: '#34d399' },
-            error:   { bg: '#7f1d1d', border: '#ef4444', text: '#fecaca', icon: '#f87171' },
-            warning: { bg: '#78350f', border: '#f59e0b', text: '#fde68a', icon: '#fbbf24' },
-            info:    { bg: '#164e63', border: '#06b6d4', text: '#a5f3fc', icon: '#22d3ee' },
-        };
-        const s = styles[type] || styles.info;
-        const toast = document.createElement('div');
-        toast.style.cssText = 'transform:translateX(100%);opacity:0;transition:all 0.3s ease-out;';
-        toast.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;border:2px solid ${s.border};background:${s.bg};color:${s.text};box-shadow:0 10px 25px rgba(0,0,0,0.4);font-size:14px;font-weight:500;min-width:280px;max-width:400px;">
-            <span style="flex:1">${escapeHtml(message)}</span>
-            <button onclick="this.closest('div').parentElement.remove()" style="background:none;border:none;cursor:pointer;opacity:0.7;color:${s.text};padding:4px;">✕</button>
-        </div>`;
-        container.appendChild(toast);
-        requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });
-        setTimeout(() => { toast.style.transform = 'translateX(100%)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, duration);
-    }
-
     function changelogAdmin() {
         return {
             open: false,
@@ -451,4 +424,4 @@
     }
     </script>
     @endpush
-</x-app-layout>
+@endsection

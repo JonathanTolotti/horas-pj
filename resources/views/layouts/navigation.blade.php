@@ -154,8 +154,8 @@
                         </x-dropdown-link>
 
                         @if(Auth::user()->is_admin)
-                        <x-dropdown-link :href="route('admin.changelogs.index')" class="text-cyan-400 hover:bg-gray-700">
-                            {{ __('Admin: Changelog') }}
+                        <x-dropdown-link :href="route('admin.dashboard')" class="text-cyan-400 hover:bg-gray-700">
+                            {{ __('Painel Admin') }}
                         </x-dropdown-link>
                         @endif
 
