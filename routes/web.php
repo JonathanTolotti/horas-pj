@@ -116,6 +116,7 @@ Route::middleware(['auth', 'verified', 'premium:export_pdf'])->prefix('export')-
 
 Route::middleware(['auth', 'verified', 'premium:export_excel'])->group(function () {
     Route::get('/export/excel', [ExportController::class, 'excel'])->name('export.excel');
+    Route::get('/export/csv-importable', [ExportController::class, 'csvImportable'])->name('export.csv-importable');
 });
 
 // Rotas de importacao (Premium)

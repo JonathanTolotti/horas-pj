@@ -148,6 +148,44 @@ class ExportController extends Controller
     }
 
     /**
+     * Exportar CSV compatível com a importação do sistema
+     */
+    public function csvImportable(Request $request): StreamedResponse
+    {
+        $monthReference = $request->input('month', session('month_reference', Carbon::now()->format('Y-m')));
+        $projectId = $request->input('project_id');
+        $companyId = $request->input('company_id');
+
+        $data = $this->getExportData($monthReference, $projectId, $companyId);
+        $filename = $this->generateFilename('importavel', $monthReference, 'csv');
+
+        return response()->streamDownload(function () use ($data) {
+            $handle = fopen('php://output', 'w');
+
+            // BOM para UTF-8
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Cabeçalho exatamente como esperado pelo importador
+            fputcsv($handle, ['Data', 'Inicio', 'Fim', 'Projeto', 'Descricao'], ';');
+
+            foreach ($data['entries'] as $entry) {
+                fputcsv($handle, [
+                    $entry->date->format('d/m/Y'),
+                    $entry->start_time ? substr($entry->start_time, 0, 5) : '',
+                    $entry->end_time   ? substr($entry->end_time, 0, 5)   : '',
+                    $entry->project?->name ?? '',
+                    $entry->description ?? '',
+                ], ';');
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
      * Obter dados para exportação
      */
     protected function getExportData(string $monthReference, ?int $projectId = null, ?int $companyId = null): array

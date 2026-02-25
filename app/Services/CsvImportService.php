@@ -229,7 +229,17 @@ class CsvImportService
         $projectId = null;
         if (!empty($line['project'])) {
             $projectKey = mb_strtolower($line['project']);
-            $projectId = $projects[$projectKey] ?? null;
+            if (!isset($projects[$projectKey])) {
+                return [
+                    'valid' => false,
+                    'error' => [
+                        'line' => $lineNumber,
+                        'data' => $line,
+                        'messages' => ["Projeto não encontrado: '{$line['project']}'"],
+                    ],
+                ];
+            }
+            $projectId = $projects[$projectKey];
         }
 
         // Calculate hours

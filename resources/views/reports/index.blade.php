@@ -80,22 +80,45 @@
             <!-- Planilha CSV/Excel -->
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-emerald-500/50 transition-all group">
                 <div class="flex items-start gap-4">
-                    <div class="bg-emerald-500/20 p-3 rounded-lg group-hover:bg-emerald-500/30 transition-colors">
+                    <div class="bg-emerald-500/20 p-3 rounded-lg group-hover:bg-emerald-500/30 transition-colors shrink-0">
                         <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1 min-w-0">
                         <h3 class="text-lg font-semibold text-white mb-1">Planilha CSV</h3>
-                        <p class="text-gray-400 text-sm mb-4">Exporte seus dados em formato CSV para abrir no Excel, Google Sheets ou qualquer planilha.</p>
+                        <p class="text-gray-400 text-sm mb-4">Exporte seus dados em CSV para planilhas ou para reimportar no sistema.</p>
+
                         @if($isPremium)
-                            <button onclick="downloadExcel()"
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                Baixar CSV
-                            </button>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div>
+                                        <span class="text-sm text-white">Para planilha</span>
+                                        <span class="ml-2 text-xs text-gray-500">Excel / Google Sheets</span>
+                                    </div>
+                                    <button onclick="downloadExcel()"
+                                        class="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        Baixar
+                                    </button>
+                                </div>
+                                <div class="border-t border-gray-800"></div>
+                                <div class="flex items-center justify-between gap-3">
+                                    <div>
+                                        <span class="text-sm text-white">Importável pelo sistema</span>
+                                        <span class="ml-2 text-xs text-cyan-500">compatível com importação</span>
+                                    </div>
+                                    <button onclick="downloadCsvImportable()"
+                                        class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        Baixar
+                                    </button>
+                                </div>
+                            </div>
                         @else
                             <button onclick="showPremiumModal('exportação de planilhas')"
                                 class="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2">
@@ -247,6 +270,10 @@
 
         function downloadExcel() {
             window.location.href = `{{ route('export.excel') }}?${getFilters()}`;
+        }
+
+        function downloadCsvImportable() {
+            window.location.href = `{{ route('export.csv-importable') }}?${getFilters()}`;
         }
 
         function downloadNf(companyId) {
