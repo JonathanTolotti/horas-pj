@@ -166,6 +166,111 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Projeção de faturamento até o fim do mês (apenas dias úteis)
+     */
+    public function monthlyProjection(Request $request): JsonResponse
+    {
+        $userId       = auth()->id();
+        $now          = now();
+        $currentMonth = $now->format('Y-m');
+
+        $selectedMonth = $request->input('month', $currentMonth);
+        if (!preg_match('/^\d{4}-\d{2}$/', $selectedMonth)) {
+            $selectedMonth = $currentMonth;
+        }
+
+        $monthStart = Carbon::parse($selectedMonth . '-01');
+        $endOfMonth = $monthStart->copy()->endOfMonth();
+
+        // Define "hoje" para lógica de realizado vs projetado
+        if ($selectedMonth < $currentMonth) {
+            $today = $endOfMonth->toDateString(); // mês passado: tudo realizado
+        } elseif ($selectedMonth === $currentMonth) {
+            $today = $now->toDateString();
+        } else {
+            $today = $monthStart->copy()->subDay()->toDateString(); // mês futuro: tudo projetado
+        }
+
+        // Lançamentos do mês selecionado
+        $entries = TimeEntry::forUser($userId)
+            ->forMonth($selectedMonth)
+            ->get();
+
+        // Receita total real do mês (considera extras, descontos, sobreaviso)
+        $stats         = $this->calculator->getMonthlyStats($userId, $selectedMonth);
+        $actualRevenue = $stats['total_final_with_on_call'];
+        $hourlyRate    = $this->calculator->getHourlyRate($userId, $selectedMonth);
+
+        // Agrupa horas por dia útil (seg–sex)
+        $dailyHours = [];
+        foreach ($entries as $entry) {
+            $dateStr   = $entry->date->toDateString();
+            $dayOfWeek = $entry->date->dayOfWeek; // 0=Dom, 6=Sáb
+            if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
+                $dailyHours[$dateStr] = ($dailyHours[$dateStr] ?? 0) + $entry->hours;
+            }
+        }
+
+        $weekdaysWorked = count($dailyHours);
+
+        // Enumera todos os dias úteis do mês
+        $cursor            = $monthStart->copy();
+        $allWeekdays       = [];
+        $elapsedWeekdays   = 0;
+        $remainingWeekdays = 0;
+
+        while ($cursor->lte($endOfMonth)) {
+            if ($cursor->isWeekday()) {
+                $dateStr = $cursor->toDateString();
+                $allWeekdays[] = $dateStr;
+                if ($dateStr <= $today) {
+                    $elapsedWeekdays++;
+                } else {
+                    $remainingWeekdays++;
+                }
+            }
+            $cursor->addDay();
+        }
+
+        $totalWeekdays = count($allWeekdays);
+
+        // Média diária = receita real / dias úteis com lançamentos
+        $dailyAvg       = $weekdaysWorked > 0 ? $actualRevenue / $weekdaysWorked : 0;
+        $projectedTotal = $actualRevenue + ($dailyAvg * $remainingWeekdays);
+
+        // Monta dados para o gráfico
+        $chartData = [];
+        foreach ($allWeekdays as $dateStr) {
+            $carbon = Carbon::parse($dateStr);
+            $isPast = $dateStr <= $today;
+            $hours  = $dailyHours[$dateStr] ?? 0;
+
+            $chartData[] = [
+                'date'    => $carbon->format('d/m'),
+                'label'   => $carbon->translatedFormat('D d/m'),
+                'hours'   => round($hours, 2),
+                'revenue' => $isPast
+                    ? round($hours * $hourlyRate, 2)
+                    : round($dailyAvg, 2),
+                'type'    => $isPast ? 'actual' : 'projected',
+            ];
+        }
+
+        return response()->json([
+            'current_revenue'       => round($actualRevenue, 2),
+            'current_hours'         => round($stats['total_hours'], 2),
+            'weekdays_worked'       => $weekdaysWorked,
+            'elapsed_weekdays'      => $elapsedWeekdays,
+            'remaining_weekdays'    => $remainingWeekdays,
+            'total_weekdays'        => $totalWeekdays,
+            'daily_average_revenue' => round($dailyAvg, 2),
+            'projected_total'       => round($projectedTotal, 2),
+            'is_past_month'         => $selectedMonth < $currentMonth,
+            'chart_data'            => $chartData,
+        ]);
+    }
+
+    /**
      * Resumo geral dos analytics
      */
     public function summary(): JsonResponse

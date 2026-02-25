@@ -289,6 +289,100 @@
             </div>
         </div>
 
+        <!-- Projeção Mensal -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 {{ !$isPremium ? 'opacity-50 pointer-events-none blur-sm' : '' }}">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span id="proj-section-title">Projeção do Mês Atual</span>
+                </h3>
+                <div class="flex items-center gap-3">
+                    <select id="proj-month-select"
+                        class="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-lg px-3 py-1.5 pr-8 min-w-[140px] focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500">
+                    </select>
+
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open" @click.outside="open = false" class="p-1.5 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-cloak
+                             class="absolute right-0 top-full mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                                    <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-medium text-sm mb-1">Como funciona?</h4>
+                                    <p class="text-gray-400 text-xs leading-relaxed mb-2">
+                                        Calcula a <strong class="text-white">média de faturamento por dia útil</strong> (seg–sex) trabalhado no mês e projeta quanto você vai faturar até o último dia útil.
+                                    </p>
+                                    <p class="text-gray-400 text-xs leading-relaxed">
+                                        As barras em <strong class="text-white">amarelo</strong> são os dias já realizados; as em <strong class="text-white">cinza tracejado</strong> são a estimativa para os dias restantes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards de resumo da projeção -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gray-800/60 rounded-lg p-4">
+                    <div class="text-xs text-gray-400 mb-1">Faturado até hoje</div>
+                    <div class="text-lg font-bold text-white" id="proj-current-revenue">R$ 0,00</div>
+                    <div class="text-xs text-gray-500 mt-0.5" id="proj-weekdays-worked">0 dias úteis</div>
+                </div>
+                <div class="bg-gray-800/60 rounded-lg p-4">
+                    <div class="text-xs text-gray-400 mb-1">Média por dia útil</div>
+                    <div class="text-lg font-bold text-yellow-400" id="proj-daily-avg">R$ 0,00</div>
+                    <div class="text-xs text-gray-500 mt-0.5">com lançamentos</div>
+                </div>
+                <div class="bg-gray-800/60 rounded-lg p-4">
+                    <div class="text-xs text-gray-400 mb-1">Dias úteis restantes</div>
+                    <div class="text-lg font-bold text-white" id="proj-remaining">0</div>
+                    <div class="text-xs text-gray-500 mt-0.5" id="proj-total-weekdays">de 0 no mês</div>
+                </div>
+                <div class="bg-emerald-900/30 border border-emerald-700/40 rounded-lg p-4">
+                    <div class="text-xs text-emerald-400 mb-1">Projeção do mês</div>
+                    <div class="text-lg font-bold text-emerald-400" id="proj-total">R$ 0,00</div>
+                    <div class="text-xs text-gray-500 mt-0.5">se manter a média</div>
+                </div>
+            </div>
+
+            <!-- Barra de progresso do mês -->
+            <div class="mb-6">
+                <div class="flex justify-between text-xs text-gray-500 mb-1.5">
+                    <span id="proj-progress-label">0 de 0 dias úteis concluídos</span>
+                    <span id="proj-progress-pct">0%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                    <div id="proj-progress-bar" class="bg-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Gráfico de barras por dia útil -->
+            <div class="h-64">
+                <canvas id="projectionChart"></canvas>
+            </div>
+            <div class="mt-3 flex items-center justify-center gap-6 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-yellow-400 rounded-sm"></span>
+                    <span class="text-gray-400">Realizado</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-sm" style="background: rgba(156,163,175,0.25); border: 1px dashed #6b7280"></span>
+                    <span class="text-gray-400">Projetado</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Chart.js via CDN -->
@@ -610,6 +704,128 @@
             }
         }
 
+        // Select de meses para a projeção (últimos 12 meses)
+        function buildProjectionMonthSelect() {
+            const select = document.getElementById('proj-month-select');
+            const now = new Date();
+            const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                            'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+            for (let i = 0; i < 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                const label = months[d.getMonth()] + '/' + String(d.getFullYear()).slice(2);
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = label;
+                select.appendChild(option);
+            }
+
+            select.addEventListener('change', () => loadProjectionChart(select.value));
+        }
+
+        // Gráfico de Projeção Mensal
+        let projectionChartInstance = null;
+
+        async function loadProjectionChart(month) {
+            try {
+                const url = '/analytics/monthly-projection' + (month ? '?month=' + month : '');
+                const response = await fetch(url);
+                const result = await response.json();
+
+                // Atualiza título da seção
+                const titleEl = document.getElementById('proj-section-title');
+                titleEl.textContent = result.is_past_month ? 'Realizado por Dia Útil' : 'Projeção do Mês Atual';
+
+                // Cards de resumo
+                document.getElementById('proj-current-revenue').textContent = formatCurrency(result.current_revenue);
+                document.getElementById('proj-weekdays-worked').textContent = result.weekdays_worked + ' dias com lançamentos';
+                document.getElementById('proj-daily-avg').textContent = formatCurrency(result.daily_average_revenue);
+                document.getElementById('proj-remaining').textContent = result.remaining_weekdays;
+                document.getElementById('proj-total-weekdays').textContent = 'de ' + result.total_weekdays + ' no mês';
+
+                const projCard = document.getElementById('proj-total').closest('.bg-emerald-900\\/30');
+                const projLabel = projCard ? projCard.querySelector('.text-xs') : null;
+                document.getElementById('proj-total').textContent = formatCurrency(result.projected_total);
+                if (projLabel) {
+                    projLabel.textContent = result.is_past_month ? 'mês encerrado' : 'se manter a média';
+                }
+
+                // Barra de progresso
+                const pct = result.total_weekdays > 0
+                    ? Math.round((result.elapsed_weekdays / result.total_weekdays) * 100)
+                    : 0;
+                document.getElementById('proj-progress-label').textContent =
+                    result.elapsed_weekdays + ' de ' + result.total_weekdays + ' dias úteis concluídos';
+                document.getElementById('proj-progress-pct').textContent = pct + '%';
+                document.getElementById('proj-progress-bar').style.width = pct + '%';
+
+                const data = result.chart_data;
+
+                if (projectionChartInstance) {
+                    projectionChartInstance.destroy();
+                    projectionChartInstance = null;
+                }
+
+                const ctx = document.getElementById('projectionChart').getContext('2d');
+                projectionChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'Faturamento',
+                            data: data.map(d => d.revenue),
+                            backgroundColor: data.map(d =>
+                                d.type === 'actual' ? 'rgba(250, 204, 21, 0.85)' : 'rgba(156, 163, 175, 0.2)'
+                            ),
+                            borderColor: data.map(d =>
+                                d.type === 'actual' ? 'rgb(234, 179, 8)' : 'rgba(107, 114, 128, 0.6)'
+                            ),
+                            borderWidth: data.map(d => d.type === 'actual' ? 0 : 1),
+                            borderRadius: 4,
+                            barPercentage: 0.75,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: (ctx) => data[ctx[0].dataIndex].label,
+                                    label: (ctx) => {
+                                        const item = data[ctx.dataIndex];
+                                        const prefix = item.type === 'projected' ? '(Estimativa) ' : '';
+                                        const lines = [prefix + formatCurrency(item.revenue)];
+                                        if (item.type === 'actual' && item.hours > 0) {
+                                            lines.push('Horas: ' + formatHours(item.hours));
+                                        }
+                                        return lines;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(55, 65, 81, 0.3)' },
+                                ticks: {
+                                    callback: (value) => 'R$ ' + value.toLocaleString('pt-BR')
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar projeção mensal:', error);
+            }
+        }
+
         // Inicializar todos os gráficos
         document.addEventListener('DOMContentLoaded', function() {
             loadSummary();
@@ -617,6 +833,8 @@
             loadWeekdayChart();
             loadProjectChart();
             loadTrendChart();
+            buildProjectionMonthSelect();
+            loadProjectionChart();
         });
     </script>
     @endpush

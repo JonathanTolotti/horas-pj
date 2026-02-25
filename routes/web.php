@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/hours-by-weekday', [AnalyticsController::class, 'hoursByWeekday'])->name('analytics.weekday');
         Route::get('/hours-by-project', [AnalyticsController::class, 'hoursByProject'])->name('analytics.project');
         Route::get('/revenue-trend', [AnalyticsController::class, 'revenueTrend'])->name('analytics.trend');
+        Route::get('/monthly-projection', [AnalyticsController::class, 'monthlyProjection'])->name('analytics.projection');
     });
 });
 
