@@ -47,6 +47,7 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
+            page-break-inside: avoid;
         }
 
         .company-info-title {
@@ -105,6 +106,7 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
+            page-break-inside: avoid;
         }
 
         .summary-box-title {
@@ -238,13 +240,65 @@
             <div class="company-info-title">Dados do Tomador de Serviço</div>
             <table class="company-info-grid">
                 <tr>
-                    <td class="label">Razão Social:</td>
+                    <td class="label">{{ $company->razao_social ? 'Nome Fantasia:' : 'Razão Social:' }}</td>
                     <td class="value">{{ $company->name }}</td>
                 </tr>
+                @if($company->razao_social)
+                <tr>
+                    <td class="label">Razão Social:</td>
+                    <td class="value">{{ $company->razao_social }}</td>
+                </tr>
+                @endif
                 <tr>
                     <td class="label">CNPJ:</td>
                     <td class="value">{{ $company->cnpj }}</td>
                 </tr>
+                @if($company->inscricao_municipal)
+                <tr>
+                    <td class="label">Insc. Municipal:</td>
+                    <td class="value">{{ $company->inscricao_municipal }}</td>
+                </tr>
+                @endif
+                @if($company->inscricao_estadual)
+                <tr>
+                    <td class="label">Insc. Estadual:</td>
+                    <td class="value">{{ $company->inscricao_estadual }}</td>
+                </tr>
+                @endif
+                @if($company->logradouro)
+                <tr>
+                    <td class="label">Endereço:</td>
+                    <td class="value">
+                        {{ $company->logradouro }}{{ $company->numero ? ', ' . $company->numero : '' }}{{ $company->complemento ? ' — ' . $company->complemento : '' }}
+                        @if($company->bairro || $company->cidade)
+                            <br>{{ $company->bairro }}{{ $company->bairro && $company->cidade ? ' — ' : '' }}{{ $company->cidade }}{{ $company->uf ? '/' . $company->uf : '' }}{{ $company->cep ? ' — CEP ' . $company->cep : '' }}
+                        @endif
+                    </td>
+                </tr>
+                @endif
+                @if($company->telefone)
+                <tr>
+                    <td class="label">Telefone:</td>
+                    <td class="value">{{ $company->telefone }}</td>
+                </tr>
+                @endif
+                @if($company->email)
+                <tr>
+                    <td class="label">E-mail:</td>
+                    <td class="value">{{ $company->email }}</td>
+                </tr>
+                @endif
+                @if($company->responsavel_nome)
+                <tr>
+                    <td class="label">Responsável:</td>
+                    <td class="value">
+                        {{ $company->responsavel_nome }}
+                        @if($company->responsavel_email)
+                            <br><span style="color:#6b7280;font-size:9pt;">{{ $company->responsavel_email }}</span>
+                        @endif
+                    </td>
+                </tr>
+                @endif
             </table>
         </div>
 

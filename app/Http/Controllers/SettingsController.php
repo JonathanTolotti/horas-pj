@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -43,6 +44,85 @@ class SettingsController extends Controller
             'companyLimit' => $companyLimit,
             'isPremium' => $user->isPremium(),
             'auditLogs' => $auditLogs,
+        ]);
+    }
+
+    public function lookupCnpj(string $cnpj): JsonResponse
+    {
+        $cnpjClean = preg_replace('/\D/', '', $cnpj);
+        if (strlen($cnpjClean) !== 14) {
+            return response()->json(['error' => 'CNPJ inválido'], 422);
+        }
+
+        $response = Http::timeout(10)
+            ->get("https://brasilapi.com.br/api/cnpj/v1/{$cnpjClean}");
+
+        if (!$response->ok()) {
+            return response()->json(['error' => 'CNPJ não encontrado'], 404);
+        }
+
+        $data = $response->json();
+
+        // Formata CEP: "01310100" → "01310-100"
+        $cep = preg_replace('/\D/', '', $data['cep'] ?? '');
+        if (strlen($cep) === 8) {
+            $cep = substr($cep, 0, 5) . '-' . substr($cep, 5);
+        } else {
+            $cep = null;
+        }
+
+        // Formata telefone: "11 98765-4321" → "(11) 98765-4321"
+        $tel = preg_replace('/\D/', '', $data['ddd_telefone_1'] ?? '');
+        if (strlen($tel) >= 10) {
+            $ddd = substr($tel, 0, 2);
+            $num = substr($tel, 2);
+            $telefone = strlen($num) === 9
+                ? "({$ddd}) " . substr($num, 0, 5) . '-' . substr($num, 5)
+                : "({$ddd}) " . substr($num, 0, 4) . '-' . substr($num, 4);
+        } else {
+            $telefone = null;
+        }
+
+        return response()->json([
+            'nome_fantasia' => $data['nome_fantasia'] ?? null,
+            'razao_social'  => $data['razao_social'] ?? null,
+            'email'         => $data['email'] ?? null,
+            'telefone'      => $telefone,
+            'cep'           => $cep,
+            'logradouro'    => $data['logradouro'] ?? null,
+            'numero'        => $data['numero'] ?? null,
+            'complemento'   => $data['complemento'] ?? null,
+            'bairro'        => $data['bairro'] ?? null,
+            'cidade'        => $data['municipio'] ?? null,
+            'uf'            => $data['uf'] ?? null,
+        ]);
+    }
+
+    public function lookupCep(string $cep): JsonResponse
+    {
+        $cepClean = preg_replace('/\D/', '', $cep);
+        if (strlen($cepClean) !== 8) {
+            return response()->json(['error' => 'CEP inválido'], 422);
+        }
+
+        $response = Http::timeout(10)
+            ->get("https://viacep.com.br/ws/{$cepClean}/json/");
+
+        if (!$response->ok()) {
+            return response()->json(['error' => 'CEP não encontrado'], 404);
+        }
+
+        $data = $response->json();
+
+        if (isset($data['erro'])) {
+            return response()->json(['error' => 'CEP não encontrado'], 404);
+        }
+
+        return response()->json([
+            'logradouro' => $data['logradouro'] ?? null,
+            'bairro'     => $data['bairro'] ?? null,
+            'cidade'     => $data['localidade'] ?? null,
+            'uf'         => $data['uf'] ?? null,
         ]);
     }
 

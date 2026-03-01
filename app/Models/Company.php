@@ -17,6 +17,21 @@ class Company extends Model
         'name',
         'cnpj',
         'active',
+        'razao_social',
+        'email',
+        'telefone',
+        'cep',
+        'logradouro',
+        'numero',
+        'complemento',
+        'bairro',
+        'cidade',
+        'uf',
+        'inscricao_municipal',
+        'inscricao_estadual',
+        'responsavel_nome',
+        'responsavel_email',
+        'responsavel_telefone',
     ];
 
     protected $casts = [

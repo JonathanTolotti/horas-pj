@@ -196,7 +196,7 @@ describe('Projects CRUD', function () {
 });
 
 describe('Companies CRUD', function () {
-    test('usuario pode criar empresa', function () {
+    test('usuario pode criar empresa com campos basicos', function () {
         Subscription::create([
             'user_id' => $this->user->id,
             'plan' => 'premium',
@@ -220,6 +220,110 @@ describe('Companies CRUD', function () {
         ]);
     });
 
+    test('usuario pode criar empresa com dados completos', function () {
+        Subscription::create([
+            'user_id' => $this->user->id,
+            'plan' => 'premium',
+            'status' => 'active',
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addYear(),
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson('/companies', [
+            'name'                 => 'Empresa Completa',
+            'cnpj'                 => '12.345.678/0001-90',
+            'active'               => true,
+            'razao_social'         => 'Empresa Completa Tecnologia LTDA',
+            'email'                => 'contato@empresa.com.br',
+            'telefone'             => '(11) 98765-4321',
+            'cep'                  => '01310-100',
+            'logradouro'           => 'Avenida Paulista',
+            'numero'               => '1000',
+            'complemento'          => 'Sala 501',
+            'bairro'               => 'Bela Vista',
+            'cidade'               => 'São Paulo',
+            'uf'                   => 'SP',
+            'inscricao_municipal'  => '1234567-8',
+            'inscricao_estadual'   => '110.042.490.114',
+            'responsavel_nome'     => 'João da Silva',
+            'responsavel_email'    => 'joao@empresa.com.br',
+            'responsavel_telefone' => '(11) 91234-5678',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('companies', [
+            'user_id'      => $this->user->id,
+            'name'         => 'Empresa Completa',
+            'razao_social' => 'Empresa Completa Tecnologia LTDA',
+            'cidade'       => 'São Paulo',
+            'uf'           => 'SP',
+        ]);
+    });
+
+    test('campos opcionais ficam nulos quando nao informados', function () {
+        Subscription::create([
+            'user_id' => $this->user->id,
+            'plan' => 'premium',
+            'status' => 'active',
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addYear(),
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson('/companies', [
+            'name' => 'Empresa Minima',
+            'cnpj' => '12.345.678/0001-90',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $company = Company::where('name', 'Empresa Minima')->first();
+        expect($company->razao_social)->toBeNull();
+        expect($company->email)->toBeNull();
+        expect($company->cidade)->toBeNull();
+        expect($company->responsavel_nome)->toBeNull();
+    });
+
+    test('email invalido e rejeitado', function () {
+        Subscription::create([
+            'user_id' => $this->user->id,
+            'plan' => 'premium',
+            'status' => 'active',
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addYear(),
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson('/companies', [
+            'name'  => 'Empresa Teste',
+            'cnpj'  => '12.345.678/0001-90',
+            'email' => 'email-invalido',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    });
+
+    test('uf com mais de 2 caracteres e rejeitada', function () {
+        Subscription::create([
+            'user_id' => $this->user->id,
+            'plan' => 'premium',
+            'status' => 'active',
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addYear(),
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson('/companies', [
+            'name' => 'Empresa Teste',
+            'cnpj' => '12.345.678/0001-90',
+            'uf'   => 'SPP',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['uf']);
+    });
+
     test('usuario pode atualizar empresa', function () {
         $company = Company::create([
             'user_id' => $this->user->id,
@@ -229,8 +333,11 @@ describe('Companies CRUD', function () {
         ]);
 
         $response = $this->actingAs($this->user)->putJson("/companies/{$company->id}", [
-            'name' => 'Empresa Atualizada',
-            'cnpj' => '98.765.432/0001-21',
+            'name'         => 'Empresa Atualizada',
+            'cnpj'         => '98.765.432/0001-21',
+            'razao_social' => 'Empresa Atualizada LTDA',
+            'cidade'       => 'Campinas',
+            'uf'           => 'SP',
         ]);
 
         $response->assertStatus(200)
@@ -238,6 +345,8 @@ describe('Companies CRUD', function () {
 
         $company->refresh();
         expect($company->name)->toBe('Empresa Atualizada');
+        expect($company->razao_social)->toBe('Empresa Atualizada LTDA');
+        expect($company->cidade)->toBe('Campinas');
     });
 
     test('usuario pode excluir empresa sem vinculos', function () {

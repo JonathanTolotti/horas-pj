@@ -80,7 +80,7 @@
     <!-- Modal de Empresa -->
     <div id="company-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeCompanyModal()"></div>
-        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-blue-500/20 p-2 rounded-lg">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,27 +91,156 @@
             </div>
             <form id="company-form" onsubmit="return false;">
                 <input type="hidden" id="company-id" value="">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Nome da Empresa</label>
-                        <input type="text" id="company-name" placeholder="Ex: Empresa Alpha LTDA"
-                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">CNPJ</label>
-                        <input type="text" id="company-cnpj" placeholder="00.000.000/0000-00" maxlength="18"
-                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-                            oninput="formatCnpj(this)"/>
-                    </div>
-                    <div class="flex items-center gap-6">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="company-active" checked
-                                class="w-5 h-5 rounded bg-gray-800 border-gray-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-900"/>
-                            <span class="text-gray-300">Ativa</span>
-                        </label>
+
+                <!-- Seção 1: Dados da Empresa -->
+                <div class="mb-5">
+                    <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Dados da Empresa</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">Nome Fantasia <span class="text-red-400">*</span></label>
+                            <input type="text" id="company-name" placeholder="Ex: Empresa Alpha"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">Razão Social</label>
+                            <input type="text" id="company-razao-social" placeholder="Ex: Empresa Alpha Tecnologia LTDA"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">CNPJ <span class="text-red-400">*</span></label>
+                                <input type="text" id="company-cnpj" placeholder="00.000.000/0000-00" maxlength="18"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                                    oninput="formatCnpj(this)"/>
+                            </div>
+                            <div class="flex-shrink-0 flex flex-col justify-end">
+                                <button type="button" id="btn-lookup-cnpj" onclick="lookupCnpj()"
+                                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="company-active" checked
+                                    class="w-5 h-5 rounded bg-gray-800 border-gray-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-900"/>
+                                <span class="text-gray-300">Ativa</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-                <div class="flex gap-3 justify-end mt-6">
+
+                <!-- Seção 2: Contato da Empresa -->
+                <div class="mb-5 pt-4 border-t border-gray-700">
+                    <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Contato da Empresa</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">Telefone</label>
+                            <input type="text" id="company-telefone" placeholder="(00) 00000-0000" maxlength="15"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                oninput="formatTelefone(this)"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">E-mail</label>
+                            <input type="email" id="company-email" placeholder="contato@empresa.com.br"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Endereço -->
+                <div class="mb-5 pt-4 border-t border-gray-700">
+                    <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Endereço</h4>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="w-40">
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">CEP</label>
+                                <input type="text" id="company-cep" placeholder="00000-000" maxlength="9"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                                    oninput="formatCep(this)"/>
+                            </div>
+                            <div class="flex-shrink-0 flex flex-col justify-end">
+                                <button type="button" id="btn-lookup-cep" onclick="lookupCep()"
+                                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">Logradouro</label>
+                            <input type="text" id="company-logradouro" placeholder="Rua, Avenida..."
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">Número</label>
+                                <input type="text" id="company-numero" placeholder="123"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">Complemento</label>
+                                <input type="text" id="company-complemento" placeholder="Sala 10, Andar 2..."
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">Bairro</label>
+                            <input type="text" id="company-bairro" placeholder="Centro"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">Cidade</label>
+                                <input type="text" id="company-cidade" placeholder="São Paulo"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">UF</label>
+                                <input type="text" id="company-uf" placeholder="SP" maxlength="2"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"/>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">Inscrição Municipal</label>
+                                <input type="text" id="company-inscricao-municipal" placeholder="000000-0"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">Inscrição Estadual</label>
+                                <input type="text" id="company-inscricao-estadual" placeholder="000.000.000.000"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 4: Responsável -->
+                <div class="mb-5 pt-4 border-t border-gray-700">
+                    <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Responsável</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1.5">Nome do Responsável</label>
+                            <input type="text" id="company-responsavel-nome" placeholder="João da Silva"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">E-mail do Responsável</label>
+                                <input type="email" id="company-responsavel-email" placeholder="joao@empresa.com.br"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1.5">Telefone do Responsável</label>
+                                <input type="text" id="company-responsavel-telefone" placeholder="(00) 00000-0000" maxlength="15"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    oninput="formatTelefone(this)"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-end pt-4 border-t border-gray-700">
                     <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                         Cancelar
                     </button>
@@ -314,23 +443,58 @@
 
             <div id="companies-list" class="space-y-3">
                 @forelse($companies as $company)
+                    @php
+                        $companyJson = json_encode([
+                            'id'                   => $company->id,
+                            'name'                 => $company->name,
+                            'cnpj'                 => $company->cnpj,
+                            'active'               => (bool) $company->active,
+                            'razao_social'         => $company->razao_social,
+                            'email'                => $company->email,
+                            'telefone'             => $company->telefone,
+                            'cep'                  => $company->cep,
+                            'logradouro'           => $company->logradouro,
+                            'numero'               => $company->numero,
+                            'complemento'          => $company->complemento,
+                            'bairro'               => $company->bairro,
+                            'cidade'               => $company->cidade,
+                            'uf'                   => $company->uf,
+                            'inscricao_municipal'  => $company->inscricao_municipal,
+                            'inscricao_estadual'   => $company->inscricao_estadual,
+                            'responsavel_nome'     => $company->responsavel_nome,
+                            'responsavel_email'    => $company->responsavel_email,
+                            'responsavel_telefone' => $company->responsavel_telefone,
+                        ]);
+                    @endphp
                     <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors" data-company-id="{{ $company->id }}">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-col gap-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 @if($company->active)
-                                    <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
+                                    <span class="w-2 h-2 bg-emerald-400 rounded-full flex-shrink-0"></span>
                                 @else
-                                    <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                                    <span class="w-2 h-2 bg-gray-500 rounded-full flex-shrink-0"></span>
                                 @endif
                                 <span class="text-white font-medium">{{ $company->name }}</span>
+                                <span class="text-gray-400 text-sm font-mono">{{ $company->cnpj }}</span>
+                                @if(!$company->active)
+                                    <span class="text-xs bg-gray-500/20 text-gray-400 px-2 py-1 rounded-full">Inativa</span>
+                                @endif
                             </div>
-                            <span class="text-gray-400 text-sm font-mono">{{ $company->cnpj }}</span>
-                            @if(!$company->active)
-                                <span class="text-xs bg-gray-500/20 text-gray-400 px-2 py-1 rounded-full">Inativa</span>
+                            @if($company->cidade || $company->email || $company->telefone)
+                                <div class="flex items-center gap-3 flex-wrap pl-4">
+                                    @if($company->cidade)
+                                        <span class="text-gray-500 text-xs">{{ $company->cidade }}{{ $company->uf ? ', ' . $company->uf : '' }}</span>
+                                    @endif
+                                    @if($company->email)
+                                        <span class="text-gray-500 text-xs">{{ $company->email }}</span>
+                                    @elseif($company->telefone)
+                                        <span class="text-gray-500 text-xs">{{ $company->telefone }}</span>
+                                    @endif
+                                </div>
                             @endif
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="editCompany({{ $company->id }}, '{{ addslashes($company->name) }}', '{{ $company->cnpj }}', {{ $company->active ? 'true' : 'false' }})"
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button onclick='editCompany({{ $companyJson }})'
                                 class="p-2 text-gray-400 hover:text-white transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -1135,12 +1299,29 @@
         }
 
         // Company Modal
-        function openCompanyModal(id = null, name = '', cnpj = '', active = true) {
-            document.getElementById('company-modal-title').textContent = id ? 'Editar Empresa' : 'Nova Empresa';
-            document.getElementById('company-id').value = id || '';
-            document.getElementById('company-name').value = name;
-            document.getElementById('company-cnpj').value = cnpj;
-            document.getElementById('company-active').checked = active;
+        function openCompanyModal(data = null) {
+            const isEdit = data && data.id;
+            document.getElementById('company-modal-title').textContent = isEdit ? 'Editar Empresa' : 'Nova Empresa';
+            document.getElementById('company-id').value = isEdit ? data.id : '';
+
+            const fields = [
+                ['company-name', 'name'], ['company-razao-social', 'razao_social'],
+                ['company-cnpj', 'cnpj'], ['company-telefone', 'telefone'],
+                ['company-email', 'email'], ['company-cep', 'cep'],
+                ['company-logradouro', 'logradouro'], ['company-numero', 'numero'],
+                ['company-complemento', 'complemento'], ['company-bairro', 'bairro'],
+                ['company-cidade', 'cidade'], ['company-uf', 'uf'],
+                ['company-inscricao-municipal', 'inscricao_municipal'],
+                ['company-inscricao-estadual', 'inscricao_estadual'],
+                ['company-responsavel-nome', 'responsavel_nome'],
+                ['company-responsavel-email', 'responsavel_email'],
+                ['company-responsavel-telefone', 'responsavel_telefone'],
+            ];
+            fields.forEach(([elId, key]) => {
+                const el = document.getElementById(elId);
+                if (el) el.value = (data && data[key]) ? data[key] : '';
+            });
+            document.getElementById('company-active').checked = data ? !!data.active : true;
             document.getElementById('company-modal').classList.remove('hidden');
         }
 
@@ -1148,15 +1329,14 @@
             document.getElementById('company-modal').classList.add('hidden');
         }
 
-        function editCompany(id, name, cnpj, active) {
-            openCompanyModal(id, name, cnpj, active);
+        function editCompany(data) {
+            openCompanyModal(data);
         }
 
         async function saveCompany() {
             const id = document.getElementById('company-id').value;
             const name = document.getElementById('company-name').value;
             const cnpj = document.getElementById('company-cnpj').value;
-            const active = document.getElementById('company-active').checked;
 
             if (!name.trim()) {
                 showToast('Por favor, informe o nome da empresa!', TOAST_TYPES.WARNING);
@@ -1164,18 +1344,39 @@
             }
 
             if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(cnpj)) {
-                showToast('CNPJ invalido! Use o formato XX.XXX.XXX/XXXX-XX', TOAST_TYPES.WARNING);
+                showToast('CNPJ inválido! Use o formato XX.XXX.XXX/XXXX-XX', TOAST_TYPES.WARNING);
                 return;
             }
+
+            const payload = {
+                name,
+                cnpj,
+                active: document.getElementById('company-active').checked,
+                razao_social: document.getElementById('company-razao-social').value.trim() || null,
+                email: document.getElementById('company-email').value.trim() || null,
+                telefone: document.getElementById('company-telefone').value.trim() || null,
+                cep: document.getElementById('company-cep').value.trim() || null,
+                logradouro: document.getElementById('company-logradouro').value.trim() || null,
+                numero: document.getElementById('company-numero').value.trim() || null,
+                complemento: document.getElementById('company-complemento').value.trim() || null,
+                bairro: document.getElementById('company-bairro').value.trim() || null,
+                cidade: document.getElementById('company-cidade').value.trim() || null,
+                uf: document.getElementById('company-uf').value.trim().toUpperCase() || null,
+                inscricao_municipal: document.getElementById('company-inscricao-municipal').value.trim() || null,
+                inscricao_estadual: document.getElementById('company-inscricao-estadual').value.trim() || null,
+                responsavel_nome: document.getElementById('company-responsavel-nome').value.trim() || null,
+                responsavel_email: document.getElementById('company-responsavel-email').value.trim() || null,
+                responsavel_telefone: document.getElementById('company-responsavel-telefone').value.trim() || null,
+            };
 
             try {
                 const url = id ? `/companies/${id}` : '/companies';
                 const method = id ? 'PUT' : 'POST';
 
                 const response = await fetch(url, {
-                    method: method,
+                    method,
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
-                    body: JSON.stringify({ name, cnpj, active })
+                    body: JSON.stringify(payload),
                 });
 
                 const data = await response.json();
@@ -1187,6 +1388,101 @@
             } catch (error) {
                 showToast(error.message, TOAST_TYPES.ERROR);
             }
+        }
+
+        // Busca CNPJ via backend (BrasilAPI)
+        async function lookupCnpj() {
+            const cnpj = document.getElementById('company-cnpj').value.replace(/\D/g, '');
+            if (cnpj.length !== 14) {
+                showToast('Digite o CNPJ completo antes de buscar.', TOAST_TYPES.WARNING);
+                return;
+            }
+            const btn = document.getElementById('btn-lookup-cnpj');
+            btn.textContent = '...';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/cnpj/${cnpj}`, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.error || 'CNPJ não encontrado.', TOAST_TYPES.ERROR);
+                    return;
+                }
+                fillIfEmpty('company-name', data.nome_fantasia);
+                fillIfEmpty('company-razao-social', data.razao_social);
+                fillIfEmpty('company-email', data.email);
+                fillIfEmpty('company-telefone', data.telefone);
+                fillIfEmpty('company-cep', data.cep);
+                fillIfEmpty('company-logradouro', data.logradouro);
+                fillIfEmpty('company-numero', data.numero);
+                fillIfEmpty('company-complemento', data.complemento);
+                fillIfEmpty('company-bairro', data.bairro);
+                fillIfEmpty('company-cidade', data.cidade);
+                fillIfEmpty('company-uf', data.uf);
+                showToast('Dados encontrados e preenchidos!', TOAST_TYPES.SUCCESS);
+            } catch (e) {
+                showToast('Erro ao buscar CNPJ.', TOAST_TYPES.ERROR);
+            } finally {
+                btn.textContent = 'Buscar';
+                btn.disabled = false;
+            }
+        }
+
+        // Busca CEP via proxy backend → ViaCEP
+        async function lookupCep() {
+            const cep = document.getElementById('company-cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                showToast('Digite o CEP completo antes de buscar.', TOAST_TYPES.WARNING);
+                return;
+            }
+            const btn = document.getElementById('btn-lookup-cep');
+            btn.textContent = '...';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/cep/${cep}`, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.error || 'CEP não encontrado.', TOAST_TYPES.ERROR);
+                    return;
+                }
+                fillIfEmpty('company-logradouro', data.logradouro);
+                fillIfEmpty('company-bairro', data.bairro);
+                fillIfEmpty('company-cidade', data.cidade);
+                fillIfEmpty('company-uf', data.uf);
+                document.getElementById('company-numero').focus();
+                showToast('Endereço preenchido!', TOAST_TYPES.SUCCESS);
+            } catch (e) {
+                showToast('Erro ao buscar CEP.', TOAST_TYPES.ERROR);
+            } finally {
+                btn.textContent = 'Buscar';
+                btn.disabled = false;
+            }
+        }
+
+        function fillIfEmpty(id, value) {
+            const el = document.getElementById(id);
+            if (el && !el.value && value) el.value = value;
+        }
+
+        function formatTelefone(input) {
+            let v = input.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) {
+                v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            } else if (v.length > 6) {
+                v = v.replace(/^(\d{2})(\d{4})(\d*)$/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d{2})(\d*)$/, '($1) $2');
+            }
+            input.value = v;
+        }
+
+        function formatCep(input) {
+            let v = input.value.replace(/\D/g, '').slice(0, 8);
+            if (v.length > 5) v = v.replace(/^(\d{5})(\d*)$/, '$1-$2');
+            input.value = v;
         }
 
         function deleteCompany(id) {

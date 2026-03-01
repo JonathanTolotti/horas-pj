@@ -40,6 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/projects/{project}', [SettingsController::class, 'destroyProject'])->name('projects.destroy');
 
     // Companies
+    Route::get('/cnpj/{cnpj}', [SettingsController::class, 'lookupCnpj'])->name('cnpj.lookup');
+    Route::get('/cep/{cep}', [SettingsController::class, 'lookupCep'])->name('cep.lookup');
     Route::post('/companies', [SettingsController::class, 'storeCompany'])->name('companies.store');
     Route::put('/companies/{company}', [SettingsController::class, 'updateCompany'])->name('companies.update');
     Route::delete('/companies/{company}', [SettingsController::class, 'destroyCompany'])->name('companies.destroy');
