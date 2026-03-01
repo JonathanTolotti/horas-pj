@@ -313,11 +313,17 @@ function showImportToast(message, type) {
         document.body.appendChild(container);
     }
 
-    const colors = {
+    const isDark = document.documentElement.classList.contains('dark');
+    const colors = isDark ? {
         success: { bg: '#064e3b', border: '#10b981', text: '#a7f3d0' },
-        error: { bg: '#7f1d1d', border: '#ef4444', text: '#fecaca' },
+        error:   { bg: '#7f1d1d', border: '#ef4444', text: '#fecaca' },
         warning: { bg: '#78350f', border: '#f59e0b', text: '#fde68a' },
-        info: { bg: '#164e63', border: '#06b6d4', text: '#a5f3fc' }
+        info:    { bg: '#164e63', border: '#06b6d4', text: '#a5f3fc' }
+    } : {
+        success: { bg: '#d1fae5', border: '#059669', text: '#064e3b' },
+        error:   { bg: '#fee2e2', border: '#dc2626', text: '#7f1d1d' },
+        warning: { bg: '#fef3c7', border: '#d97706', text: '#78350f' },
+        info:    { bg: '#cffafe', border: '#0891b2', text: '#164e63' }
     };
 
     const style = colors[type] || colors.info;
@@ -329,7 +335,7 @@ function showImportToast(message, type) {
         border: 2px solid ${style.border};
         background: ${style.bg};
         color: ${style.text};
-        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        box-shadow: 0 10px 25px rgba(0,0,0,${isDark ? '0.4' : '0.12'});
         font-size: 14px;
         font-weight: 500;
         min-width: 280px;

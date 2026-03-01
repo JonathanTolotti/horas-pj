@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,6 +21,10 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 
         <script>
+            // Apply theme immediately to prevent flash (dark is default)
+            if (localStorage.getItem('theme') !== 'light') {
+                document.documentElement.classList.add('dark');
+            }
             // Apply privacy mode immediately to prevent flash of sensitive content
             if (localStorage.getItem('privacy_mode') === 'true') {
                 document.documentElement.classList.add('privacy-mode');
@@ -43,48 +47,48 @@
             body {
                 font-family: 'Inter', sans-serif;
             }
-            /* Flatpickr dark theme customization */
-            .flatpickr-calendar {
+            /* Flatpickr dark theme customization (only in dark mode) */
+            html.dark .flatpickr-calendar {
                 background: #1f2937 !important;
                 border-color: #374151 !important;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
             }
-            .flatpickr-months .flatpickr-month,
-            .flatpickr-current-month .flatpickr-monthDropdown-months,
-            .flatpickr-weekdays,
-            span.flatpickr-weekday {
+            html.dark .flatpickr-months .flatpickr-month,
+            html.dark .flatpickr-current-month .flatpickr-monthDropdown-months,
+            html.dark .flatpickr-weekdays,
+            html.dark span.flatpickr-weekday {
                 background: #1f2937 !important;
                 color: #9ca3af !important;
             }
-            .flatpickr-current-month input.cur-year,
-            .flatpickr-current-month .numInputWrapper span {
+            html.dark .flatpickr-current-month input.cur-year,
+            html.dark .flatpickr-current-month .numInputWrapper span {
                 color: #fff !important;
             }
-            .flatpickr-day {
+            html.dark .flatpickr-day {
                 color: #e5e7eb !important;
             }
-            .flatpickr-day:hover {
+            html.dark .flatpickr-day:hover {
                 background: #374151 !important;
                 border-color: #374151 !important;
             }
-            .flatpickr-day.selected {
+            html.dark .flatpickr-day.selected {
                 background: #06b6d4 !important;
                 border-color: #06b6d4 !important;
                 color: #fff !important;
             }
-            .flatpickr-day.today {
+            html.dark .flatpickr-day.today {
                 border-color: #06b6d4 !important;
             }
-            .flatpickr-months .flatpickr-prev-month,
-            .flatpickr-months .flatpickr-next-month {
+            html.dark .flatpickr-months .flatpickr-prev-month,
+            html.dark .flatpickr-months .flatpickr-next-month {
                 color: #9ca3af !important;
                 fill: #9ca3af !important;
             }
-            .flatpickr-months .flatpickr-prev-month:hover svg,
-            .flatpickr-months .flatpickr-next-month:hover svg {
+            html.dark .flatpickr-months .flatpickr-prev-month:hover svg,
+            html.dark .flatpickr-months .flatpickr-next-month:hover svg {
                 fill: #06b6d4 !important;
             }
-            .flatpickr-day.flatpickr-disabled {
+            html.dark .flatpickr-day.flatpickr-disabled {
                 color: #4b5563 !important;
             }
             /* Date picker input styling */
@@ -182,6 +186,17 @@
         <!-- Global JS Variables -->
         <script>
             const CSRF_TOKEN = '{{ csrf_token() }}';
+
+            function toggleTheme() {
+                const html = document.documentElement;
+                if (html.classList.contains('dark')) {
+                    html.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+            }
         </script>
 
         <!-- Global Import Functions -->

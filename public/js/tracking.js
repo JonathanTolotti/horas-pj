@@ -196,31 +196,18 @@ function showToast(message, type = TOAST_TYPES.INFO, duration = 4000) {
         transition: all 0.3s ease-out;
     `;
 
-    const styles = {
-        success: {
-            bg: '#064e3b',
-            border: '#10b981',
-            text: '#a7f3d0',
-            icon: '#34d399'
-        },
-        error: {
-            bg: '#7f1d1d',
-            border: '#ef4444',
-            text: '#fecaca',
-            icon: '#f87171'
-        },
-        warning: {
-            bg: '#78350f',
-            border: '#f59e0b',
-            text: '#fde68a',
-            icon: '#fbbf24'
-        },
-        info: {
-            bg: '#164e63',
-            border: '#06b6d4',
-            text: '#a5f3fc',
-            icon: '#22d3ee'
-        }
+    const isDark = document.documentElement.classList.contains('dark');
+
+    const styles = isDark ? {
+        success: { bg: '#064e3b', border: '#10b981', text: '#a7f3d0', icon: '#34d399' },
+        error:   { bg: '#7f1d1d', border: '#ef4444', text: '#fecaca', icon: '#f87171' },
+        warning: { bg: '#78350f', border: '#f59e0b', text: '#fde68a', icon: '#fbbf24' },
+        info:    { bg: '#164e63', border: '#06b6d4', text: '#a5f3fc', icon: '#22d3ee' }
+    } : {
+        success: { bg: '#d1fae5', border: '#059669', text: '#064e3b', icon: '#059669' },
+        error:   { bg: '#fee2e2', border: '#dc2626', text: '#7f1d1d', icon: '#dc2626' },
+        warning: { bg: '#fef3c7', border: '#d97706', text: '#78350f', icon: '#d97706' },
+        info:    { bg: '#cffafe', border: '#0891b2', text: '#164e63', icon: '#0891b2' }
     };
 
     const style = styles[type] || styles.info;
@@ -250,7 +237,7 @@ function showToast(message, type = TOAST_TYPES.INFO, duration = 4000) {
             border: 2px solid ${style.border};
             background: ${style.bg};
             color: ${style.text};
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4), 0 0 20px ${style.border}40;
+            box-shadow: 0 10px 25px rgba(0,0,0,${isDark ? '0.4' : '0.12'}), 0 0 20px ${style.border}40;
             font-size: 14px;
             font-weight: 500;
             min-width: 280px;
