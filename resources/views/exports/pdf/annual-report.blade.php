@@ -381,7 +381,7 @@
                     <tr>
                         <td><strong>TOTAL</strong></td>
                         <td class="text-right"><strong>{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</strong></td>
-                        <td class="text-right"><strong>R$ {{ number_format($total_hours * $hourly_rate, 2, ',', '.') }}</strong></td>
+                        <td class="text-right"><strong>R$ {{ number_format($total_hours_revenue, 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format(($extra_value - $discount_value) * count($monthly_data), 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($total_revenue, 2, ',', '.') }}</strong></td>
                         <td></td>

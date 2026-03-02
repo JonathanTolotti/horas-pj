@@ -78,14 +78,14 @@ class TimeCalculatorService
     public function calculateTotalRevenueFromEntries(int $userId, string $monthReference): float
     {
         $hourlyRate = $this->getHourlyRate($userId, $monthReference);
-        $entries = TimeEntry::forUser($userId)->forMonth($monthReference)->get();
+        $totalHours = (float) TimeEntry::forUser($userId)
+            ->forMonth($monthReference)
+            ->sum('hours');
 
-        $total = 0;
-        foreach ($entries as $entry) {
-            $total += round((float) $entry->hours * $hourlyRate, 2);
-        }
+        // Converte para minutos inteiros, igual à lógica de exibição hh:mm
+        $totalMinutes = (int) round($totalHours * 60);
 
-        return $total;
+        return round(($totalMinutes / 60) * $hourlyRate, 2);
     }
 
     public function getProjects(int $userId): array

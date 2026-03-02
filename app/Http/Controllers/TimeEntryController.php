@@ -199,11 +199,9 @@ class TimeEntryController extends Controller
     {
         return $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
             ->map(function ($dayEntries) use ($hourlyRate) {
-                // Somar o valor individual de cada lançamento para evitar erros de arredondamento
-                $totalValue = $dayEntries->sum(function ($entry) use ($hourlyRate) {
-                    return round((float) $entry->hours * $hourlyRate, 2);
-                });
                 $totalHours = round((float) $dayEntries->sum('hours'), 2);
+                $totalMinutes = (int) round($totalHours * 60);
+                $totalValue = round(($totalMinutes / 60) * $hourlyRate, 2);
 
                 return [
                     'date' => $dayEntries->first()->date,

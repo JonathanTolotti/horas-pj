@@ -269,6 +269,7 @@ class ExportController extends Controller
         $monthlyData = [];
         $totalHours = 0;
         $totalRevenue = 0;
+        $totalHoursRevenue = 0;
         $totalOnCallHours = 0;
         $totalOnCallRevenue = 0;
         $hourlyRate = $this->calculator->getHourlyRate($userId);
@@ -291,8 +292,10 @@ class ExportController extends Controller
 
             // Total de horas (normais + sobreaviso)
             $totalMonthHours = $hours + $onCallHours;
+            // Faturamento das horas normais (arredondado para minutos inteiros, igual à exibição hh:mm)
+            $normalHoursRevenue = round((int) round($hours * 60) / 60 * $hourlyRate, 2);
             // Faturamento das horas (normais + sobreaviso)
-            $hoursRevenue = ($hours * $hourlyRate) + $onCallRevenue;
+            $hoursRevenue = $normalHoursRevenue + $onCallRevenue;
             // Receita total do mês
             $revenue = $hoursRevenue + $extraValue - $discountValue;
 
@@ -309,6 +312,7 @@ class ExportController extends Controller
 
             $totalHours += $totalMonthHours;
             $totalRevenue += $revenue;
+            $totalHoursRevenue += $hoursRevenue;
         }
 
         // Faturamento por empresa no ano
@@ -378,6 +382,7 @@ class ExportController extends Controller
             'monthly_data' => $monthlyData,
             'total_hours' => $totalHours,
             'total_revenue' => $totalRevenue,
+            'total_hours_revenue' => $totalHoursRevenue,
             'total_on_call_hours' => $totalOnCallHours,
             'total_on_call_revenue' => $totalOnCallRevenue,
             'hourly_rate' => $hourlyRate,
