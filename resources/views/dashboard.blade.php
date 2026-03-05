@@ -315,7 +315,7 @@
                     </div>
                     <div>
                         <p class="text-gray-400 text-sm">Sobreaviso do Mês</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ $onCallPeriods->count() }} {{ $onCallPeriods->count() == 1 ? 'período' : 'períodos' }} • {{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }} horas</p>
+                        <p class="text-xs text-gray-500 mt-1" id="on-call-summary-text">{{ $onCallPeriods->count() }} {{ $onCallPeriods->count() == 1 ? 'período' : 'períodos' }} • {{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }} horas</p>
                     </div>
                 </div>
                 <span class="text-3xl font-bold text-orange-400 sensitive-value" id="on-call-revenue">R$ {{ number_format($stats['on_call_revenue'], 2, ',', '.') }}</span>
@@ -741,11 +741,11 @@
                                 </div>
                                 <div class="text-center">
                                     <p class="text-gray-500 text-xs">Trabalhado</p>
-                                    <p class="text-cyan-400 font-mono">{{ sprintf('%02d:%02d', floor($period->worked_hours), round(($period->worked_hours - floor($period->worked_hours)) * 60)) }}</p>
+                                    <p class="text-cyan-400 font-mono" data-worked-hours>{{ sprintf('%02d:%02d', floor($period->worked_hours), round(($period->worked_hours - floor($period->worked_hours)) * 60)) }}</p>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-gray-500 text-xs">Sobreaviso</p>
-                                    <p class="text-orange-400 font-mono font-semibold">{{ sprintf('%02d:%02d', floor($period->on_call_hours), round(($period->on_call_hours - floor($period->on_call_hours)) * 60)) }}</p>
+                                    <p class="text-orange-400 font-mono font-semibold" data-on-call-hours>{{ sprintf('%02d:%02d', floor($period->on_call_hours), round(($period->on_call_hours - floor($period->on_call_hours)) * 60)) }}</p>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-gray-500 text-xs">Valor/h</p>
@@ -753,7 +753,7 @@
                                 </div>
                                 <div class="text-center">
                                     <p class="text-gray-500 text-xs">Receita</p>
-                                    <p class="text-emerald-400 font-semibold sensitive-value">R$ {{ number_format($period->on_call_hours * $period->hourly_rate, 2, ',', '.') }}</p>
+                                    <p class="text-emerald-400 font-semibold sensitive-value" data-on-call-revenue>R$ {{ number_format($period->on_call_hours * $period->hourly_rate, 2, ',', '.') }}</p>
                                 </div>
                             </div>
                         </div>

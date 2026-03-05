@@ -510,6 +510,7 @@ async function stopTracking() {
                 // Update stats
                 if (data.stats) {
                     updateStats(data.stats);
+                    refreshOnCallPeriods(CURRENT_MONTH);
                 }
 
                 // Clear form fields
@@ -583,6 +584,7 @@ async function addEntry() {
 
             // Update stats
             updateStats(data.stats);
+            refreshOnCallPeriods(CURRENT_MONTH);
 
             // Clear form
             document.getElementById('entry-start').value = '';
@@ -742,6 +744,7 @@ function removeEntry(id) {
 
                 // Update stats
                 updateStats(data.stats);
+                refreshOnCallPeriods(CURRENT_MONTH);
 
                 // Check if table is empty
                 const tbody = document.getElementById('entries-table');
@@ -821,6 +824,45 @@ function updateStats(stats) {
     const unassignedEl = document.querySelector('.unassigned-revenue');
     if (unassignedEl && stats.unassigned_revenue !== undefined) {
         unassignedEl.textContent = formatCurrency(stats.unassigned_revenue);
+    }
+
+    // Update on-call revenue card
+    const onCallRevenueEl = document.getElementById('on-call-revenue');
+    if (onCallRevenueEl && stats.on_call_revenue !== undefined) {
+        onCallRevenueEl.textContent = formatCurrency(stats.on_call_revenue);
+    }
+}
+
+async function refreshOnCallPeriods(month) {
+    try {
+        const response = await fetch(`/on-call?month=${month}`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        if (!data.success) return;
+
+        // Atualizar cada card de sobreaviso
+        data.periods.forEach(period => {
+            const card = document.querySelector(`[data-on-call-id="${period.id}"]`);
+            if (!card) return;
+            const workedEl = card.querySelector('[data-worked-hours]');
+            const onCallEl = card.querySelector('[data-on-call-hours]');
+            const revenueEl = card.querySelector('[data-on-call-revenue]');
+            if (workedEl) workedEl.textContent = formatHours(parseFloat(period.worked_hours));
+            if (onCallEl) onCallEl.textContent = formatHours(parseFloat(period.on_call_hours));
+            if (revenueEl) revenueEl.textContent = formatCurrency(parseFloat(period.on_call_hours) * parseFloat(period.hourly_rate));
+        });
+
+        // Atualizar texto resumo (contagem + horas totais de sobreaviso)
+        const summaryEl = document.getElementById('on-call-summary-text');
+        if (summaryEl) {
+            const count = data.periods.length;
+            const totalOnCallHours = data.periods.reduce((sum, p) => sum + parseFloat(p.on_call_hours), 0);
+            const label = count === 1 ? 'período' : 'períodos';
+            summaryEl.textContent = `${count} ${label} • ${formatHours(totalOnCallHours)} horas`;
+        }
+    } catch (e) {
+        // Silencioso — não bloquear o fluxo principal
     }
 }
 
