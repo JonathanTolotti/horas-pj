@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\ConsolidationController;
+use App\Http\Controllers\SupervisorController;
+use App\Http\Controllers\SupervisorAccessController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\MonthlyAdjustmentController;
@@ -109,6 +112,14 @@ Route::middleware(['auth', 'verified'])->prefix('subscription')->group(function 
 Route::post('/webhook/abacatepay', [SubscriptionController::class, 'webhook'])
     ->name('webhook.abacatepay');
 
+// Consolidação de período (Premium)
+Route::middleware(['auth', 'verified', 'premium:export_pdf'])->group(function () {
+    Route::get('/consolidation', [ConsolidationController::class, 'index'])->name('consolidation.index');
+    Route::post('/consolidation/filter', [ConsolidationController::class, 'filter'])->name('consolidation.filter');
+    Route::post('/consolidation/clear', [ConsolidationController::class, 'clear'])->name('consolidation.clear');
+    Route::post('/consolidation/pdf', [ConsolidationController::class, 'pdf'])->name('consolidation.pdf');
+});
+
 // Rotas de exportação (Premium)
 Route::middleware(['auth', 'verified', 'premium:export_pdf'])->prefix('export')->group(function () {
     Route::get('/pdf', [ExportController::class, 'pdf'])->name('export.pdf');
@@ -133,6 +144,32 @@ Route::middleware(['auth', 'verified', 'premium:on_call'])->group(function () {
     Route::put('/on-call/{onCall}', [OnCallController::class, 'update'])->name('on-call.update');
     Route::delete('/on-call/{onCall}', [OnCallController::class, 'destroy'])->name('on-call.destroy');
     Route::post('/on-call/recalculate', [OnCallController::class, 'recalculate'])->name('on-call.recalculate');
+});
+
+// Supervisores - gestão pelo dono dos dados (premium)
+Route::middleware(['auth', 'verified', 'premium:supervisor'])->group(function () {
+    Route::prefix('settings/supervisors')->group(function () {
+        Route::get('/', [SupervisorAccessController::class, 'index'])->name('supervisors.index');
+        Route::post('/invite', [SupervisorAccessController::class, 'invite'])->name('supervisors.invite');
+        Route::patch('/{supervisorAccess}', [SupervisorAccessController::class, 'update'])->name('supervisors.update');
+        Route::delete('/{supervisorAccess}', [SupervisorAccessController::class, 'destroy'])->name('supervisors.destroy');
+        Route::delete('/invitations/{supervisorInvitation}', [SupervisorAccessController::class, 'cancelInvite'])->name('supervisors.invitations.cancel');
+    });
+
+    // Área do supervisor - convites
+    Route::prefix('supervisor')->group(function () {
+        Route::get('/', [SupervisorController::class, 'index'])->name('supervisor.index');
+        Route::get('/invitations', [SupervisorController::class, 'invitations'])->name('supervisor.invitations');
+        Route::post('/invitations/{supervisorInvitation}/accept', [SupervisorController::class, 'accept'])->name('supervisor.invitations.accept');
+        Route::post('/invitations/{supervisorInvitation}/reject', [SupervisorController::class, 'reject'])->name('supervisor.invitations.reject');
+    });
+
+    // Área do supervisor - visualização (requer acesso específico via UUID)
+    Route::middleware(['supervisor.access'])->prefix('supervisor')->group(function () {
+        Route::get('/{access}', [SupervisorController::class, 'show'])->name('supervisor.show');
+        Route::get('/{access}/export/pdf', [SupervisorController::class, 'exportPdf'])->name('supervisor.export.pdf');
+        Route::get('/{access}/export/excel', [SupervisorController::class, 'exportExcel'])->name('supervisor.export.excel');
+    });
 });
 
 // Admin routes

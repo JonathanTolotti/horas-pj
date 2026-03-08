@@ -148,7 +148,8 @@ class TimeCalculatorService
 
         // Usar o mesmo método de cálculo para consistência
         $hoursRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
-        $totalRevenue = round($hoursRevenue + $extraValue - $discountValue, 2);
+        $onCallRevenue = $this->getOnCallStats($userId, $monthReference)['total_on_call_revenue'];
+        $totalRevenue = round($hoursRevenue + $extraValue - $discountValue + $onCallRevenue, 2);
 
         $companies = Company::forUser($userId)->active()->with('projects')->get();
         $companyRevenues = [];
@@ -216,7 +217,8 @@ class TimeCalculatorService
         $hoursRevenue = $this->calculateTotalRevenueFromEntries($userId, $monthReference);
         $extraValue = $this->getExtraValue($userId, $monthReference);
         $discountValue = $this->getDiscountValue($userId, $monthReference);
-        $totalFinal = round($hoursRevenue + $extraValue - $discountValue, 2);
+        $onCallRevenue = $this->getOnCallStats($userId, $monthReference)['total_on_call_revenue'];
+        $totalFinal = round($hoursRevenue + $extraValue - $discountValue + $onCallRevenue, 2);
 
         $companyRevenues = $this->calculateRevenueByCompany($userId, $monthReference);
         $assignedRevenue = array_sum(array_column($companyRevenues, 'revenue'));

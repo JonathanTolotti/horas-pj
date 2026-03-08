@@ -32,5 +32,6 @@ return [
         'multiple_companies' => 'premium',
         'analytics' => 'premium',
         'on_call' => 'premium',
+        'supervisor' => 'premium',
     ],
 ];

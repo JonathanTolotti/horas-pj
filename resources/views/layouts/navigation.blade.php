@@ -23,7 +23,7 @@
                     <!-- Dropdown Relatórios -->
                     <div x-data="{ openReports: false }" class="relative inline-flex items-center">
                         <button @click="openReports = !openReports" @click.outside="openReports = false"
-                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') || request()->routeIs('consolidation.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
@@ -39,7 +39,7 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute left-0 top-full mt-1 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 py-1"
+                             class="absolute left-0 top-full mt-1 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 py-1"
                              style="display: none;">
                             <a href="{{ route('reports.index') }}"
                                class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('reports.*') ? 'text-cyan-400 bg-gray-700/50' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} transition-colors">
@@ -47,6 +47,18 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                                 Exportar PDFs
+                            </a>
+                            <a href="{{ route('consolidation.index') }}"
+                               class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('consolidation.*') ? 'text-cyan-400 bg-gray-700/50' : ($isPremiumUser ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-500') }} transition-colors">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                Consolidação
+                                @if(!$isPremiumUser)
+                                    <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                @endif
                             </a>
                             <a href="{{ route('analytics.index') }}"
                                class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('analytics.*') ? 'text-purple-400 bg-gray-700/50' : ($isPremiumUser ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-500') }} transition-colors">
@@ -62,14 +74,47 @@
                             </a>
                         </div>
                     </div>
-                    <a href="{{ route('settings') }}"
-                       class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('settings') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        Configurações
-                    </a>
+                    <!-- Dropdown Configurações -->
+                    <div x-data="{ openSettings: false }" class="relative inline-flex items-center">
+                        <button @click="openSettings = !openSettings" @click.outside="openSettings = false"
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('settings') || request()->routeIs('supervisors.*') || request()->routeIs('supervisor.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Configurações
+                            <svg class="w-4 h-4 ml-1 transition-transform" :class="{ 'rotate-180': openSettings }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="openSettings"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute left-0 top-full mt-1 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 py-1"
+                             style="display: none;">
+                            <a href="{{ route('settings') }}"
+                               class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('settings') ? 'text-cyan-400 bg-gray-700/50' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} transition-colors">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Configurações Gerais
+                            </a>
+                            @if($isPremiumUser)
+                            <a href="{{ route('supervisors.index') }}"
+                               class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('supervisors.*') || request()->routeIs('supervisor.*') ? 'text-cyan-400 bg-gray-700/50' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} transition-colors">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Supervisores
+                            </a>
+                            @endif
+                        </div>
+                    </div>
                     <button onclick="{{ $isPremiumUser ? 'openImportModal()' : "showPremiumModal('importação de CSV')" }}"
                        class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent {{ $isPremiumUser ? 'text-gray-400 hover:text-gray-300 hover:border-gray-600' : 'text-gray-500 hover:text-gray-400' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,6 +280,16 @@
                 </svg>
                 Relatórios
             </a>
+            <!-- Consolidação Mobile -->
+            @if($isPremiumUser)
+            <a href="{{ route('consolidation.index') }}"
+               class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('consolidation.*') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Consolidação
+            </a>
+            @endif
             <!-- Analytics Mobile -->
             @if($isPremiumUser)
             <a href="{{ route('analytics.index') }}"
@@ -264,6 +319,15 @@
                 </svg>
                 Configurações
             </a>
+            @if($isPremiumUser)
+            <a href="{{ route('supervisors.index') }}"
+               class="flex items-center w-full ps-8 pe-4 py-2 border-l-4 {{ request()->routeIs('supervisors.*') || request()->routeIs('supervisor.*') ? 'border-cyan-400 text-cyan-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-sm font-medium transition duration-150 ease-in-out">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Supervisores
+            </a>
+            @endif
             <button onclick="{{ $isPremiumUser ? 'openImportModal()' : "showPremiumModal('importação de CSV')" }}"
                class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 border-transparent {{ $isPremiumUser ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' : 'text-gray-500 hover:text-gray-400 hover:bg-gray-800' }} text-start text-base font-medium transition duration-150 ease-in-out">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

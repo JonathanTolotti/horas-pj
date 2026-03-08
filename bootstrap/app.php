@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'premium' => \App\Http\Middleware\EnsurePremium::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'supervisor.access' => \App\Http\Middleware\EnsureSupervisorAccess::class,
         ]);
 
         // Excluir webhook do CSRF

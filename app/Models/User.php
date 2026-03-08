@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\SupervisorAccess;
+use App\Models\SupervisorInvitation;
 
 class User extends Authenticatable
 {
@@ -55,6 +57,29 @@ class User extends Authenticatable
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
+    }
+
+    public function supervisorAccesses(): HasMany
+    {
+        return $this->hasMany(SupervisorAccess::class);
+    }
+
+    public function supervisingAccesses(): HasMany
+    {
+        return $this->hasMany(SupervisorAccess::class, 'supervisor_id');
+    }
+
+    public function pendingSupervisorInvitations(): HasMany
+    {
+        return $this->hasMany(SupervisorInvitation::class, 'supervisor_id')->where('status', 'pending');
+    }
+
+    public function isSupervisorOf(int $userId): bool
+    {
+        return SupervisorAccess::where('user_id', $userId)
+            ->where('supervisor_id', $this->id)
+            ->active()
+            ->exists();
     }
 
     public function companies(): HasMany

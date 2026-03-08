@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Notice;
 use App\Models\OnCallPeriod;
 use App\Models\Project;
+use App\Models\SupervisorInvitation;
 use App\Models\TimeEntry;
 use App\Services\TimeCalculatorService;
 use Carbon\Carbon;
@@ -68,6 +69,14 @@ class TimeEntryController extends Controller
             ->orderBy('start_date')
             ->get();
 
+        // Convites de supervisão pendentes
+        $pendingInvitationsCount = 0;
+        if ($user->isPremium()) {
+            $pendingInvitationsCount = SupervisorInvitation::where('supervisor_id', auth()->id())
+                ->where('status', 'pending')
+                ->count();
+        }
+
         return view('dashboard', [
             'entries' => $entries,
             'entriesByDay' => $entriesByDay,
@@ -83,6 +92,7 @@ class TimeEntryController extends Controller
             'subscriptionAlert' => $user->getSubscriptionAlert(),
             'onCallPeriods' => $onCallPeriods,
             'activeNotices' => $activeNotices,
+            'pendingInvitationsCount' => $pendingInvitationsCount,
         ]);
     }
 
