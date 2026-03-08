@@ -239,6 +239,18 @@ html:not(.dark) .from-purple-900\/50 {
 }
 html:not(.dark) .to-indigo-900\/50  { --tw-gradient-to: rgb(238 242 255 / 0.9) var(--tw-gradient-to-position); }
 
+/* ─── Consolidação — light mode overrides ───────────────────── */
+html:not(.dark) .bg-yellow-900\/30  { background-color: rgb(254 252 232 / 0.7); }
+html:not(.dark) .border-yellow-700 { border-color: #ca8a04; }
+html:not(.dark) .border-gray-800\/50 { border-color: rgba(226, 232, 240, 0.6); }
+html:not(.dark) .hover\:text-cyan-300:hover   { color: #0e7490; }
+html:not(.dark) .hover\:text-orange-300:hover { color: #c2410c; }
+html:not(.dark) .hover\:text-gray-400:hover   { color: #64748b; }
+html:not(.dark) .focus\:ring-offset-gray-900:focus { --tw-ring-offset-color: #f8fafc; }
+html:not(.dark) .placeholder-gray-600::placeholder { color: #94a3b8; }
+html:not(.dark) .disabled\:bg-gray-700:disabled { background-color: #e2e8f0; }
+html:not(.dark) .disabled\:text-gray-500:disabled { color: #94a3b8; }
+
 /* ─── Supervisor module — light mode overrides ───────────────── */
 html:not(.dark) .bg-indigo-900\/40 { background-color: rgb(238 242 255 / 0.7); }
 html:not(.dark) .border-indigo-500\/50 { border-color: rgb(99 102 241 / 0.5); }

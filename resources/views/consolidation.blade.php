@@ -139,30 +139,16 @@
                 </div>
             </div>
 
-            <!-- Badges de filtros ativos + ações -->
-            <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-800">
-                <div class="flex flex-wrap gap-2 items-center">
-                    @if(isset($hasData) && $hasData)
-                    <span class="text-xs text-gray-500">
-                        {{ $entries->count() }} lançamento(s) · {{ $onCallPeriods->count() }} sobreaviso(s)
-                    </span>
-                    @endif
-                    @if($hasActiveFilters)
-                        @foreach($allCompanies->whereIn('id', $selectedCompanyIds) as $c)
-                        <span class="inline-flex items-center gap-1 bg-cyan-900/40 text-cyan-300 text-xs px-2 py-0.5 rounded-full border border-cyan-700/50">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16"/></svg>
-                            {{ $c->name }}
-                        </span>
-                        @endforeach
-                        @foreach($allProjects->whereIn('id', $selectedProjectIds) as $p)
-                        <span class="inline-flex items-center gap-1 bg-indigo-900/40 text-indigo-300 text-xs px-2 py-0.5 rounded-full border border-indigo-700/50">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                            {{ $p->name }}
-                        </span>
-                        @endforeach
-                    @endif
-                </div>
-                <div class="flex gap-2 ml-auto">
+            <!-- Ações -->
+            <div class="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-800">
+                @if(isset($hasData) && $hasData)
+                <span class="text-xs text-gray-500">
+                    {{ $entries->count() }} lançamento(s) · {{ $onCallPeriods->count() }} sobreaviso(s)
+                </span>
+                @else
+                <span></span>
+                @endif
+                <div class="flex gap-2">
                     @if($hasActiveFilters)
                     <form method="POST" action="{{ route('consolidation.clear') }}" class="inline">
                         @csrf
