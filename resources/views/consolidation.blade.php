@@ -426,6 +426,13 @@
 
                         <!-- Botão PDF -->
                         <div class="mt-5 space-y-2">
+                            <label class="flex items-center gap-3 cursor-pointer mb-3">
+                                <input type="checkbox" x-model="showValues" class="w-4 h-4 rounded bg-gray-800 border-gray-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                <div>
+                                    <span class="text-white text-sm font-medium">Mostrar valores financeiros</span>
+                                    <p class="text-xs text-gray-500">Quando desmarcado, R$/hora e faturamento não aparecem no PDF</p>
+                                </div>
+                            </label>
                             <button type="button" @click="submitPdf()"
                                 x-bind:disabled="selectedHours === 0 && selectedOnCallHours === 0"
                                 class="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition-colors">
@@ -509,6 +516,7 @@ function consolidation(entries, onCallPeriods, extraValue, discountValue, compan
         extraValue: extraValue,
         discountValue: discountValue,
         companies: companies,
+        showValues: true,
 
         get selectedHours() {
             return this.entries
@@ -585,6 +593,7 @@ function consolidation(entries, onCallPeriods, extraValue, discountValue, compan
 
             this.entries.filter(e => e.selected).forEach(e => add('entry_ids[]', e.id));
             this.onCallPeriods.filter(p => p.selected).forEach(p => add('on_call_ids[]', p.id));
+            add('show_values', this.showValues ? 1 : 0);
 
             form.submit();
         },

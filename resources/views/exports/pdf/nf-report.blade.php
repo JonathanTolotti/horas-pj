@@ -319,6 +319,7 @@
                     <td class="label">Total de Horas Trabalhadas:</td>
                     <td class="value">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</td>
                 </tr>
+                @if($show_values)
                 <tr>
                     <td class="label">Valor por Hora:</td>
                     <td class="value">R$ {{ number_format($stats['hourly_rate'], 2, ',', '.') }}</td>
@@ -327,16 +328,20 @@
                     <td class="label">Valor das Horas:</td>
                     <td class="value">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</td>
                 </tr>
+                @endif
                 @if(($stats['on_call_hours'] ?? 0) > 0)
                 <tr>
                     <td class="label">Horas de Sobreaviso:</td>
                     <td class="value">{{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }}</td>
                 </tr>
+                @if($show_values)
                 <tr>
                     <td class="label">Valor do Sobreaviso:</td>
                     <td class="value">R$ {{ number_format($stats['on_call_revenue'], 2, ',', '.') }}</td>
                 </tr>
                 @endif
+                @endif
+                @if($show_values)
                 @if(($stats['extra_value'] ?? 0) > 0)
                 <tr>
                     <td class="label">Acréscimo:</td>
@@ -357,6 +362,7 @@
                     <td class="label">VALOR TOTAL:</td>
                     <td class="value">R$ {{ number_format($companyValue, 2, ',', '.') }}</td>
                 </tr>
+                @endif
             </table>
         </div>
 

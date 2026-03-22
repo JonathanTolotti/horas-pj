@@ -26,7 +26,8 @@ class ExportController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $monthReference = $request->session()->get('month_reference', Carbon::now()->format('Y-m'));
+        $defaultPeriod = $this->calculator->getCurrentPeriod(auth()->id());
+        $monthReference = $request->session()->get('month_reference', $defaultPeriod);
 
         $projects = Project::forUser(auth()->id())->active()->orderBy('name')->get();
         $companies = Company::forUser(auth()->id())->active()->orderBy('name')->get();
@@ -46,14 +47,16 @@ class ExportController extends Controller
     protected function getAvailableMonths(): array
     {
         $months = [];
-        $current = Carbon::now();
         $limit = auth()->user()->getLimit('history_months') ?? 12;
+        $cycleDay = (int) (\App\Models\Setting::forUser(auth()->id())->billing_cycle_day ?? 1);
+        $currentPeriod = $this->calculator->getCurrentPeriod(auth()->id());
 
         for ($i = 0; $i < $limit; $i++) {
-            $date = $current->copy()->subMonths($i);
+            $periodDate = Carbon::parse($currentPeriod . '-01')->subMonths($i);
+            $periodValue = $periodDate->format('Y-m');
             $months[] = [
-                'value' => $date->format('Y-m'),
-                'label' => ucfirst($date->isoFormat('MMMM Y')),
+                'value' => $periodValue,
+                'label' => $this->calculator->getPeriodLabel($periodValue, $cycleDay),
             ];
         }
 
@@ -65,11 +68,13 @@ class ExportController extends Controller
      */
     public function pdf(Request $request)
     {
-        $monthReference = $request->input('month', session('month_reference', Carbon::now()->format('Y-m')));
+        $monthReference = $request->input('month', session('month_reference', $this->calculator->getCurrentPeriod(auth()->id())));
         $projectId = $request->input('project_id');
         $companyId = $request->input('company_id');
+        $showValues = $request->boolean('show_values', true);
 
         $data = $this->getExportData($monthReference, $projectId, $companyId);
+        $data['show_values'] = $showValues;
 
         $pdf = Pdf::loadView('exports.pdf.monthly-report', $data);
         $pdf->setPaper('a4', 'portrait');
@@ -84,8 +89,9 @@ class ExportController extends Controller
      */
     public function nf(Request $request)
     {
-        $monthReference = $request->input('month', session('month_reference', Carbon::now()->format('Y-m')));
+        $monthReference = $request->input('month', session('month_reference', $this->calculator->getCurrentPeriod(auth()->id())));
         $companyId = $request->input('company_id');
+        $showValues = $request->boolean('show_values', true);
 
         if (!$companyId) {
             return back()->with('error', 'Selecione uma empresa para gerar o relatório de NF.');
@@ -98,6 +104,7 @@ class ExportController extends Controller
         $data = $this->getExportData($monthReference, null, $companyId);
         $data['company'] = $company;
         $data['is_nf_report'] = true;
+        $data['show_values'] = $showValues;
 
         $pdf = Pdf::loadView('exports.pdf.nf-report', $data);
         $pdf->setPaper('a4', 'portrait');
@@ -193,9 +200,11 @@ class ExportController extends Controller
         $userId = auth()->id();
         $user = auth()->user();
 
+        $cycleDay = $this->calculator->getCycleDay($userId);
+
         // Query de lançamentos
         $query = TimeEntry::forUser($userId)
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project.companies')
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc');
@@ -226,9 +235,9 @@ class ExportController extends Controller
             }
         }
 
-        // Formatar mês
-        $monthDate = Carbon::createFromFormat('Y-m', $monthReference);
-        $monthLabel = ucfirst($monthDate->isoFormat('MMMM [de] YYYY'));
+        // Formatar mês (considera ciclo de faturamento)
+        $cycleDay = (int) (\App\Models\Setting::forUser($userId)->billing_cycle_day ?? 1);
+        $monthLabel = $this->calculator->getPeriodLabel($monthReference, $cycleDay);
 
         // Projetos do usuário
         $projects = Project::forUser($userId)->active()->orderBy('name')->get();
@@ -238,7 +247,7 @@ class ExportController extends Controller
 
         // Períodos de sobreaviso
         $onCallPeriods = OnCallPeriod::forUser($userId)
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project')
             ->orderBy('start_datetime', 'asc')
             ->get();
@@ -262,6 +271,7 @@ class ExportController extends Controller
     public function annualReport(Request $request)
     {
         $year = $request->input('year', Carbon::now()->year);
+        $showValues = $request->boolean('show_values', true);
         $userId = auth()->id();
         $user = auth()->user();
 
@@ -397,6 +407,7 @@ class ExportController extends Controller
             'available_years' => $availableYears,
             'user' => $user,
             'generated_at' => now(),
+            'show_values' => $showValues,
         ];
 
         $pdf = Pdf::loadView('exports.pdf.annual-report', $data);

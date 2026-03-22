@@ -293,24 +293,28 @@
             <div class="section-title">Resumo do Ano</div>
             <table class="summary-grid">
                 <tr>
+                    @if($show_values)
                     <td>
                         <div class="summary-card highlight">
                             <div class="label">Total Faturado</div>
                             <div class="value purple">R$ {{ number_format($total_revenue, 2, ',', '.') }}</div>
                         </div>
                     </td>
+                    @endif
                     <td>
                         <div class="summary-card">
                             <div class="label">Total de Horas</div>
                             <div class="value">{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</div>
                         </div>
                     </td>
+                    @if($show_values)
                     <td>
                         <div class="summary-card">
                             <div class="label">Média Mensal</div>
                             <div class="value green">R$ {{ number_format($average_monthly_revenue, 2, ',', '.') }}</div>
                         </div>
                     </td>
+                    @endif
                     <td>
                         <div class="summary-card">
                             <div class="label">Meses Trabalhados</div>
@@ -322,7 +326,7 @@
         </div>
 
         <!-- Highlights Section -->
-        @if($best_month && $worst_month)
+        @if($show_values && $best_month && $worst_month)
         <div class="highlights-section">
             <div class="section-title">Destaques</div>
             <table class="highlights-grid">
@@ -348,32 +352,29 @@
 
         <!-- Monthly Breakdown -->
         <div class="monthly-section">
-            <div class="section-title">Faturamento Mensal</div>
+            <div class="section-title">Horas por Mês</div>
             <table class="monthly-table">
                 <thead>
                     <tr>
                         <th>Mês</th>
                         <th class="text-right">Horas</th>
+                        @if($show_values)
                         <th class="text-right">Faturado</th>
                         <th class="text-right">Ajustes</th>
                         <th class="text-right">Total</th>
-                        <th class="bar-cell">% do Ano</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
-                    @php $maxRevenue = max(array_column($monthly_data, 'revenue')) ?: 1; @endphp
                     @foreach($monthly_data as $month)
                     <tr>
                         <td>{{ $month['month_name'] }}</td>
                         <td class="text-right">{{ sprintf('%02d:%02d', floor($month['hours']), round(($month['hours'] - floor($month['hours'])) * 60)) }}</td>
+                        @if($show_values)
                         <td class="text-right">R$ {{ number_format($month['hours_revenue'], 2, ',', '.') }}</td>
                         <td class="text-right">R$ {{ number_format(($month['extra_value'] ?? 0) - ($month['discount_value'] ?? 0), 2, ',', '.') }}</td>
                         <td class="text-right">R$ {{ number_format($month['revenue'], 2, ',', '.') }}</td>
-                        <td class="bar-cell">
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: {{ ($month['revenue'] / $maxRevenue) * 100 }}%"></div>
-                            </div>
-                        </td>
+                        @endif
                     </tr>
                     @endforeach
                 </tbody>
@@ -381,17 +382,18 @@
                     <tr>
                         <td><strong>TOTAL</strong></td>
                         <td class="text-right"><strong>{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</strong></td>
+                        @if($show_values)
                         <td class="text-right"><strong>R$ {{ number_format($total_hours_revenue, 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format(($extra_value - $discount_value) * count($monthly_data), 2, ',', '.') }}</strong></td>
                         <td class="text-right"><strong>R$ {{ number_format($total_revenue, 2, ',', '.') }}</strong></td>
-                        <td></td>
+                        @endif
                     </tr>
                 </tfoot>
             </table>
         </div>
 
         <!-- Company Breakdown -->
-        @if(count($company_revenues) > 0)
+        @if($show_values && count($company_revenues) > 0)
         <div class="company-section">
             <div class="section-title">Faturamento por Empresa/CNPJ</div>
             <table class="company-table">
@@ -419,6 +421,7 @@
 
         <!-- Footer -->
         <div class="footer">
+            @if($show_values)
             <p class="note">
                 Valor/Hora: R$ {{ number_format($hourly_rate, 2, ',', '.') }}
                 @if(($extra_value ?? 0) > 0)
@@ -428,6 +431,7 @@
                 | Desconto Mensal: R$ {{ number_format($discount_value, 2, ',', '.') }}
                 @endif
             </p>
+            @endif
             <p class="disclaimer">
                 Este relatório é um resumo dos lançamentos registrados no sistema e serve como apoio para a declaração de Imposto de Renda.
                 Consulte seu contador para garantir o correto preenchimento da declaração.

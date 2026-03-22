@@ -17,6 +17,7 @@ class Setting extends Model
         'discount_value',
         'on_call_hourly_rate',
         'auto_save_tracking',
+        'billing_cycle_day',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class Setting extends Model
         'discount_value' => 'decimal:2',
         'on_call_hourly_rate' => 'decimal:2',
         'auto_save_tracking' => 'boolean',
+        'billing_cycle_day' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -36,7 +38,7 @@ class Setting extends Model
     {
         return self::firstOrCreate(
             ['user_id' => $userId],
-            ['hourly_rate' => 150.00, 'extra_value' => 0.00, 'discount_value' => 0.00, 'on_call_hourly_rate' => null, 'auto_save_tracking' => false]
+            ['hourly_rate' => 150.00, 'extra_value' => 0.00, 'discount_value' => 0.00, 'on_call_hourly_rate' => null, 'auto_save_tracking' => false, 'billing_cycle_day' => 1]
         );
     }
 }

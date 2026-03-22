@@ -99,6 +99,9 @@ class TrackingController extends Controller
             }
 
             if ($hours > 0) {
+                $cycleDay = (int) ($settings?->billing_cycle_day ?? 1);
+                $monthReference = $this->calculator->getPeriodForDate($tracking->date, $cycleDay);
+
                 // Criar lançamento
                 $entry = TimeEntry::create([
                     'user_id' => $userId,
@@ -108,11 +111,8 @@ class TrackingController extends Controller
                     'end_time' => $endTime,
                     'hours' => $hours,
                     'description' => $description,
-                    'month_reference' => $tracking->date->format('Y-m'),
+                    'month_reference' => $monthReference,
                 ]);
-
-                // Calcular estatísticas atualizadas
-                $monthReference = $tracking->date->format('Y-m');
                 $stats = $this->calculator->getMonthlyStats($userId, $monthReference);
 
                 $response['auto_saved'] = true;

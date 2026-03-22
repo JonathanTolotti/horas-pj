@@ -104,6 +104,7 @@
                         <div class="value">{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</div>
                     </div>
                 </td>
+                @if($show_values)
                 <td>
                     <div class="summary-card">
                         <div class="label">Receita (Horas)</div>
@@ -116,6 +117,7 @@
                         <div class="value green">R$ {{ number_format($total_final, 2, ',', '.') }}</div>
                     </div>
                 </td>
+                @endif
             </tr>
             @if($total_on_call_hours > 0)
             <tr>
@@ -125,6 +127,7 @@
                         <div class="value orange">{{ sprintf('%02d:%02d', floor($total_on_call_hours), round(($total_on_call_hours - floor($total_on_call_hours)) * 60)) }}</div>
                     </div>
                 </td>
+                @if($show_values)
                 <td>
                     <div class="summary-card">
                         <div class="label">Receita (Sobreaviso)</div>
@@ -132,11 +135,12 @@
                     </div>
                 </td>
                 <td></td>
+                @endif
             </tr>
             @endif
         </table>
 
-        @if($extra_value > 0 || $discount_value > 0)
+        @if($show_values && ($extra_value > 0 || $discount_value > 0))
         <div class="adjustments" style="margin-top: 10px;">
             @if($extra_value > 0)
             <span class="row">Acréscimo: <strong>+R$ {{ number_format($extra_value, 2, ',', '.') }}</strong></span>
@@ -149,7 +153,7 @@
     </div>
 
     <!-- Distribuição por empresa -->
-    @if(!empty($company_revenues))
+    @if($show_values && !empty($company_revenues))
     <div class="summary">
         <div class="section-title">Distribuição por Empresa</div>
         <table class="data-table">
@@ -191,8 +195,10 @@
                     <th class="text-center">Total</th>
                     <th class="text-center">Trabalhado</th>
                     <th class="text-center">Sobreaviso</th>
+                    @if($show_values)
                     <th class="text-right">Valor/h</th>
                     <th class="text-right">Valor</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -203,8 +209,10 @@
                     <td class="text-center">{{ sprintf('%02d:%02d', floor($period->total_hours), round(($period->total_hours - floor($period->total_hours)) * 60)) }}</td>
                     <td class="text-center">{{ sprintf('%02d:%02d', floor($period->worked_hours), round(($period->worked_hours - floor($period->worked_hours)) * 60)) }}</td>
                     <td class="text-center orange">{{ sprintf('%02d:%02d', floor($period->on_call_hours), round(($period->on_call_hours - floor($period->on_call_hours)) * 60)) }}</td>
+                    @if($show_values)
                     <td class="text-right">R$ {{ number_format($period->hourly_rate, 2, ',', '.') }}</td>
                     <td class="text-right orange">R$ {{ number_format($period->computed_on_call_revenue, 2, ',', '.') }}</td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
@@ -225,7 +233,9 @@
                     <th class="text-right">Horas</th>
                     <th>Projeto</th>
                     <th class="description">Descrição</th>
+                    @if($show_values)
                     <th class="text-right">Valor</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -237,14 +247,20 @@
                     <td class="text-right">{{ sprintf('%02d:%02d', floor($entry->hours), round(($entry->hours - floor($entry->hours)) * 60)) }}</td>
                     <td>{{ $entry->project?->name ?? '-' }}</td>
                     <td class="description">{{ Str::limit($entry->description, 45) }}</td>
+                    @if($show_values)
                     <td class="text-right green">R$ {{ number_format($entry->computed_revenue, 2, ',', '.') }}</td>
+                    @endif
                 </tr>
                 @endforeach
                 <tr class="total-row">
                     <td colspan="3">Total</td>
                     <td class="text-right">{{ sprintf('%02d:%02d', floor($total_hours), round(($total_hours - floor($total_hours)) * 60)) }}</td>
+                    @if($show_values)
                     <td colspan="2"></td>
                     <td class="text-right green">R$ {{ number_format($total_revenue, 2, ',', '.') }}</td>
+                    @else
+                    <td colspan="2"></td>
+                    @endif
                 </tr>
             </tbody>
         </table>

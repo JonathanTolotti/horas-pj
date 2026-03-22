@@ -38,6 +38,7 @@ class AuditLog extends Model
         'discount_value'      => 'Desconto mensal',
         'on_call_hourly_rate' => 'Valor/hora sobreaviso',
         'auto_save_tracking'  => 'Salvar tracking automaticamente',
+        'billing_cycle_day'   => 'Dia início do ciclo',
         'name'                => 'Nome',
         'active'              => 'Ativo',
         'is_default'          => 'Projeto padrão',

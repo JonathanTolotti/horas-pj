@@ -45,9 +45,17 @@ class TimeEntry extends Model
         return $this->belongsTo(OnCallPeriod::class);
     }
 
-    public function scopeForMonth($query, string $monthReference)
+    public function scopeForMonth($query, string $monthReference, int $cycleDay = 1)
     {
-        return $query->where('month_reference', $monthReference);
+        if ($cycleDay <= 1) {
+            return $query->where('month_reference', $monthReference);
+        }
+
+        $dayStr = str_pad($cycleDay, 2, '0', STR_PAD_LEFT);
+        $start = \Carbon\Carbon::parse($monthReference . '-' . $dayStr)->startOfDay();
+        $end = $start->copy()->addMonthNoOverflow()->subDay()->endOfDay();
+
+        return $query->whereBetween('date', [$start, $end]);
     }
 
     public function scopeForUser($query, int $userId)

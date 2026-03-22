@@ -397,6 +397,45 @@
                     </label>
                 </div>
 
+                <!-- Ciclo de Faturamento -->
+                <div class="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700"
+                     x-data="{ saved: {{ $settings->billing_cycle_day ?? 1 }}, current: {{ $settings->billing_cycle_day ?? 1 }} }"
+                     @cycle-day-saved.window="saved = $event.detail.day">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <div class="flex-1">
+                            <span class="text-white font-medium block mb-1">Ciclo de Faturamento</span>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Dia do mês em que começa seu ciclo. Ex: dia 5 = período de 05/mar até 04/abr.
+                                Use 1 para ciclo mensal padrão (01 ao último dia do mês).
+                            </p>
+                            <div class="flex items-center gap-3">
+                                <label class="text-sm text-gray-400 shrink-0">Inicia no dia:</label>
+                                <input type="number" id="billing-cycle-day"
+                                    x-model.number="current"
+                                    value="{{ $settings->billing_cycle_day ?? 1 }}"
+                                    min="1" max="28"
+                                    class="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-center"/>
+                                <span class="text-sm text-gray-500">de cada mês</span>
+                            </div>
+
+                            <!-- Aviso ao alterar o ciclo -->
+                            <div x-show="current !== saved" x-cloak x-transition
+                                class="mt-3 flex items-start gap-2 p-3 bg-yellow-900/30 border border-yellow-500/40 rounded-lg">
+                                <svg class="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                </svg>
+                                <p class="text-xs text-yellow-300 leading-relaxed">
+                                    Ao salvar, lançamentos existentes passarão a ser exibidos no período correto conforme o novo ciclo.
+                                    Lançamentos de datas próximas à virada podem mudar de período no dashboard.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mt-6">
                     <button type="button" onclick="saveSettings()"
                         class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-emerald-500/30">
@@ -1024,9 +1063,15 @@
             const extraValue = parseCurrencyValue(document.getElementById('extra-value').value);
             const discountValue = parseCurrencyValue(document.getElementById('discount-value').value);
             const autoSaveTracking = document.getElementById('auto-save-tracking').checked;
+            const billingCycleDay = parseInt(document.getElementById('billing-cycle-day').value) || 1;
 
             if (hourlyRate < 0 || extraValue < 0 || discountValue < 0 || onCallHourlyRate < 0) {
                 showToast('Os valores não podem ser negativos!', TOAST_TYPES.WARNING);
+                return;
+            }
+
+            if (billingCycleDay < 1 || billingCycleDay > 28) {
+                showToast('O dia do ciclo de faturamento deve estar entre 1 e 28.', TOAST_TYPES.WARNING);
                 return;
             }
 
@@ -1039,13 +1084,17 @@
                         on_call_hourly_rate: onCallHourlyRate > 0 ? onCallHourlyRate : null,
                         extra_value: extraValue,
                         discount_value: discountValue,
-                        auto_save_tracking: autoSaveTracking
+                        auto_save_tracking: autoSaveTracking,
+                        billing_cycle_day: billingCycleDay
                     })
                 });
 
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message || 'Erro ao salvar');
                 showToast(data.message, TOAST_TYPES.SUCCESS);
+
+                // Sincroniza o valor salvo do ciclo para sumir o aviso
+                window.dispatchEvent(new CustomEvent('cycle-day-saved', { detail: { day: billingCycleDay } }));
             } catch (error) {
                 showToast(error.message, TOAST_TYPES.ERROR);
             }

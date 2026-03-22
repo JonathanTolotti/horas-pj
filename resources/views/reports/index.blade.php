@@ -40,6 +40,18 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Opção de exibição de valores -->
+            <div class="mt-4 pt-4 border-t border-gray-800">
+                <label class="flex items-center gap-3 cursor-pointer w-fit">
+                    <input type="checkbox" id="show-values" checked
+                        class="w-5 h-5 rounded bg-gray-800 border-gray-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                    <div>
+                        <span class="text-white font-medium text-sm">Mostrar valores financeiros no relatório</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Quando desmarcado, valores como R$/hora e faturamento não aparecerão no PDF</p>
+                    </div>
+                </label>
+            </div>
         </div>
 
         <!-- Relatórios Disponíveis -->
@@ -257,7 +269,8 @@
         function getFilters() {
             const month = document.getElementById('month-filter').value;
             const projectId = document.getElementById('project-filter').value;
-            let params = `month=${month}`;
+            const showValues = document.getElementById('show-values').checked ? 1 : 0;
+            let params = `month=${month}&show_values=${showValues}`;
             if (projectId) {
                 params += `&project_id=${projectId}`;
             }
@@ -278,12 +291,14 @@
 
         function downloadNf(companyId) {
             const month = document.getElementById('month-filter').value;
-            window.location.href = `{{ route('export.nf') }}?month=${month}&company_id=${companyId}`;
+            const showValues = document.getElementById('show-values').checked ? 1 : 0;
+            window.location.href = `{{ route('export.nf') }}?month=${month}&company_id=${companyId}&show_values=${showValues}`;
         }
 
         function downloadAnnualReport() {
             const year = document.getElementById('year-filter').value;
-            window.location.href = `{{ route('export.annual') }}?year=${year}`;
+            const showValues = document.getElementById('show-values').checked ? 1 : 0;
+            window.location.href = `{{ route('export.annual') }}?year=${year}&show_values=${showValues}`;
         }
     </script>
     @endpush

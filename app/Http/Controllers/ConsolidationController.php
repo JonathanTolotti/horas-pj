@@ -193,6 +193,7 @@ class ConsolidationController extends Controller
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
 
+        $showValues = $request->boolean('show_values', true);
         $entryIds  = array_filter((array) $request->input('entry_ids', []));
         $onCallIds = array_filter((array) $request->input('on_call_ids', []));
 
@@ -259,6 +260,7 @@ class ConsolidationController extends Controller
             'unassigned_revenue'   => $unassignedRevenue,
             'user'                 => $user,
             'generated_at'         => now(),
+            'show_values'          => $showValues,
         ];
 
         $pdf = Pdf::loadView('exports.pdf.consolidation-report', $data);

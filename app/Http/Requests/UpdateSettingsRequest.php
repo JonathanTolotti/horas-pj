@@ -19,6 +19,7 @@ class UpdateSettingsRequest extends FormRequest
             'extra_value' => 'required|numeric|min:0',
             'discount_value' => 'required|numeric|min:0',
             'auto_save_tracking' => 'boolean',
+            'billing_cycle_day' => 'nullable|integer|min:1|max:28',
         ];
     }
 

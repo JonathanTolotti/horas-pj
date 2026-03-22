@@ -23,19 +23,19 @@ class TimeEntryController extends Controller
 
     public function index(Request $request): View
     {
-        $monthReference = $request->session()->get(
-            'month_reference',
-            Carbon::now()->format('Y-m')
-        );
+        $defaultPeriod = $this->calculator->getCurrentPeriod(auth()->id());
+        $monthReference = $request->session()->get('month_reference', $defaultPeriod);
 
         if ($request->has('month')) {
             $monthReference = $request->input('month');
             $request->session()->put('month_reference', $monthReference);
         }
 
+        $cycleDay = $this->calculator->getCycleDay(auth()->id());
+
         // Query base para o mês
         $baseQuery = TimeEntry::forUser(auth()->id())
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc');
@@ -58,7 +58,7 @@ class TimeEntryController extends Controller
 
         // Buscar períodos de sobreaviso
         $onCallPeriods = OnCallPeriod::forUser(auth()->id())
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project')
             ->orderBy('start_datetime', 'desc')
             ->get();
@@ -118,6 +118,9 @@ class TimeEntryController extends Controller
             $validated['end_time']
         );
 
+        $cycleDay = (int) (\App\Models\Setting::forUser(auth()->id())->billing_cycle_day ?? 1);
+        $monthRef = $this->calculator->getPeriodForDate($date, $cycleDay);
+
         $entry = TimeEntry::create([
             'user_id' => auth()->id(),
             'project_id' => $validated['project_id'] ?? null,
@@ -126,7 +129,7 @@ class TimeEntryController extends Controller
             'end_time' => $validated['end_time'],
             'hours' => $hours,
             'description' => $validated['description'],
-            'month_reference' => $date->format('Y-m'),
+            'month_reference' => $monthRef,
         ]);
 
         // Vinculo com sobreaviso e feito automaticamente pelo TimeEntryObserver
@@ -136,7 +139,7 @@ class TimeEntryController extends Controller
 
         $stats = $this->calculator->getMonthlyStats(
             auth()->id(),
-            $date->format('Y-m')
+            $monthRef
         );
 
         return response()->json([
@@ -189,16 +192,16 @@ class TimeEntryController extends Controller
     protected function getAvailableMonths(): array
     {
         $months = [];
-        $current = Carbon::now();
-
-        // Limite de histórico baseado no plano
         $limit = auth()->user()->getLimit('history_months') ?? 12;
+        $cycleDay = (int) (\App\Models\Setting::forUser(auth()->id())->billing_cycle_day ?? 1);
+        $currentPeriod = $this->calculator->getCurrentPeriod(auth()->id());
 
         for ($i = 0; $i < $limit; $i++) {
-            $date = $current->copy()->subMonths($i);
+            $periodDate = Carbon::parse($currentPeriod . '-01')->subMonths($i);
+            $periodValue = $periodDate->format('Y-m');
             $months[] = [
-                'value' => $date->format('Y-m'),
-                'label' => ucfirst($date->isoFormat('MMMM Y')),
+                'value' => $periodValue,
+                'label' => $this->calculator->getPeriodLabel($periodValue, $cycleDay),
             ];
         }
 

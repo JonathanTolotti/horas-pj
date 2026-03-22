@@ -221,12 +221,13 @@
             <div class="summary-title">Resumo do Período</div>
             <table class="summary-grid">
                 <tr>
-                    <td>
+                    <td @if(!$show_values) colspan="3" @endif>
                         <div class="summary-card">
                             <div class="label">Total de Horas</div>
                             <div class="value">{{ sprintf('%02d:%02d', floor($stats['total_hours']), round(($stats['total_hours'] - floor($stats['total_hours'])) * 60)) }}</div>
                         </div>
                     </td>
+                    @if($show_values)
                     <td>
                         <div class="summary-card">
                             <div class="label">Valor/Hora</div>
@@ -239,6 +240,7 @@
                             <div class="value">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</div>
                         </div>
                     </td>
+                    @endif
                 </tr>
                 @if(($stats['on_call_hours'] ?? 0) > 0)
                 <tr>
@@ -248,6 +250,7 @@
                             <div class="value" style="color: #f97316;">{{ sprintf('%02d:%02d', floor($stats['on_call_hours']), round(($stats['on_call_hours'] - floor($stats['on_call_hours'])) * 60)) }}</div>
                         </div>
                     </td>
+                    @if($show_values)
                     <td>
                         <div class="summary-card">
                             <div class="label">Valor Sobreaviso</div>
@@ -260,8 +263,9 @@
                             <div class="value highlight">R$ {{ number_format($stats['total_final_with_on_call'] ?? $stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</div>
                         </div>
                     </td>
+                    @endif
                 </tr>
-                @else
+                @elseif($show_values)
                 <tr>
                     <td colspan="3">
                         <div class="summary-card" style="margin-top: 10px;">
@@ -296,8 +300,10 @@
                         <th class="text-center">Total</th>
                         <th class="text-center">Trabalhado</th>
                         <th class="text-center">Sobreaviso</th>
+                        @if($show_values)
                         <th class="text-right">Valor/h</th>
                         <th class="text-right">Valor</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -308,8 +314,10 @@
                         <td class="text-center">{{ sprintf('%02d:%02d', floor($period->total_hours), round(($period->total_hours - floor($period->total_hours)) * 60)) }}</td>
                         <td class="text-center">{{ sprintf('%02d:%02d', floor($period->worked_hours), round(($period->worked_hours - floor($period->worked_hours)) * 60)) }}</td>
                         <td class="text-center" style="color: #f97316; font-weight: bold;">{{ sprintf('%02d:%02d', floor($period->on_call_hours), round(($period->on_call_hours - floor($period->on_call_hours)) * 60)) }}</td>
+                        @if($show_values)
                         <td class="text-right">R$ {{ number_format($period->hourly_rate, 2, ',', '.') }}</td>
                         <td class="text-right" style="color: #f97316; font-weight: bold;">R$ {{ number_format($period->on_call_hours * $period->hourly_rate, 2, ',', '.') }}</td>
+                        @endif
                     </tr>
                     @endforeach
                 </tbody>
@@ -318,7 +326,7 @@
         @endif
 
         <!-- Companies -->
-        @if(!empty($stats['company_revenues']))
+        @if($show_values && !empty($stats['company_revenues']))
         <div class="companies">
             <div class="companies-title">Distribuição por Empresa</div>
             <table class="companies-table">

@@ -135,8 +135,10 @@ class SupervisorController extends Controller
             $request->session()->put('supervisor_month_' . $supervisedUser->id, $monthReference);
         }
 
+        $cycleDay = $this->calculator->getCycleDay($supervisedUser->id);
+
         $baseQuery = TimeEntry::forUser($supervisedUser->id)
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc');
@@ -149,7 +151,7 @@ class SupervisorController extends Controller
         $entriesByDay = $this->groupEntriesByDay($allEntries, $stats['hourly_rate']);
 
         $onCallPeriods = OnCallPeriod::forUser($supervisedUser->id)
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project')
             ->orderBy('start_datetime', 'desc')
             ->get();
@@ -178,7 +180,8 @@ class SupervisorController extends Controller
         }
 
         $monthReference = $request->input('month', Carbon::now()->format('Y-m'));
-        $data = $this->getExportData($access->user_id, $monthReference);
+        $showValues = $request->boolean('show_values', true);
+        $data = $this->getExportData($access->user_id, $monthReference, $showValues);
 
         $pdf = Pdf::loadView('exports.pdf.monthly-report', $data);
         $pdf->setPaper('a4', 'portrait');
@@ -227,11 +230,13 @@ class SupervisorController extends Controller
         ]);
     }
 
-    protected function getExportData(int $userId, string $monthReference): array
+    protected function getExportData(int $userId, string $monthReference, bool $showValues = true): array
     {
         $user = User::find($userId);
+        $cycleDay = $this->calculator->getCycleDay($userId);
+
         $entries = TimeEntry::forUser($userId)
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project.companies')
             ->orderBy('date', 'asc')
             ->orderBy('start_time', 'asc')
@@ -239,7 +244,7 @@ class SupervisorController extends Controller
 
         $stats = $this->calculator->getMonthlyStats($userId, $monthReference);
         $onCallPeriods = OnCallPeriod::forUser($userId)
-            ->forMonth($monthReference)
+            ->forMonth($monthReference, $cycleDay)
             ->with('project')
             ->orderBy('start_datetime', 'asc')
             ->get();
@@ -257,6 +262,7 @@ class SupervisorController extends Controller
             'onCallPeriods' => $onCallPeriods,
             'user' => $user,
             'generated_at' => now(),
+            'show_values' => $showValues,
         ];
     }
 
