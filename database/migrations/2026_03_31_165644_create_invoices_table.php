@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('bank_account_id')->nullable()->constrained()->onDelete('set null');
             $table->string('title', 200);
             $table->string('reference_month', 7); // YYYY-MM
-            $table->enum('status', ['rascunho', 'aberta', 'conciliada', 'encerrada'])->default('rascunho');
+            $table->enum('status', ['rascunho', 'aberta', 'conciliada', 'encerrada', 'cancelada'])->default('rascunho');
             $table->text('notes')->nullable();
             $table->timestamps();
 
