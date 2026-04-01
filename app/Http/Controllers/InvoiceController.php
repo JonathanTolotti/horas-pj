@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInvoiceRequest;
+use App\Mail\InvoiceEmail;
 use App\Models\BankAccount;
 use App\Models\Company;
 use App\Models\Invoice;
+use App\Models\InvoiceAuditLog;
 use App\Models\TimeEntry;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class InvoiceController extends Controller
@@ -67,7 +70,7 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::forUser(Auth::id())
             ->where('uuid', $uuid)
-            ->with(['company', 'bankAccount', 'entries', 'xmls'])
+            ->with(['company', 'bankAccount', 'entries', 'xmls', 'auditLogs.user'])
             ->firstOrFail();
 
         $companies = Company::forUser(Auth::id())->active()->orderBy('name')->get();
@@ -195,6 +198,8 @@ class InvoiceController extends Controller
 
         $invoice->update(['status' => Invoice::STATUS_CANCELLED]);
 
+        InvoiceAuditLog::record($invoice, 'fatura_cancelada', 'Fatura cancelada. Lançamentos liberados.');
+
         return response()->json([
             'success' => true,
             'message' => 'Fatura cancelada. Os lançamentos foram liberados.',
@@ -242,5 +247,38 @@ class InvoiceController extends Controller
         $filename = 'fatura-' . $invoice->reference_month . '-' . str_replace(' ', '-', strtolower($invoice->title)) . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    public function sendEmail(Request $request, string $uuid): JsonResponse
+    {
+        $invoice = Invoice::forUser(Auth::id())
+            ->where('uuid', $uuid)
+            ->with(['company', 'bankAccount', 'entries', 'xmls'])
+            ->firstOrFail();
+
+        $request->validate([
+            'recipient_email' => ['required', 'email'],
+            'message'         => ['nullable', 'string', 'max:2000'],
+        ], [
+            'recipient_email.required' => 'O e-mail do destinatário é obrigatório.',
+            'recipient_email.email'    => 'Informe um e-mail válido.',
+        ]);
+
+        $user = Auth::user();
+
+        Mail::to($request->recipient_email)
+            ->send(new InvoiceEmail($invoice, $user, $request->recipient_email, $request->message ?? ''));
+
+        InvoiceAuditLog::record(
+            $invoice,
+            'email_enviado',
+            'E-mail enviado para ' . $request->recipient_email,
+            ['destinatario' => $request->recipient_email],
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'E-mail enviado com sucesso para ' . $request->recipient_email . '.',
+        ]);
     }
 }

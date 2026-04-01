@@ -198,6 +198,7 @@ Route::middleware(['auth', 'verified', 'premium:billing'])->group(function () {
         Route::patch('/{uuid}/cancel', [InvoiceController::class, 'cancel'])->name('cancel');
         Route::get('/{uuid}/pdf', [InvoiceController::class, 'pdf'])->name('pdf');
         Route::get('/{uuid}/available-time-entries', [InvoiceController::class, 'availableTimeEntries'])->name('available-time-entries');
+        Route::post('/{uuid}/send-email', [InvoiceController::class, 'sendEmail'])->name('send-email');
 
         // Lançamentos
         Route::post('/{invoiceUuid}/entries', [InvoiceEntryController::class, 'store'])->name('entries.store');
@@ -208,6 +209,11 @@ Route::middleware(['auth', 'verified', 'premium:billing'])->group(function () {
         Route::post('/{invoiceUuid}/xmls', [InvoiceXmlController::class, 'store'])->name('xmls.store');
         Route::delete('/{invoiceUuid}/xmls/{xmlUuid}', [InvoiceXmlController::class, 'destroy'])->name('xmls.destroy');
         Route::get('/{invoiceUuid}/xmls/{xmlUuid}/download', [InvoiceXmlController::class, 'download'])->name('xmls.download');
+
+        // DANFSe
+        Route::post('/{invoiceUuid}/xmls/{xmlUuid}/danfse', [InvoiceXmlController::class, 'uploadDanfse'])->name('xmls.danfse.upload');
+        Route::delete('/{invoiceUuid}/xmls/{xmlUuid}/danfse', [InvoiceXmlController::class, 'destroyDanfse'])->name('xmls.danfse.destroy');
+        Route::get('/{invoiceUuid}/xmls/{xmlUuid}/danfse', [InvoiceXmlController::class, 'viewDanfse'])->name('xmls.danfse.view');
     });
 });
 

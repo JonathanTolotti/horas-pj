@@ -22,6 +22,8 @@ class InvoiceXml extends Model
         'recipient_name',
         'xml_parsed',
         'parse_error',
+        'danfse_filename',
+        'danfse_path',
     ];
 
     protected $casts = [

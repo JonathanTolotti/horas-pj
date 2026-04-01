@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Observers\InvoiceObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+
+#[ObservedBy([InvoiceObserver::class])]
 
 class Invoice extends Model
 {
@@ -58,6 +62,11 @@ class Invoice extends Model
     public function xmls(): HasMany
     {
         return $this->hasMany(InvoiceXml::class)->orderBy('created_at');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(InvoiceAuditLog::class)->orderBy('created_at', 'desc');
     }
 
     public function scopeForUser($query, int $userId)

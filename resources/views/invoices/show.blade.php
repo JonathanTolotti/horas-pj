@@ -69,6 +69,13 @@
                 </svg>
                 PDF
             </a>
+            <button @click="openEmailModal()"
+                    class="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Enviar
+            </button>
             @if(!in_array($invoice->status, ['encerrada', 'cancelada']))
                 <button @click="cancelInvoice()"
                         class="inline-flex items-center gap-1.5 text-sm text-red-400 hover:text-white bg-red-900/30 hover:bg-red-700 border border-red-800 px-3 py-2 rounded-lg transition-colors">
@@ -241,7 +248,35 @@
                             @if($xml->amount)
                                 <span class="text-sm font-medium text-white">R$ {{ number_format($xml->amount, 2, ',', '.') }}</span>
                             @endif
+                            {{-- DANFSe --}}
+                            @if($xml->danfse_path)
+                                <a href="{{ route('invoices.xmls.danfse.view', [$invoice->uuid, $xml->uuid]) }}"
+                                   target="_blank"
+                                   title="Visualizar DANFSe"
+                                   class="text-cyan-500 hover:text-cyan-300 transition-colors p-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </a>
+                                @if(!$invoice->isClosed())
+                                <button onclick="deleteDanfse('{{ $invoice->uuid }}', '{{ $xml->uuid }}')"
+                                        title="Remover DANFSe"
+                                        class="text-gray-500 hover:text-red-400 transition-colors p-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                                @endif
+                            @elseif(!$invoice->isClosed())
+                                <label title="Importar DANFSe (PDF)" class="cursor-pointer text-gray-500 hover:text-cyan-400 transition-colors p-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <input type="file" accept=".pdf" class="hidden" onchange="uploadDanfse('{{ $invoice->uuid }}', '{{ $xml->uuid }}', this)">
+                                </label>
+                            @endif
                             <a href="{{ route('invoices.xmls.download', [$invoice->uuid, $xml->uuid]) }}"
+                               title="Baixar XML"
                                class="text-gray-500 hover:text-gray-300 transition-colors p-1">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -274,6 +309,88 @@
         <p class="text-sm text-gray-300">{{ $invoice->notes }}</p>
     </div>
     @endif
+
+    {{-- Auditoria --}}
+    <div class="mt-4 bg-gray-900 border border-gray-800 rounded-xl">
+        <details>
+            <summary class="px-5 py-4 cursor-pointer flex items-center justify-between select-none">
+                <h3 class="text-sm font-medium text-gray-400">Histórico da Fatura</h3>
+                <span class="text-xs text-gray-600">{{ $invoice->auditLogs->count() }} evento(s)</span>
+            </summary>
+            <div class="divide-y divide-gray-800/60 px-5 pb-4">
+                @forelse($invoice->auditLogs as $log)
+                <div class="flex items-start gap-3 py-2.5">
+                    <div class="mt-1 w-1.5 h-1.5 rounded-full shrink-0 {{ str_replace('text-', 'bg-', $log->actionColor()) }}"></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-200">{{ $log->description }}</p>
+                        @if($log->metadata && isset($log->metadata['de'], $log->metadata['para']))
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                {{ ucfirst($log->metadata['de']) }} → {{ ucfirst($log->metadata['para']) }}
+                            </p>
+                        @elseif($log->metadata && isset($log->metadata['destinatario']))
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $log->metadata['destinatario'] }}</p>
+                        @endif
+                    </div>
+                    <time class="text-xs text-gray-500 shrink-0 whitespace-nowrap">
+                        {{ $log->created_at->format('d/m/Y H:i') }}
+                    </time>
+                </div>
+                @empty
+                <p class="text-sm text-gray-500 py-4">Nenhum evento registrado ainda. Ações futuras (mudanças de status, XMLs, e-mails) aparecerão aqui.</p>
+                @endforelse
+            </div>
+        </details>
+    </div>
+
+    {{-- Modal E-mail --}}
+    <div x-show="showEmailModal"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+         @click.self="showEmailModal = false"
+         style="display:none">
+        <div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md shadow-2xl" @click.stop>
+            <div class="flex items-center justify-between p-5 border-b border-gray-800">
+                <h2 class="text-lg font-semibold text-white">Enviar Fatura por E-mail</h2>
+                <button @click="showEmailModal = false" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form @submit.prevent="submitEmail()" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-300 mb-1">E-mail do destinatário <span class="text-red-400">*</span></label>
+                    <input type="email" x-model="emailForm.recipient_email"
+                           placeholder="exemplo@empresa.com.br"
+                           class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
+                    <p x-show="emailErrors.recipient_email" x-text="emailErrors.recipient_email" class="text-red-400 text-xs mt-1"></p>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-300 mb-1">Mensagem <span class="text-gray-500">(opcional)</span></label>
+                    <textarea x-model="emailForm.message" rows="3"
+                              placeholder="Mensagem adicional para o destinatário..."
+                              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+                </div>
+                <p class="text-xs text-gray-500">O PDF da fatura será anexado automaticamente ao e-mail.</p>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" @click="showEmailModal = false"
+                            class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" :disabled="emailLoading"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+                        <span x-show="!emailLoading">Enviar</span>
+                        <span x-show="emailLoading">Enviando...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     {{-- Modal Lançamento --}}
     <div x-show="showEntryModal"
@@ -565,6 +682,15 @@ function invoiceShow() {
         selectedImportIds:  [],
         importRate:         0,
         importRateDisplay:  '',
+
+        // Email modal
+        showEmailModal: false,
+        emailLoading:   false,
+        emailErrors:    {},
+        emailForm: {
+            recipient_email: '{{ addslashes($invoice->company?->email ?? "") }}',
+            message: '',
+        },
 
         // Edit invoice modal
         showEditModal: false,
@@ -967,6 +1093,38 @@ function invoiceShow() {
             }
         },
 
+        // ==================== EMAIL ====================
+
+        openEmailModal() {
+            this.emailErrors = {};
+            this.showEmailModal = true;
+        },
+
+        async submitEmail() {
+            this.emailLoading = true;
+            this.emailErrors = {};
+            try {
+                const res = await fetch(`/invoices/${this.invoiceUuid}/send-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                    body: JSON.stringify(this.emailForm),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.showEmailModal = false;
+                    showToast(data.message, TOAST_TYPES.SUCCESS);
+                } else if (data.errors) {
+                    this.emailErrors = data.errors;
+                } else {
+                    showToast(data.message || 'Erro ao enviar e-mail.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao enviar e-mail.', TOAST_TYPES.ERROR);
+            } finally {
+                this.emailLoading = false;
+            }
+        },
+
         // ==================== EDIT INVOICE ====================
 
         openEditInvoice() {
@@ -997,6 +1155,54 @@ function invoiceShow() {
             }
         },
     };
+}
+
+// DANFSe — funções globais (chamadas por onclick no Blade)
+async function uploadDanfse(invoiceUuid, xmlUuid, input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = '';
+
+    const formData = new FormData();
+    formData.append('danfse', file);
+
+    showToast('Importando DANFSe...', TOAST_TYPES.INFO);
+    try {
+        const res = await fetch(`/invoices/${invoiceUuid}/xmls/${xmlUuid}/danfse`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+            body: formData,
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message, TOAST_TYPES.SUCCESS);
+            window.location.reload();
+        } else {
+            showToast(data.message || 'Erro ao importar DANFSe.', TOAST_TYPES.ERROR);
+        }
+    } catch (e) {
+        showToast('Erro ao importar DANFSe.', TOAST_TYPES.ERROR);
+    }
+}
+
+function deleteDanfse(invoiceUuid, xmlUuid) {
+    showConfirm('Remover o DANFSe desta nota?', async () => {
+        try {
+            const res = await fetch(`/invoices/${invoiceUuid}/xmls/${xmlUuid}/danfse`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message, TOAST_TYPES.SUCCESS);
+                window.location.reload();
+            } else {
+                showToast(data.message, TOAST_TYPES.ERROR);
+            }
+        } catch (e) {
+            showToast('Erro ao remover DANFSe.', TOAST_TYPES.ERROR);
+        }
+    }, 'Remover DANFSe', 'Remover');
 }
 </script>
 </x-app-layout>
