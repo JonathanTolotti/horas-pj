@@ -1,4 +1,5 @@
 <x-app-layout>
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -179,8 +180,11 @@
                 'end_time' => $e->end_time ? substr($e->end_time, 0, 5) : '-',
                 'hours' => (float) $e->hours,
                 'revenue' => (float) $e->computed_revenue,
+                'hourly_rate' => (float) $e->computed_hourly_rate,
+                'month_reference' => $e->month_reference,
                 'project' => $e->project?->name ?? 'Sem projeto',
                 'description' => $e->description,
+                'invoice_id' => $e->invoice_id,
                 'selected' => true,
             ])->values()->toArray();
 
@@ -274,7 +278,10 @@
                                             <td class="px-4 py-2.5 text-right text-gray-300 font-mono" x-text="formatHours(entry.hours)"></td>
                                             <td class="px-4 py-2.5 text-gray-400 max-w-[120px] truncate" x-text="entry.project"></td>
                                             <td class="px-4 py-2.5 text-gray-500 hidden lg:table-cell max-w-[180px] truncate" x-text="entry.description"></td>
-                                            <td class="px-4 py-2.5 text-right text-emerald-400 font-medium" x-text="formatMoney(entry.revenue)"></td>
+                                            <td class="px-4 py-2.5 text-right">
+                                                <span class="text-emerald-400 font-medium" x-text="formatMoney(entry.revenue)"></span>
+                                                <span x-show="entry.invoice_id" class="ml-1 inline-block bg-cyan-500/20 text-cyan-400 text-xs px-1.5 py-0.5 rounded">Faturado</span>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -424,7 +431,7 @@
                             </div>
                         </template>
 
-                        <!-- Botão PDF -->
+                        <!-- Botão PDF + Gerar Lançamento -->
                         <div class="mt-5 space-y-2">
                             <label class="flex items-center gap-3 cursor-pointer mb-3">
                                 <input type="checkbox" x-model="showValues" class="w-4 h-4 rounded bg-gray-800 border-gray-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
@@ -441,7 +448,108 @@
                                 </svg>
                                 Gerar PDF
                             </button>
+                            @if($openInvoices->isNotEmpty())
+                            <button type="button" @click="openInvoiceEntryModal()"
+                                x-bind:disabled="selectedHours === 0 && selectedOnCallHours === 0"
+                                class="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                </svg>
+                                Gerar Lançamento
+                            </button>
+                            @endif
                             <p class="text-xs text-gray-600 text-center" x-show="selectedHours === 0 && selectedOnCallHours === 0">Selecione ao menos um item</p>
+                        </div>
+
+                        <!-- Modal Gerar Lançamento na Fatura -->
+                        <div x-show="showInvoiceModal"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+                             @click.self="showInvoiceModal = false"
+                             style="display:none">
+                            <div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md shadow-2xl" @click.stop>
+                                <div class="flex items-center justify-between p-5 border-b border-gray-800">
+                                    <h3 class="text-lg font-semibold text-white">Gerar Lançamento na Fatura</h3>
+                                    <button @click="showInvoiceModal = false" class="text-gray-400 hover:text-white transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="p-5 space-y-4">
+                                    <!-- Resumo do que será gerado -->
+                                    <div class="bg-gray-800 rounded-lg p-3 text-sm space-y-1">
+                                        <div class="flex justify-between text-gray-300">
+                                            <span>Horas selecionadas</span>
+                                            <span class="font-mono" x-text="formatHours(selectedHours + selectedOnCallHours)"></span>
+                                        </div>
+                                        <div class="flex justify-between text-emerald-400 font-medium">
+                                            <span>Valor total</span>
+                                            <span x-text="'R$ ' + formatMoneyBR(totalFinal)"></span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm text-gray-300 mb-1">Fatura de destino <span class="text-red-400">*</span></label>
+                                        <select x-model="invoiceEntryForm.invoiceUuid"
+                                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                            <option value="">Selecione uma fatura...</option>
+                                            @foreach($openInvoices as $inv)
+                                            <option value="{{ $inv->uuid }}">
+                                                {{ $inv->title }} — {{ \Carbon\Carbon::parse($inv->reference_month . '-01')->translatedFormat('M/Y') }}
+                                                ({{ ['rascunho' => 'Rascunho', 'aberta' => 'Aberta'][$inv->status] }})
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                        <p x-show="invoiceEntryErrors.invoice" x-text="invoiceEntryErrors.invoice" class="text-red-400 text-xs mt-1"></p>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm text-gray-300 mb-1">Descrição <span class="text-red-400">*</span></label>
+                                        <input type="text" x-model="invoiceEntryForm.description"
+                                               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                        <p x-show="invoiceEntryErrors.description" x-text="invoiceEntryErrors.description" class="text-red-400 text-xs mt-1"></p>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-sm text-gray-300 mb-1">Tipo</label>
+                                            <select x-model="invoiceEntryForm.type"
+                                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                                <option value="credit">Crédito</option>
+                                                <option value="debit">Débito</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm text-gray-300 mb-1">Data</label>
+                                            <input type="date" x-model="invoiceEntryForm.date"
+                                                   class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="entry_reconcile" x-model="invoiceEntryForm.reconcile_with_xml"
+                                               class="rounded border-gray-600 bg-gray-800 text-emerald-500">
+                                        <label for="entry_reconcile" class="text-sm text-gray-300">Considerar na conciliação com NF (XML)</label>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-3 px-5 pb-5">
+                                    <button type="button" @click="showInvoiceModal = false"
+                                            class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+                                        Cancelar
+                                    </button>
+                                    <button type="button" @click="submitInvoiceEntry()" :disabled="invoiceEntryLoading"
+                                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+                                        <span x-show="!invoiceEntryLoading">Criar Lançamento</span>
+                                        <span x-show="invoiceEntryLoading">Criando...</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -524,9 +632,20 @@ function consolidation(entries, onCallPeriods, extraValue, discountValue, compan
                 .reduce((s, e) => s + e.hours, 0);
         },
         get selectedRevenue() {
-            return this.entries
-                .filter(e => e.selected)
-                .reduce((s, e) => s + e.revenue, 0);
+            // Agrupa por mês e aplica conversão horas→minutos→horas para
+            // manter consistência exata com o cálculo do dashboard
+            const byMonth = {};
+            this.entries.filter(e => e.selected).forEach(e => {
+                const key = e.month_reference;
+                if (!byMonth[key]) byMonth[key] = { hours: 0, rate: e.hourly_rate };
+                byMonth[key].hours += e.hours;
+            });
+            let total = 0;
+            for (const data of Object.values(byMonth)) {
+                const minutes = Math.round(data.hours * 60);
+                total += Math.round((minutes / 60) * data.rate * 100) / 100;
+            }
+            return total;
         },
         get selectedOnCallHours() {
             return this.onCallPeriods
@@ -605,6 +724,81 @@ function consolidation(entries, onCallPeriods, extraValue, discountValue, compan
         },
         formatMoney(value) {
             return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        formatMoneyBR(value) {
+            return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        // ── Gerar Lançamento na Fatura ──────────────────────────────
+        showInvoiceModal: false,
+        invoiceEntryLoading: false,
+        invoiceEntryErrors: {},
+        invoiceEntryForm: {
+            invoiceUuid: '',
+            description: '',
+            type: 'credit',
+            date: '',
+            reconcile_with_xml: true,
+        },
+
+        openInvoiceEntryModal() {
+            const alreadyInvoiced = this.entries.filter(e => e.selected && e.invoice_id);
+            if (alreadyInvoiced.length > 0) {
+                showToast(`${alreadyInvoiced.length} lançamento(s) selecionado(s) já estão faturados. Desmarque-os antes de continuar.`, TOAST_TYPES.WARNING);
+                return;
+            }
+            this.invoiceEntryErrors = {};
+            this.invoiceEntryForm = {
+                invoiceUuid:        '',
+                description:        'Serviços de TI',
+                type:               'credit',
+                date:               new Date().toISOString().slice(0, 10),
+                reconcile_with_xml: true,
+            };
+            this.showInvoiceModal = true;
+        },
+
+        async submitInvoiceEntry() {
+            if (!this.invoiceEntryForm.invoiceUuid) {
+                this.invoiceEntryErrors = { invoice: 'Selecione uma fatura.' };
+                return;
+            }
+            this.invoiceEntryLoading = true;
+            this.invoiceEntryErrors = {};
+            const selectedIds = this.entries.filter(e => e.selected).map(e => e.id);
+            try {
+                const res = await fetch(`/invoices/${this.invoiceEntryForm.invoiceUuid}/entries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                    body: JSON.stringify({
+                        type:               this.invoiceEntryForm.type,
+                        description:        this.invoiceEntryForm.description,
+                        amount:             this.totalFinal,
+                        date:               this.invoiceEntryForm.date,
+                        reconcile_with_xml: this.invoiceEntryForm.reconcile_with_xml,
+                        time_entry_ids:     selectedIds,
+                    }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Marcar entries como faturadas no estado Alpine
+                    const linkedIds = new Set(data.linked_entry_ids || []);
+                    this.entries = this.entries.map(e => ({
+                        ...e,
+                        invoice_id: linkedIds.has(e.id) ? data.invoice_id : e.invoice_id,
+                    }));
+                    this.showInvoiceModal = false;
+                    showToast('Lançamento criado na fatura com sucesso!', TOAST_TYPES.SUCCESS);
+                } else if (data.errors) {
+                    this.invoiceEntryErrors = data.errors;
+                } else {
+                    showToast(data.message || 'Erro ao criar lançamento.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao criar lançamento.', TOAST_TYPES.ERROR);
+            } finally {
+                this.invoiceEntryLoading = false;
+            }
         },
     };
 }

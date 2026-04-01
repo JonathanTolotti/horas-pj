@@ -33,5 +33,6 @@ return [
         'analytics' => 'premium',
         'on_call' => 'premium',
         'supervisor' => 'premium',
+        'billing'    => 'premium',
     ],
 ];

@@ -1,6 +1,5 @@
 // Tracking state
 let trackingInterval = null;
-let confirmCallback = null;
 let trackingStartTime = null;
 
 // View mode state
@@ -9,13 +8,7 @@ let currentViewMode = 'entries';
 // Flatpickr instances
 let datePicker = null;
 
-// Toast types
-const TOAST_TYPES = {
-    SUCCESS: 'success',
-    ERROR: 'error',
-    WARNING: 'warning',
-    INFO: 'info'
-};
+// TOAST_TYPES, showToast, escapeHtml definidos globalmente em layouts/app.blade.php
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -180,144 +173,8 @@ function validateTimeInput(e) {
     e.target.value = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
 }
 
-// ==================== TOAST SYSTEM ====================
-
-function showToast(message, type = TOAST_TYPES.INFO, duration = 4000) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = 'toast-item';
-
-    // Estilos base do toast
-    toast.style.cssText = `
-        transform: translateX(100%);
-        opacity: 0;
-        transition: all 0.3s ease-out;
-    `;
-
-    const isDark = document.documentElement.classList.contains('dark');
-
-    const styles = isDark ? {
-        success: { bg: '#064e3b', border: '#10b981', text: '#a7f3d0', icon: '#34d399' },
-        error:   { bg: '#7f1d1d', border: '#ef4444', text: '#fecaca', icon: '#f87171' },
-        warning: { bg: '#78350f', border: '#f59e0b', text: '#fde68a', icon: '#fbbf24' },
-        info:    { bg: '#164e63', border: '#06b6d4', text: '#a5f3fc', icon: '#22d3ee' }
-    } : {
-        success: { bg: '#d1fae5', border: '#059669', text: '#064e3b', icon: '#059669' },
-        error:   { bg: '#fee2e2', border: '#dc2626', text: '#7f1d1d', icon: '#dc2626' },
-        warning: { bg: '#fef3c7', border: '#d97706', text: '#78350f', icon: '#d97706' },
-        info:    { bg: '#cffafe', border: '#0891b2', text: '#164e63', icon: '#0891b2' }
-    };
-
-    const style = styles[type] || styles.info;
-
-    const icons = {
-        success: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>`,
-        error: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>`,
-        warning: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-        </svg>`,
-        info: `<svg style="width:20px;height:20px;color:${style.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>`
-    };
-
-    toast.innerHTML = `
-        <div style="
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            border-radius: 10px;
-            border: 2px solid ${style.border};
-            background: ${style.bg};
-            color: ${style.text};
-            box-shadow: 0 10px 25px rgba(0,0,0,${isDark ? '0.4' : '0.12'}), 0 0 20px ${style.border}40;
-            font-size: 14px;
-            font-weight: 500;
-            min-width: 280px;
-            max-width: 400px;
-        ">
-            ${icons[type] || icons.info}
-            <span style="flex:1">${escapeHtml(message)}</span>
-            <button onclick="this.closest('.toast-item').remove()" style="
-                background: none;
-                border: none;
-                cursor: pointer;
-                opacity: 0.7;
-                transition: opacity 0.2s;
-                padding: 4px;
-                color: ${style.text};
-            " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
-                <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-    `;
-
-    container.appendChild(toast);
-
-    // Animate in
-    requestAnimationFrame(() => {
-        toast.style.transform = 'translateX(0)';
-        toast.style.opacity = '1';
-    });
-
-    // Auto remove
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
-}
-
 // ==================== CONFIRM MODAL ====================
-
-function showConfirm(message, callback, title = 'Confirmar') {
-    const modal = document.getElementById('confirm-modal');
-    const titleEl = document.getElementById('confirm-title');
-    const messageEl = document.getElementById('confirm-message');
-
-    if (!modal) return;
-
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    confirmCallback = callback;
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function executeConfirm() {
-    // Salvar callback antes de fechar o modal (closeConfirmModal zera o callback)
-    const callback = confirmCallback;
-    closeConfirmModal();
-    if (callback) {
-        callback();
-    }
-}
-
-function closeConfirmModal() {
-    const modal = document.getElementById('confirm-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-    confirmCallback = null;
-}
-
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeConfirmModal();
-    }
-});
+// showConfirm / executeConfirm / closeConfirmModal definidos globalmente em layouts/app.blade.php
 
 // ==================== PAGE INITIALIZATION ====================
 
@@ -870,14 +727,6 @@ async function refreshOnCallPeriods(month) {
 
 function changeMonth(month) {
     window.location.href = `/dashboard?month=${month}`;
-}
-
-// ==================== UTILITIES ====================
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // ==================== PRIVACY MODE ====================

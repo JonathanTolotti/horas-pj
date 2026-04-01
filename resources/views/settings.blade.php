@@ -739,6 +739,249 @@
             </div>
         </div>
 
+        <!-- Contas Bancárias -->
+        @if($isPremium)
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6" x-data="bankAccountsSection()">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    Contas Bancárias
+                </h2>
+                <button @click="openAdd()"
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nova Conta
+                </button>
+            </div>
+
+            <!-- Lista -->
+            <div id="bank-accounts-list" class="space-y-3">
+                @forelse($bankAccounts as $ba)
+                <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg" data-ba-uuid="{{ $ba->uuid }}">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <p class="font-medium text-white">{{ $ba->bank_name }}</p>
+                            @if(!$ba->active)
+                                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-400">Inativa</span>
+                            @endif
+                        </div>
+                        <p class="text-sm text-gray-400 mt-0.5">
+                            Ag. {{ $ba->branch }} · Conta {{ $ba->account_number }} ({{ $ba->account_type }})
+                            @if($ba->pix_key) · PIX: {{ $ba->pix_key }}@endif
+                        </p>
+                        <p class="text-xs text-gray-500">{{ $ba->holder_name }}</p>
+                    </div>
+                    <div class="flex items-center gap-2 ml-4">
+                        <button @click="openEdit({{ $ba->toJson() }})"
+                                class="text-gray-400 hover:text-white transition-colors p-1.5 rounded hover:bg-gray-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </button>
+                        <button @click="toggleAccount('{{ $ba->uuid }}', {{ $ba->active ? 'true' : 'false' }})"
+                                class="text-gray-400 hover:text-yellow-400 transition-colors p-1.5 rounded hover:bg-gray-700"
+                                title="{{ $ba->active ? 'Desativar' : 'Ativar' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $ba->active ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21' : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' }}"/>
+                            </svg>
+                        </button>
+                        <button @click="deleteAccount('{{ $ba->uuid }}')"
+                                class="text-gray-400 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                @empty
+                <div id="no-bank-accounts" class="text-center py-8 text-gray-500">
+                    Nenhuma conta bancária cadastrada. Contas bancárias ficam vinculadas às faturas.
+                </div>
+                @endforelse
+            </div>
+
+            <!-- Modal Conta Bancária -->
+            <div x-show="showModal"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+                 @click.self="showModal = false"
+                 style="display:none">
+                <div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl" @click.stop>
+                    <div class="flex items-center justify-between p-5 border-b border-gray-800">
+                        <h3 class="text-lg font-semibold text-white" x-text="editingUuid ? 'Editar Conta' : 'Nova Conta Bancária'"></h3>
+                        <button @click="showModal = false" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <form @submit.prevent="submitAccount()" class="p-5 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-sm text-gray-300 mb-1">Banco <span class="text-red-400">*</span></label>
+                                <input type="text" x-model="form.bank_name" placeholder="Ex: Nubank, Itaú, Bradesco"
+                                       class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                <p x-show="errors.bank_name" x-text="errors.bank_name" class="text-red-400 text-xs mt-1"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-1">Agência <span class="text-red-400">*</span></label>
+                                <input type="text" x-model="form.branch" placeholder="0001-0"
+                                       class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                <p x-show="errors.branch" x-text="errors.branch" class="text-red-400 text-xs mt-1"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-1">Conta <span class="text-red-400">*</span></label>
+                                <input type="text" x-model="form.account_number" placeholder="12345-6"
+                                       class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                <p x-show="errors.account_number" x-text="errors.account_number" class="text-red-400 text-xs mt-1"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-1">Tipo <span class="text-red-400">*</span></label>
+                                <select x-model="form.account_type"
+                                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="corrente">Corrente</option>
+                                    <option value="poupança">Poupança</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-1">Titular <span class="text-red-400">*</span></label>
+                                <input type="text" x-model="form.holder_name" placeholder="Nome do titular"
+                                       class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                <p x-show="errors.holder_name" x-text="errors.holder_name" class="text-red-400 text-xs mt-1"></p>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-sm text-gray-300 mb-1">Chave PIX</label>
+                                <input type="text" x-model="form.pix_key" placeholder="CPF, e-mail, telefone ou chave aleatória"
+                                       class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div class="col-span-2 flex items-center gap-2">
+                                <input type="checkbox" id="ba_active" x-model="form.active"
+                                       class="rounded border-gray-600 bg-gray-800 text-emerald-500">
+                                <label for="ba_active" class="text-sm text-gray-300">Conta ativa</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" @click="showModal = false"
+                                    class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" :disabled="loading"
+                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+                                <span x-show="!loading" x-text="editingUuid ? 'Salvar' : 'Criar Conta'"></span>
+                                <span x-show="loading">Salvando...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        function bankAccountsSection() {
+            return {
+                showModal: false,
+                loading: false,
+                editingUuid: null,
+                errors: {},
+                form: { bank_name: '', branch: '', account_number: '', account_type: 'corrente', holder_name: '', pix_key: '', active: true },
+
+                openAdd() {
+                    this.editingUuid = null;
+                    this.form = { bank_name: '', branch: '', account_number: '', account_type: 'corrente', holder_name: '', pix_key: '', active: true };
+                    this.errors = {};
+                    this.showModal = true;
+                },
+
+                openEdit(account) {
+                    this.editingUuid = account.uuid;
+                    this.form = {
+                        bank_name:      account.bank_name,
+                        branch:         account.branch,
+                        account_number: account.account_number,
+                        account_type:   account.account_type,
+                        holder_name:    account.holder_name,
+                        pix_key:        account.pix_key || '',
+                        active:         account.active,
+                    };
+                    this.errors = {};
+                    this.showModal = true;
+                },
+
+                async submitAccount() {
+                    this.loading = true;
+                    this.errors = {};
+                    const url    = this.editingUuid ? `/bank-accounts/${this.editingUuid}` : '/bank-accounts';
+                    const method = this.editingUuid ? 'PUT' : 'POST';
+                    try {
+                        const res  = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                            body: JSON.stringify(this.form),
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showModal = false;
+                            showToast(data.message, TOAST_TYPES.SUCCESS);
+                            window.location.reload();
+                        } else if (data.errors) {
+                            this.errors = data.errors;
+                        } else {
+                            showToast(data.message || 'Erro ao salvar.', TOAST_TYPES.ERROR);
+                        }
+                    } catch (e) {
+                        showToast('Erro ao salvar conta bancária.', TOAST_TYPES.ERROR);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async toggleAccount(uuid, currentActive) {
+                    const res  = await fetch(`/bank-accounts/${uuid}/toggle`, {
+                        method: 'PATCH',
+                        headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(data.message, TOAST_TYPES.SUCCESS);
+                        window.location.reload();
+                    } else {
+                        showToast(data.message, TOAST_TYPES.ERROR);
+                    }
+                },
+
+                async deleteAccount(uuid) {
+                    if (!confirm('Excluir esta conta bancária?')) return;
+                    const res  = await fetch(`/bank-accounts/${uuid}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(data.message, TOAST_TYPES.SUCCESS);
+                        const el = document.querySelector(`[data-ba-uuid="${uuid}"]`);
+                        if (el) el.remove();
+                        if (!document.querySelector('[data-ba-uuid]')) {
+                            document.getElementById('bank-accounts-list').innerHTML =
+                                '<div class="text-center py-8 text-gray-500">Nenhuma conta bancária cadastrada.</div>';
+                        }
+                    } else {
+                        showToast(data.message, TOAST_TYPES.ERROR);
+                    }
+                },
+            };
+        }
+        </script>
+        @endif
+
         <!-- Histórico de Alterações -->
         <details class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden" id="audit-details">
             <summary class="flex items-center justify-between p-6 cursor-pointer list-none select-none hover:bg-gray-800/50 transition-colors">

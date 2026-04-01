@@ -17,6 +17,7 @@ class TimeEntry extends Model
         'user_id',
         'project_id',
         'on_call_period_id',
+        'invoice_id',
         'date',
         'start_time',
         'end_time',
@@ -43,6 +44,21 @@ class TimeEntry extends Model
     public function onCallPeriod(): BelongsTo
     {
         return $this->belongsTo(OnCallPeriod::class);
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    public function isInvoiced(): bool
+    {
+        return !is_null($this->invoice_id);
+    }
+
+    public function scopeNotInvoiced($query)
+    {
+        return $query->whereNull('invoice_id');
     }
 
     public function scopeForMonth($query, string $monthReference, int $cycleDay = 1)

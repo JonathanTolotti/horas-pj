@@ -59,4 +59,9 @@ class Company extends Model
     {
         return $query->where('active', true);
     }
+
+    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

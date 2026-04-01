@@ -91,4 +91,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Project::class);
     }
+
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

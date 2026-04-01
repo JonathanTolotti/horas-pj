@@ -23,7 +23,7 @@
                     <!-- Dropdown Relatórios -->
                     <div x-data="{ openReports: false }" class="relative inline-flex items-center">
                         <button @click="openReports = !openReports" @click.outside="openReports = false"
-                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') || request()->routeIs('consolidation.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') || request()->routeIs('consolidation.*') || request()->routeIs('invoices.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
@@ -66,6 +66,19 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                                 Analytics
+                                @if(!$isPremiumUser)
+                                    <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                @endif
+                            </a>
+                            <a href="{{ $isPremiumUser ? route('invoices.index') : '#' }}"
+                               @if(!$isPremiumUser) onclick="showPremiumModal('faturamento')" @endif
+                               class="flex items-center px-4 py-2.5 text-sm {{ request()->routeIs('invoices.*') ? 'text-emerald-400 bg-gray-700/50' : ($isPremiumUser ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-500') }} transition-colors">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                </svg>
+                                Faturas
                                 @if(!$isPremiumUser)
                                     <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -306,6 +319,27 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
                 Analytics
+                <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </button>
+            @endif
+            <!-- Faturas Mobile -->
+            @if($isPremiumUser)
+            <a href="{{ route('invoices.index') }}"
+               class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('invoices.*') ? 'border-emerald-400 text-emerald-400 bg-gray-800' : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600' }} text-start text-base font-medium transition duration-150 ease-in-out">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Faturas
+            </a>
+            @else
+            <button onclick="showPremiumModal('faturamento')"
+               class="flex items-center w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-800 hover:border-gray-600 text-start text-base font-medium transition duration-150 ease-in-out">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Faturas
                 <svg class="w-3 h-3 ml-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>

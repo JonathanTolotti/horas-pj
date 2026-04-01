@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ConsolidationController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\InvoiceEntryController;
+use App\Http\Controllers\InvoiceXmlController;
 use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\SupervisorAccessController;
 use App\Http\Controllers\AdminController;
@@ -169,6 +173,41 @@ Route::middleware(['auth', 'verified', 'premium:supervisor'])->group(function ()
         Route::get('/{access}', [SupervisorController::class, 'show'])->name('supervisor.show');
         Route::get('/{access}/export/pdf', [SupervisorController::class, 'exportPdf'])->name('supervisor.export.pdf');
         Route::get('/{access}/export/excel', [SupervisorController::class, 'exportExcel'])->name('supervisor.export.excel');
+    });
+});
+
+// Faturamento (Premium)
+Route::middleware(['auth', 'verified', 'premium:billing'])->group(function () {
+    // Contas Bancárias
+    Route::prefix('bank-accounts')->name('bank-accounts.')->group(function () {
+        Route::get('/', [BankAccountController::class, 'index'])->name('index');
+        Route::post('/', [BankAccountController::class, 'store'])->name('store');
+        Route::put('/{uuid}', [BankAccountController::class, 'update'])->name('update');
+        Route::delete('/{uuid}', [BankAccountController::class, 'destroy'])->name('destroy');
+        Route::patch('/{uuid}/toggle', [BankAccountController::class, 'toggle'])->name('toggle');
+    });
+
+    // Faturas
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('index');
+        Route::post('/', [InvoiceController::class, 'store'])->name('store');
+        Route::get('/{uuid}', [InvoiceController::class, 'show'])->name('show');
+        Route::put('/{uuid}', [InvoiceController::class, 'update'])->name('update');
+        Route::delete('/{uuid}', [InvoiceController::class, 'destroy'])->name('destroy');
+        Route::patch('/{uuid}/status', [InvoiceController::class, 'updateStatus'])->name('update-status');
+        Route::patch('/{uuid}/cancel', [InvoiceController::class, 'cancel'])->name('cancel');
+        Route::get('/{uuid}/pdf', [InvoiceController::class, 'pdf'])->name('pdf');
+        Route::get('/{uuid}/available-time-entries', [InvoiceController::class, 'availableTimeEntries'])->name('available-time-entries');
+
+        // Lançamentos
+        Route::post('/{invoiceUuid}/entries', [InvoiceEntryController::class, 'store'])->name('entries.store');
+        Route::put('/{invoiceUuid}/entries/{entryUuid}', [InvoiceEntryController::class, 'update'])->name('entries.update');
+        Route::delete('/{invoiceUuid}/entries/{entryUuid}', [InvoiceEntryController::class, 'destroy'])->name('entries.destroy');
+
+        // XMLs
+        Route::post('/{invoiceUuid}/xmls', [InvoiceXmlController::class, 'store'])->name('xmls.store');
+        Route::delete('/{invoiceUuid}/xmls/{xmlUuid}', [InvoiceXmlController::class, 'destroy'])->name('xmls.destroy');
+        Route::get('/{invoiceUuid}/xmls/{xmlUuid}/download', [InvoiceXmlController::class, 'download'])->name('xmls.download');
     });
 });
 

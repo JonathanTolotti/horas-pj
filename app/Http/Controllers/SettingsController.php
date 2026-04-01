@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\AuditLog;
+use App\Models\BankAccount;
 use App\Models\Company;
 use App\Models\Notice;
 use App\Models\Project;
@@ -23,6 +24,9 @@ class SettingsController extends Controller
         $settings = Setting::forUser($user->id);
         $projects = Project::forUser($user->id)->with('companies')->orderBy('name')->get();
         $companies = Company::forUser($user->id)->orderBy('name')->get();
+        $bankAccounts = $user->isPremium()
+            ? BankAccount::forUser($user->id)->orderBy('bank_name')->get()
+            : collect();
         $notices = Notice::forUser($user->id)->orderBy('start_date', 'desc')->get();
 
         // Limites do plano
@@ -34,16 +38,17 @@ class SettingsController extends Controller
         $auditLogs = AuditLog::forUser($user->id)->orderBy('created_at', 'desc')->limit(30)->get();
 
         return view('settings', [
-            'settings' => $settings,
-            'projects' => $projects,
-            'companies' => $companies,
-            'notices' => $notices,
+            'settings'      => $settings,
+            'projects'      => $projects,
+            'companies'     => $companies,
+            'bankAccounts'  => $bankAccounts,
+            'notices'       => $notices,
             'canAddProject' => $canAddProject,
             'canAddCompany' => $canAddCompany,
-            'projectLimit' => $projectLimit,
-            'companyLimit' => $companyLimit,
-            'isPremium' => $user->isPremium(),
-            'auditLogs' => $auditLogs,
+            'projectLimit'  => $projectLimit,
+            'companyLimit'  => $companyLimit,
+            'isPremium'     => $user->isPremium(),
+            'auditLogs'     => $auditLogs,
         ]);
     }
 

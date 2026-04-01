@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ConsolidationFilterRequest;
 use App\Http\Requests\ConsolidationPdfRequest;
 use App\Models\Company;
+use App\Models\Invoice;
 use App\Models\OnCallPeriod;
 use App\Models\Project;
 use App\Models\TimeEntry;
@@ -36,14 +37,22 @@ class ConsolidationController extends Controller
         $filterCompanyIds = $filters['filter_company_ids'] ?? [];
         $filterProjectIds = $filters['filter_project_ids'] ?? [];
 
+        $openInvoices = $user->isPremium()
+            ? Invoice::forUser($userId)
+                ->whereIn('status', [Invoice::STATUS_DRAFT, Invoice::STATUS_OPEN])
+                ->orderBy('reference_month', 'desc')
+                ->get(['id', 'uuid', 'title', 'reference_month', 'status'])
+            : collect();
+
         if (!$startDate || !$endDate) {
             return view('consolidation', [
-                'hasData' => false,
-                'isPremium' => $user->isPremium(),
-                'allProjects' => $allProjects,
-                'allCompanies' => $allCompanies,
+                'hasData'          => false,
+                'isPremium'        => $user->isPremium(),
+                'allProjects'      => $allProjects,
+                'allCompanies'     => $allCompanies,
                 'filterCompanyIds' => [],
                 'filterProjectIds' => [],
+                'openInvoices'     => $openInvoices,
             ]);
         }
 
@@ -97,6 +106,7 @@ class ConsolidationController extends Controller
             ->map(function ($entry) use ($userId) {
                 $hourlyRate = $this->calculator->getHourlyRate($userId, $entry->month_reference);
                 $entry->computed_revenue = round($entry->hours * $hourlyRate, 2);
+                $entry->computed_hourly_rate = $hourlyRate;
                 return $entry;
             });
 
@@ -143,6 +153,7 @@ class ConsolidationController extends Controller
             'allCompanies' => $allCompanies,
             'filterCompanyIds' => $filterCompanyIds,
             'filterProjectIds' => $filterProjectIds,
+            'openInvoices'     => $openInvoices,
         ]);
     }
 
@@ -227,8 +238,15 @@ class ConsolidationController extends Controller
                 });
         }
 
-        $totalHours        = (float) $entries->sum('hours');
-        $totalRevenue      = (float) $entries->sum('computed_revenue');
+        $totalHours   = (float) $entries->sum('hours');
+        // Agrupar por mês e usar conversão minutos para consistência com o dashboard
+        $totalRevenue = (float) $entries->groupBy('month_reference')
+            ->sum(function ($group) use ($userId) {
+                $monthRef   = $group->first()->month_reference;
+                $hourlyRate = $this->calculator->getHourlyRate($userId, $monthRef);
+                $totalMins  = (int) round((float) $group->sum('hours') * 60);
+                return round(($totalMins / 60) * $hourlyRate, 2);
+            });
         $totalOnCallHours  = (float) $onCallPeriods->sum('on_call_hours');
         $totalOnCallRevenue = (float) $onCallPeriods->sum('computed_on_call_revenue');
 
