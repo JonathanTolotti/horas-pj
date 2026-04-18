@@ -28,6 +28,45 @@
     scrollbar-color: #374151 transparent;
 }
 
+/* ─── Brand gradient — alinha sistema com landing page ──────────── */
+/* bg-cyan-600 em todo o sistema vira o gradiente cyan→emerald da landing */
+/* background-image prevalece sobre background-color no CSS, sem !important */
+
+.bg-cyan-600 {
+    background-image: linear-gradient(135deg, #0e7490 0%, #059669 100%);
+}
+.hover\:bg-cyan-500:hover,
+.bg-cyan-600:hover {
+    background-image: linear-gradient(135deg, #0891b2 0%, #10b981 100%);
+    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.2);
+}
+
+/* Utilitário direto (para novos elementos e a landing) */
+.gradient-bg {
+    background: linear-gradient(135deg, #0e7490 0%, #059669 100%);
+}
+.gradient-bg:hover {
+    background: linear-gradient(135deg, #0891b2 0%, #10b981 100%);
+    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.2);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #22d3ee, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+html:not(.dark) .gradient-text {
+    background: linear-gradient(135deg, #0e7490, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Garante texto branco nos botões gradiente no modo claro */
+html:not(.dark) .bg-cyan-600.text-white,
+html:not(.dark) .gradient-bg.text-white { color: #ffffff; }
+
 /* ─── Light mode overrides ────────────────────────────────────── */
 /* Applied when <html> does NOT have the 'dark' class.            */
 /* Admin panel always keeps class="dark" so it's never affected.  */
@@ -55,7 +94,9 @@ html:not(.dark) .bg-gray-700\/50 { background-color: rgb(226 232 240 / 0.5); }
 html:not(.dark) .bg-gray-700\/30 { background-color: rgb(226 232 240 / 0.3); }
 
 /* Text */
-html:not(.dark) .text-white    { color: #0f172a; }
+html:not(.dark) .text-white        { color: #0f172a; }
+html:not(.dark) .text-white\/70    { color: #0f172a; }
+html:not(.dark) .text-white\/50    { color: #334155; }
 html:not(.dark) .text-gray-100 { color: #1e293b; }
 html:not(.dark) .text-gray-200 { color: #334155; }
 html:not(.dark) .text-gray-300 { color: #475569; }
@@ -240,6 +281,12 @@ html:not(.dark) .from-orange-900\/30 {
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 html:not(.dark) .to-amber-900\/30  { --tw-gradient-to: rgb(255 251 235 / 0.85) var(--tw-gradient-to-position); }
+html:not(.dark) .from-cyan-900\/40 {
+    --tw-gradient-from: rgb(236 254 255 / 0.85) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(236 254 255 / 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html:not(.dark) .to-emerald-900\/30 { --tw-gradient-to: rgb(236 253 245 / 0.85) var(--tw-gradient-to-position); }
 html:not(.dark) .from-cyan-900\/30 {
     --tw-gradient-from: rgb(236 254 255 / 0.85) var(--tw-gradient-from-position);
     --tw-gradient-to: rgb(236 254 255 / 0) var(--tw-gradient-to-position);
