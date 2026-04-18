@@ -39,7 +39,7 @@
                 <!-- Logo / Brand -->
                 <div class="flex items-center gap-3 px-5 h-16 border-b border-gray-800 shrink-0">
                     <a href="{{ route('dashboard') }}">
-                        <img src="{{ asset('images/logo.png') }}" alt="Horas PJ" class="h-9 w-auto">
+                        <img src="{{ asset('images/logo.png?v=' . filemtime(public_path('images/logo.png'))) }}" alt="Horas PJ" class="h-9 w-auto">
                     </a>
                     <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-cyan-600 text-white tracking-wide">
                         Admin

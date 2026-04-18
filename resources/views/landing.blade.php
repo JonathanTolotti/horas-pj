@@ -115,7 +115,7 @@
 <nav class="nav-blur fixed top-0 left-0 right-0 z-50">
     <div class="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <img src="{{ asset('images/logo.png') }}" alt="Horas PJ" class="h-12 w-auto">
+            <img src="{{ asset('images/logo.png?v=' . filemtime(public_path('images/logo.png'))) }}" alt="Horas PJ" class="h-12 w-auto">
         </div>
         <div class="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" class="text-sm text-slate-400 hover:text-white transition-colors">Funcionalidades</a>
@@ -430,7 +430,7 @@
 <footer class="border-t border-white/5 py-10 px-6">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-            <img src="{{ asset('images/logo.png') }}" alt="Horas PJ" class="h-10 w-auto opacity-70">
+            <img src="{{ asset('images/logo.png?v=' . filemtime(public_path('images/logo.png'))) }}" alt="Horas PJ" class="h-10 w-auto opacity-70">
         </div>
         <p class="text-slate-600 text-sm">© {{ date('Y') }} Horas PJ. Todos os direitos reservados.</p>
         <div class="flex items-center gap-6">

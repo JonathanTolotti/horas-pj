@@ -28,7 +28,7 @@
     <body class="font-sans text-gray-100 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-950">
             <div class="flex items-center justify-center mb-6">
-                <img src="{{ asset('images/logo.png') }}" alt="Horas PJ" class="h-20 w-auto">
+                <img src="{{ asset('images/logo.png?v=' . filemtime(public_path('images/logo.png'))) }}" alt="Horas PJ" class="h-20 w-auto">
             </div>
 
             <div class="w-full sm:max-w-md px-6 py-6 bg-gray-900 border border-gray-800 shadow-xl overflow-hidden sm:rounded-xl">
