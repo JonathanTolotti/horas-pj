@@ -201,7 +201,7 @@
                 <div class="text-right">
                     <p class="text-xs sm:text-sm text-gray-400">Hoje</p>
                     <p class="text-base sm:text-2xl font-semibold text-white" id="current-date"></p>
-                    <p class="text-sm sm:text-lg text-cyan-400 font-mono" id="current-time"></p>
+                    <p class="text-sm sm:text-lg gradient-text font-mono" id="current-time"></p>
                 </div>
             </div>
         </div>
@@ -315,11 +315,11 @@
         @endif
 
         <!-- Total Geral -->
-        <div class="bg-gradient-to-r from-cyan-900/30 to-purple-900/30 border border-cyan-500/30 rounded-xl p-6">
+        <div class="bg-gradient-to-r from-cyan-900/40 to-emerald-900/30 border border-cyan-500/30 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-gray-400 text-sm">Total Final do Mês</p>
-                    <p class="text-xs text-gray-500 mt-1">Horas + acréscimo - desconto{{ $stats['on_call_revenue'] > 0 ? ' + sobreaviso' : '' }}</p>
+                    <p class="text-white/70 text-sm font-bold">Total Final do Mês</p>
+                    <p class="text-xs text-white/50 font-bold mt-1">Horas + acréscimo - desconto{{ $stats['on_call_revenue'] > 0 ? ' + sobreaviso' : '' }}</p>
                 </div>
                 <span class="text-4xl font-bold text-white sensitive-value" id="total-final">R$ {{ number_format($stats['total_final_with_on_call'] ?? $stats['total_final'] ?? $stats['total_with_extra'], 2, ',', '.') }}</span>
             </div>
