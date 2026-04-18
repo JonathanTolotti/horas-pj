@@ -20,6 +20,8 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\AdminTicketController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -97,6 +99,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/revenue-trend', [AnalyticsController::class, 'revenueTrend'])->name('analytics.trend');
         Route::get('/monthly-projection', [AnalyticsController::class, 'monthlyProjection'])->name('analytics.projection');
     });
+});
+
+// Chamados de suporte (usuário)
+Route::middleware(['auth', 'verified'])->prefix('tickets')->name('tickets.')->group(function () {
+    Route::get('/', [TicketController::class, 'index'])->name('index');
+    Route::get('/create', [TicketController::class, 'create'])->name('create');
+    Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/messages', [TicketController::class, 'addMessage'])->name('messages.store');
+    Route::post('/{ticket}/close', [TicketController::class, 'close'])->name('close');
 });
 
 Route::middleware('auth')->group(function () {
@@ -227,6 +239,13 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
     Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('admin.users.toggle-admin');
     Route::post('/users/{user}/activate-premium', [AdminController::class, 'activatePremium'])->name('admin.users.activate-premium');
+
+    // Chamados de suporte (admin)
+    Route::get('/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');
+    Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('admin.tickets.show');
+    Route::post('/tickets/{ticket}/messages', [AdminTicketController::class, 'reply'])->name('admin.tickets.messages.store');
+    Route::post('/tickets/{ticket}/assign', [AdminTicketController::class, 'assign'])->name('admin.tickets.assign');
+    Route::put('/tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('admin.tickets.status');
 
     Route::get('/changelogs', [ChangelogController::class, 'adminIndex'])->name('admin.changelogs.index');
     Route::post('/changelogs', [ChangelogController::class, 'store'])->name('admin.changelogs.store');

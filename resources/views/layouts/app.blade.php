@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>Controle de Horas PJ</title>
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v={{ file_exists(public_path('favicon.ico')) ? filemtime(public_path('favicon.ico')) : 1 }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -175,6 +176,18 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <!-- Botão flutuante de Suporte -->
+        @auth
+        <a href="{{ route('tickets.index') }}"
+           title="Suporte"
+           class="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-full shadow-lg transition-colors group">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+            </svg>
+            <span class="hidden sm:inline">Suporte</span>
+        </a>
+        @endauth
 
         <!-- Global Modals -->
         @auth
