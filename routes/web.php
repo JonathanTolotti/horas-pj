@@ -23,8 +23,11 @@ use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return view('landing');
+})->name('landing');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [TimeEntryController::class, 'index'])->name('dashboard');
