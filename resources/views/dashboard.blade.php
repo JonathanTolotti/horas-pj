@@ -401,8 +401,8 @@
         </div>
 
         <!-- Tabela de Lançamentos -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-            <div class="p-4 sm:p-6 border-b border-gray-800">
+        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden" x-data="{ entriesOpen: true }">
+            <div class="p-4 sm:p-6 border-b border-gray-800 cursor-pointer" @click="entriesOpen = !entriesOpen">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
                         <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,32 +410,41 @@
                         </svg>
                         <span id="entries-title">Últimos lançamentos</span>
                     </h2>
-                    <!-- Toggle Visualização -->
-                    <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
-                        <button onclick="setViewMode('entries')" id="view-entries-btn"
-                            class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 bg-cyan-600 text-white"
-                            title="Visualizar por batidas">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                            </svg>
-                            <span class="hidden sm:inline">Batidas</span>
-                        </button>
-                        <button onclick="setViewMode('daily')" id="view-daily-btn"
-                            class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 text-gray-400 hover:text-white"
-                            title="Visualizar por dia">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <span class="hidden sm:inline">Por Dia</span>
-                            @if(!$canViewByDay)
-                                <svg class="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    <div class="flex items-center gap-2">
+                        <!-- Toggle Visualização -->
+                        <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1" @click.stop>
+                            <button onclick="setViewMode('entries')" id="view-entries-btn"
+                                class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 bg-cyan-600 text-white"
+                                title="Visualizar por batidas">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                                 </svg>
-                            @endif
+                                <span class="hidden sm:inline">Batidas</span>
+                            </button>
+                            <button onclick="setViewMode('daily')" id="view-daily-btn"
+                                class="view-toggle-btn px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 text-gray-400 hover:text-white"
+                                title="Visualizar por dia">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="hidden sm:inline">Por Dia</span>
+                                @if(!$canViewByDay)
+                                    <svg class="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                @endif
+                            </button>
+                        </div>
+                        <!-- Collapse Toggle -->
+                        <button class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" :title="entriesOpen ? 'Recolher' : 'Expandir'">
+                            <svg class="w-5 h-5 transition-transform duration-200" :class="{ 'rotate-180': !entriesOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
                         </button>
                     </div>
                 </div>
             </div>
+            <div x-show="entriesOpen" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
             <!-- ========== VISUALIZAÇÃO POR BATIDAS ========== -->
             <div id="view-entries" class="view-container">
@@ -564,7 +573,7 @@
                         </thead>
                         <tbody id="daily-table" class="divide-y divide-gray-800">
                             @forelse($entriesByDay as $dateKey => $dayData)
-                                <tr class="hover:bg-gray-800/50 transition-colors group">
+                                <tr class="hover:bg-gray-800/50 transition-colors group" data-day-index="{{ $loop->index }}">
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300 font-medium">{{ $dayData['date']->format('d/m/Y') }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">{{ ucfirst($dayData['date']->isoFormat('dddd')) }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm">
@@ -583,7 +592,7 @@
                                         </button>
                                     </td>
                                 </tr>
-                                <tr id="details-{{ $dateKey }}" class="hidden bg-gray-800/30">
+                                <tr id="details-{{ $dateKey }}" class="hidden bg-gray-800/30" data-day-index="{{ $loop->index }}">
                                     <td colspan="6" class="px-4 py-3">
                                         <div class="pl-4 border-l-2 border-cyan-500/30 space-y-2">
                                             @foreach($dayData['entries'] as $entry)
@@ -616,7 +625,7 @@
                 <!-- Mobile Cards -->
                 <div class="md:hidden divide-y divide-gray-800" id="daily-cards">
                     @forelse($entriesByDay as $dateKey => $dayData)
-                        <div class="p-4">
+                        <div class="p-4" data-day-index="{{ $loop->index }}">
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <span class="text-white font-medium">{{ $dayData['date']->format('d/m/Y') }}</span>
@@ -656,6 +665,18 @@
                         </div>
                     @endforelse
                 </div>
+
+                <!-- Paginação por dia -->
+                <div id="daily-pagination" class="p-4 border-t border-gray-800 hidden">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-400" id="daily-pagination-info"></p>
+                        <div class="flex gap-2">
+                            <button id="daily-prev-btn" onclick="changeDailyPage(-1)" class="px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed">Anterior</button>
+                            <button id="daily-next-btn" onclick="changeDailyPage(1)" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">Próximo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             </div>
         </div>
 

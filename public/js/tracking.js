@@ -821,6 +821,7 @@ function setViewMode(mode, save = true) {
         viewEntries.classList.add('hidden');
         viewDaily.classList.remove('hidden');
         if (title) title.textContent = 'Lançamentos por dia';
+        initDailyPagination();
     }
 
     // Update button styles
@@ -853,5 +854,93 @@ function toggleDayDetails(dateKey) {
     } else {
         detailsRow.classList.add('hidden');
         if (chevron) chevron.classList.remove('rotate-180');
+    }
+}
+
+// ==================== DAILY PAGINATION ====================
+
+const DAILY_PER_PAGE = 10;
+let dailyCurrentPage = 1;
+let dailyTotalDays = 0;
+
+function initDailyPagination() {
+    const desktopRows = document.querySelectorAll('#daily-table tr[data-day-index]:not([id^="details-"])');
+    const mobileCards = document.querySelectorAll('#daily-cards [data-day-index]');
+    dailyTotalDays = Math.max(desktopRows.length, mobileCards.length);
+    dailyCurrentPage = 1;
+    updateDailyPagination();
+}
+
+function changeDailyPage(direction) {
+    const totalPages = Math.ceil(dailyTotalDays / DAILY_PER_PAGE);
+    const newPage = dailyCurrentPage + direction;
+    if (newPage < 1 || newPage > totalPages) return;
+    dailyCurrentPage = newPage;
+    updateDailyPagination();
+}
+
+function updateDailyPagination() {
+    const totalPages = Math.ceil(dailyTotalDays / DAILY_PER_PAGE);
+    const startIndex = (dailyCurrentPage - 1) * DAILY_PER_PAGE;
+    const endIndex = startIndex + DAILY_PER_PAGE - 1;
+
+    // Desktop: main rows (not detail rows) get shown/hidden by page
+    document.querySelectorAll('#daily-table tr[data-day-index]:not([id^="details-"])').forEach(row => {
+        const idx = parseInt(row.dataset.dayIndex);
+        if (idx >= startIndex && idx <= endIndex) {
+            row.classList.remove('hidden');
+        } else {
+            row.classList.add('hidden');
+        }
+    });
+
+    // Detail rows: always collapse when page changes
+    document.querySelectorAll('#daily-table tr[id^="details-"]').forEach(row => {
+        const idx = parseInt(row.dataset.dayIndex);
+        if (idx < startIndex || idx > endIndex) {
+            row.classList.add('hidden');
+        }
+    });
+
+    // Mobile: show/hide cards
+    document.querySelectorAll('#daily-cards [data-day-index]').forEach(card => {
+        const idx = parseInt(card.dataset.dayIndex);
+        if (idx >= startIndex && idx <= endIndex) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+
+    // Update controls
+    const paginationDiv = document.getElementById('daily-pagination');
+    const info = document.getElementById('daily-pagination-info');
+    const prevBtn = document.getElementById('daily-prev-btn');
+    const nextBtn = document.getElementById('daily-next-btn');
+
+    if (paginationDiv) {
+        paginationDiv.classList.toggle('hidden', totalPages <= 1);
+    }
+
+    if (info) {
+        const from = startIndex + 1;
+        const to = Math.min(endIndex + 1, dailyTotalDays);
+        info.textContent = `Mostrando ${from} a ${to} de ${dailyTotalDays} dias`;
+    }
+
+    if (prevBtn) {
+        const disabled = dailyCurrentPage === 1;
+        prevBtn.disabled = disabled;
+        prevBtn.className = disabled
+            ? 'px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed'
+            : 'px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors';
+    }
+
+    if (nextBtn) {
+        const disabled = dailyCurrentPage >= totalPages;
+        nextBtn.disabled = disabled;
+        nextBtn.className = disabled
+            ? 'px-3 py-1 bg-gray-800 text-gray-500 rounded-lg text-sm cursor-not-allowed'
+            : 'px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors';
     }
 }
