@@ -78,6 +78,12 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => "Conta bloqueada. Aguarde {$remaining} minuto(s) para solicitar novo código."]);
         }
 
+        // Cool-down: impede reenvio em menos de 60 segundos desde o último envio
+        if ($record && $record->updated_at->diffInSeconds(now()) < 60) {
+            $wait = 60 - (int) $record->updated_at->diffInSeconds(now());
+            return back()->withErrors(['code' => "Aguarde {$wait} segundo(s) antes de solicitar um novo código."]);
+        }
+
         $this->sendCode($user);
 
         return back()->with('status', 'Novo código enviado para o seu e-mail.');

@@ -18,6 +18,12 @@
         </div>
     @endif
 
+    @error('resend')
+        <div class="mb-4 px-4 py-3 rounded-lg bg-yellow-900/40 border border-yellow-700 text-sm text-yellow-300 text-center">
+            {{ $message }}
+        </div>
+    @enderror
+
     <div class="mt-2 p-3 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 text-center">
         Não recebeu o e-mail? Verifique a pasta de spam ou solicite o reenvio.
     </div>
