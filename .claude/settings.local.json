@@ -4,7 +4,9 @@
       "Bash(php artisan:*)",
       "Bash(composer remove:*)",
       "Bash(composer require:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(grep -h 'protected $fillable\\\\|public function' 'C:\\\\Users\\\\jonat\\\\OneDrive\\\\Documentos\\\\horas-pj/app/Models/*.php')",
+      "Bash(grep -h 'protected $fillable' 'C:\\\\Users\\\\jonat\\\\OneDrive\\\\Documentos\\\\horas-pj/app/Models/*.php')"
     ]
   }
 }

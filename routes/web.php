@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ConsolidationController;
@@ -30,6 +31,14 @@ Route::get('/', function () {
     }
     return view('landing');
 })->name('landing');
+
+// Autenticação de Dois Fatores
+Route::middleware('auth')->group(function () {
+    Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor.show');
+    Route::post('/two-factor', [TwoFactorController::class, 'verify'])->name('two-factor.verify');
+    Route::post('/two-factor/resend', [TwoFactorController::class, 'resend'])->name('two-factor.resend');
+    Route::post('/settings/two-factor-toggle', [SettingsController::class, 'toggleTwoFactor'])->name('settings.two-factor-toggle');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [TimeEntryController::class, 'index'])->name('dashboard');

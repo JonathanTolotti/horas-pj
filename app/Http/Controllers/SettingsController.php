@@ -462,4 +462,24 @@ class SettingsController extends Controller
             'message' => 'Vinculo removido com sucesso!',
         ]);
     }
+
+    public function toggleTwoFactor(): JsonResponse
+    {
+        $user = auth()->user();
+        $enabled = !$user->two_factor_enabled;
+
+        $user->update(['two_factor_enabled' => $enabled]);
+
+        if (!$enabled) {
+            \App\Models\TwoFactorCode::where('user_id', $user->id)->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'enabled' => $enabled,
+            'message' => $enabled
+                ? 'Autenticação de dois fatores ativada.'
+                : 'Autenticação de dois fatores desativada.',
+        ]);
+    }
 }

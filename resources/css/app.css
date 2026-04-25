@@ -329,6 +329,9 @@ html:not(.dark) .border-emerald-400 { border-color: #059669; }
 html:not(.dark) .bg-blue-900\/40    { background-color: rgb(239 246 255 / 0.9); }
 html:not(.dark) .text-blue-300      { color: #1d4ed8; }
 
+/* ─── Verify email page — light mode overrides ────────────────── */
+html:not(.dark) .bg-cyan-900\/40    { background-color: rgb(236 254 255 / 0.9); }
+
 /* Theme toggle icon state (CSS-only, no flash) */
 html.dark  #theme-sun-icon  { display: block; }
 html.dark  #theme-moon-icon { display: none;  }

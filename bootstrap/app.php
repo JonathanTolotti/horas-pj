@@ -12,10 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'premium' => \App\Http\Middleware\EnsurePremium::class,
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'premium'    => \App\Http\Middleware\EnsurePremium::class,
+            'admin'      => \App\Http\Middleware\EnsureAdmin::class,
             'supervisor.access' => \App\Http\Middleware\EnsureSupervisorAccess::class,
+            'two_factor' => \App\Http\Middleware\EnsureTwoFactorAuthenticated::class,
         ]);
+
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureTwoFactorAuthenticated::class);
 
         // Excluir webhook do CSRF
         $middleware->validateCsrfTokens(except: [

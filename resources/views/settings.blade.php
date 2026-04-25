@@ -421,6 +421,56 @@
             </form>
         </div>
 
+        <!-- Segurança -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6"
+             x-data="{ twoFactorEnabled: {{ auth()->user()->two_factor_enabled ? 'true' : 'false' }}, loading: false }">
+            <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Segurança
+            </h2>
+
+            <!-- Toggle 2FA -->
+            <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-white font-medium">Autenticação de dois fatores (2FA)</span>
+                            <span x-show="twoFactorEnabled"
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                Ativo
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            Ao fazer login, um código de 6 dígitos será enviado ao seu e-mail para confirmar o acesso.
+                            O código expira em 10 minutos. Após 3 tentativas incorretas, o acesso fica bloqueado por 10 minutos.
+                        </p>
+                    </div>
+                    <button type="button"
+                        :disabled="loading"
+                        @click="
+                            loading = true;
+                            fetch('{{ route('settings.two-factor-toggle') }}', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' }
+                            })
+                            .then(r => r.json())
+                            .then(d => { twoFactorEnabled = d.enabled; showToast(d.message, d.enabled ? TOAST_TYPES.SUCCESS : TOAST_TYPES.INFO); })
+                            .catch(() => showToast('Erro ao alterar configuração.', TOAST_TYPES.ERROR))
+                            .finally(() => loading = false);
+                        "
+                        class="shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50"
+                        :class="twoFactorEnabled ? 'bg-cyan-600' : 'bg-gray-700'">
+                        <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                              :class="twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'">
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Empresas (CNPJs) -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div class="flex items-center justify-between mb-6">

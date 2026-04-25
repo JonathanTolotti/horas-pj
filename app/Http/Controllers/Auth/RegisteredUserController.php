@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Mail\WelcomeMail;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -50,13 +48,11 @@ class RegisteredUserController extends Controller
         // Criar trial de 7 dias para novos usuários
         $user->createTrialSubscription();
 
+        // Dispara evento Registered → envia e-mail de verificação automaticamente
         event(new Registered($user));
-
-        // Enviar email de boas-vindas
-        Mail::to($user->email)->send(new WelcomeMail($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('verification.notice'));
     }
 }
