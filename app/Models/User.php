@@ -57,6 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function setTaxIdAttribute(string $value): void
+    {
+        $this->attributes['tax_id'] = preg_replace('/\D/', '', $value);
+    }
+
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification());

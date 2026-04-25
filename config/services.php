@@ -40,4 +40,9 @@ return [
         'webhook_token' => env('ABACATEPAY_WEBHOOK_TOKEN'),
     ],
 
+    'recaptcha' => [
+        'site_key'   => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+    ],
+
 ];
