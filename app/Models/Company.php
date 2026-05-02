@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 #[ObservedBy([CompanyObserver::class])]
 class Company extends Model
 {
     protected $fillable = [
         'user_id',
+        'uuid',
         'name',
         'cnpj',
         'active',
@@ -33,6 +35,21 @@ class Company extends Model
         'responsavel_email',
         'responsavel_telefone',
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function (Company $company) {
+            if (empty($company->uuid)) {
+                $company->uuid = (string) Str::uuid();
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
 
     protected $casts = [
         'active' => 'boolean',

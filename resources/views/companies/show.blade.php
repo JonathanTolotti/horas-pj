@@ -13,7 +13,7 @@
                 <h3 class="text-lg font-semibold text-white">Editar Empresa</h3>
             </div>
             <form id="company-form" onsubmit="return false;">
-                <input type="hidden" id="company-id" value="{{ $company->id }}">
+                <input type="hidden" id="company-id" value="{{ $company->uuid }}">
                 <div class="mb-5">
                     <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Dados da Empresa</h4>
                     <div class="space-y-3">
@@ -649,7 +649,7 @@
 
     @push('scripts')
     <script>
-        const COMPANY_ID = {{ $company->id }};
+        const COMPANY_ID = '{{ $company->uuid }}';
 
         // ---- Edit Company ----
         function openCompanyModal() {
