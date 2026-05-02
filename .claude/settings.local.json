@@ -7,7 +7,8 @@
       "Bash(findstr:*)",
       "Bash(grep -h 'protected $fillable\\\\|public function' 'C:\\\\Users\\\\jonat\\\\OneDrive\\\\Documentos\\\\horas-pj/app/Models/*.php')",
       "Bash(grep -h 'protected $fillable' 'C:\\\\Users\\\\jonat\\\\OneDrive\\\\Documentos\\\\horas-pj/app/Models/*.php')",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(php -r \"require 'vendor/autoload.php'; require 'bootstrap/app.php';\")"
     ]
   }
 }

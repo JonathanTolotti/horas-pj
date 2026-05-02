@@ -35,6 +35,7 @@ class SettingsController extends Controller
         $canAddCompany = $companyLimit === null || $companies->count() < $companyLimit;
 
         $auditLogs = AuditLog::forUser($user->id)->orderBy('created_at', 'desc')->limit(30)->get();
+        $apiTokens = $user->tokens()->orderBy('created_at', 'desc')->get();
 
         return view('settings', [
             'settings'      => $settings,
@@ -48,6 +49,7 @@ class SettingsController extends Controller
             'companyLimit'  => $companyLimit,
             'isPremium'     => $user->isPremium(),
             'auditLogs'     => $auditLogs,
+            'apiTokens'     => $apiTokens,
         ]);
     }
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\TokenController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BankAccountController;
@@ -33,6 +34,11 @@ Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
+// Documentação pública da API
+Route::get('/api-docs', function () {
+    return view('api-docs');
+})->name('api-docs');
+
 // Autenticação de Dois Fatores
 Route::middleware('auth')->group(function () {
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('two-factor.show');
@@ -55,6 +61,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [SettingsController::class, 'updateSettings'])->name('settings.update');
     Route::get('/settings/audit-logs', [SettingsController::class, 'auditLogsPartial'])->name('settings.audit-logs');
+
+    // API Tokens
+    Route::post('/settings/tokens', [TokenController::class, 'store'])->name('tokens.store');
+    Route::delete('/settings/tokens/{id}', [TokenController::class, 'destroy'])->name('tokens.destroy');
 
     // Projects
     Route::post('/projects', [SettingsController::class, 'storeProject'])->name('projects.store');

@@ -120,6 +120,7 @@
         </div>
         <div class="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" class="text-sm text-slate-400 hover:text-white transition-colors">Funcionalidades</a>
+            <a href="#api" class="text-sm text-slate-400 hover:text-white transition-colors">API</a>
             <a href="#planos" class="text-sm text-slate-400 hover:text-white transition-colors">Planos</a>
         </div>
         <div class="flex items-center gap-3">
@@ -266,8 +267,8 @@
             </div>
 
             <div class="card-border rounded-2xl p-6">
-                <div class="feature-icon bg-violet-500/15 mb-4">
-                    <svg class="w-6 h-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="feature-icon bg-cyan-500/15 mb-4">
+                    <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <h3 class="text-lg font-bold text-white mb-2">Cálculo Financeiro</h3>
                 <p class="text-slate-400 text-sm leading-relaxed">Configure seu valor por hora, extras e descontos. O sistema calcula automaticamente sua receita do mês.</p>
@@ -297,6 +298,18 @@
                 <p class="text-slate-400 text-sm leading-relaxed">Já tem lançamentos em planilha? Importe em segundos via CSV com preview antes de confirmar.</p>
             </div>
 
+            <div class="card-border rounded-2xl p-6" style="border-color: rgba(34,211,238,0.15); background: rgba(34,211,238,0.02);">
+                <div class="feature-icon bg-cyan-500/15 mb-4">
+                    <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">API REST</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">Integre o Horas PJ com qualquer ferramenta via API REST. Lançamentos, projetos, tracking e mais — totalmente programável.</p>
+                <a href="{{ route('api-docs') }}" class="inline-flex items-center gap-1.5 mt-4 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                    Ver documentação
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+
         </div>
     </div>
 </section>
@@ -324,6 +337,106 @@
                 <h3 class="text-lg font-bold text-white mb-2">Exporte e fature</h3>
                 <p class="text-slate-400 text-sm leading-relaxed">Gere relatórios PDF profissionais prontos para enviar ao cliente ou emitir NF.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+{{-- API --}}
+<section id="api" class="py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-1.5 mb-6">
+                <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span class="text-cyan-400 text-sm font-medium">Para desenvolvedores</span>
+            </div>
+            <h2 class="text-4xl md:text-5xl font-black mb-4">
+                API REST
+                <span style="background: linear-gradient(135deg, #22d3ee, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">totalmente aberta</span>
+            </h2>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Integre o Horas PJ com qualquer ferramenta, automação ou script. Autenticação por Bearer Token, permissões granulares e documentação completa.</p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+
+            {{-- Features --}}
+            <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div class="feature-icon bg-cyan-500/15 shrink-0">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-1">Autenticação por Bearer Token</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Gere tokens de acesso pessoal nas configurações. Revogue a qualquer momento sem afetar o restante da conta.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="feature-icon bg-cyan-500/15 shrink-0">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-1">Permissões Granulares</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Defina exatamente o que cada token pode fazer: leitura, escrita, tracking, sobreaviso — controle total por recurso.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="feature-icon bg-cyan-500/15 shrink-0">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-1">Endpoints Completos</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Lançamentos, projetos, empresas, configurações, tracking e sobreaviso — tudo o que existe no app está disponível via API.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="feature-icon bg-cyan-500/15 shrink-0">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-1">Documentação Interativa</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Exemplos de requisição e resposta para cada endpoint, com parâmetros, códigos de erro e exemplos em cURL.</p>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <a href="{{ route('api-docs') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:opacity-90" style="background: linear-gradient(135deg, #0e7490, #059669); box-shadow: 0 4px 20px rgba(34,211,238,0.25);">
+                        Ver documentação completa
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Code preview --}}
+            <div class="card-border rounded-2xl overflow-hidden" style="border-color: rgba(34,211,238,0.15);">
+                <div class="px-5 py-3 flex items-center gap-2 border-b" style="background: rgba(34,211,238,0.05); border-color: rgba(34,211,238,0.15);">
+                    <div class="w-3 h-3 rounded-full bg-red-500/60"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+                    <span class="text-slate-500 text-xs ml-3 font-mono">terminal</span>
+                </div>
+                <div class="p-6 font-mono text-sm space-y-4" style="background: rgba(10,5,20,0.9);">
+                    <div>
+                        <p class="text-slate-500 text-xs mb-2"># Listar lançamentos do mês</p>
+                        <p><span class="text-cyan-400">curl</span> <span class="text-slate-300">-X GET \</span></p>
+                        <p class="pl-4"><span class="text-emerald-400">"https://app.horaspj.com.br/api/v1/time-entries?month=2025-05"</span> <span class="text-slate-300">\</span></p>
+                        <p class="pl-4"><span class="text-sky-400">-H</span> <span class="text-amber-300">"Authorization: Bearer SEU_TOKEN"</span></p>
+                    </div>
+                    <div class="border-t border-white/5 pt-4">
+                        <p class="text-slate-500 text-xs mb-2"># Resposta</p>
+                        <p><span class="text-slate-400">{</span></p>
+                        <p class="pl-4"><span class="text-sky-400">"data"</span><span class="text-slate-400">: [</span></p>
+                        <p class="pl-8"><span class="text-slate-400">{</span></p>
+                        <p class="pl-12"><span class="text-sky-400">"id"</span><span class="text-slate-400">: </span><span class="text-amber-300">1</span><span class="text-slate-400">,</span></p>
+                        <p class="pl-12"><span class="text-sky-400">"date"</span><span class="text-slate-400">: </span><span class="text-emerald-400">"2025-05-01"</span><span class="text-slate-400">,</span></p>
+                        <p class="pl-12"><span class="text-sky-400">"hours"</span><span class="text-slate-400">: </span><span class="text-amber-300">8.5</span><span class="text-slate-400">,</span></p>
+                        <p class="pl-12"><span class="text-sky-400">"project"</span><span class="text-slate-400">: </span><span class="text-emerald-400">"Projeto Alpha"</span></p>
+                        <p class="pl-8"><span class="text-slate-400">}</span></p>
+                        <p class="pl-4"><span class="text-slate-400">],</span></p>
+                        <p class="pl-4"><span class="text-sky-400">"meta"</span><span class="text-slate-400">: { </span><span class="text-sky-400">"total"</span><span class="text-slate-400">: </span><span class="text-amber-300">22</span><span class="text-slate-400"> }</span></p>
+                        <p><span class="text-slate-400">}</span></p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -435,6 +548,7 @@
         </div>
         <p class="text-slate-600 text-sm">© {{ date('Y') }} Horas PJ. Todos os direitos reservados.</p>
         <div class="flex items-center gap-6">
+            <a href="{{ route('api-docs') }}" class="text-slate-500 hover:text-slate-300 text-sm transition-colors">API</a>
             <a href="{{ route('login') }}" class="text-slate-500 hover:text-slate-300 text-sm transition-colors">Entrar</a>
             <a href="{{ route('register') }}" class="text-slate-500 hover:text-slate-300 text-sm transition-colors">Cadastrar</a>
         </div>

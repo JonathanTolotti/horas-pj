@@ -277,13 +277,28 @@
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div class="max-w-4xl mx-auto p-4 sm:p-6" x-data="{ activeTab: window.location.hash === '#api' ? 'api' : 'geral' }">
 
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">Configurações</h1>
-            <p class="text-gray-400 text-sm sm:text-base">Gerencie valores e projetos</p>
+        <div class="mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-4">Configurações</h1>
+            <nav class="flex border-b border-gray-800">
+                <button @click="activeTab = 'geral'"
+                        :class="activeTab === 'geral' ? 'text-white border-b-2 border-cyan-500' : 'text-gray-400 hover:text-gray-300'"
+                        class="px-5 py-2.5 text-sm font-medium transition-colors -mb-px">
+                    Geral
+                </button>
+                <button @click="activeTab = 'api'"
+                        :class="activeTab === 'api' ? 'text-cyan-300 border-b-2 border-cyan-500' : 'text-gray-400 hover:text-gray-300'"
+                        class="px-5 py-2.5 text-sm font-medium transition-colors -mb-px flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    API
+                </button>
+            </nav>
         </div>
+
+        <!-- Tab: Geral -->
+        <div x-show="activeTab === 'geral'" class="space-y-6">
 
         <!-- Valores -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
@@ -987,6 +1002,211 @@
                 </div>
             </div>
         </details>
+        </div>{{-- fim Tab: Geral --}}
+
+        <!-- Tab: API -->
+        <div x-show="activeTab === 'api'" class="space-y-6" x-cloak x-data="apiTokens()">
+
+            <!-- Criar Token -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-white mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    Tokens de API
+                </h2>
+                <p class="text-gray-400 text-sm mb-6">Gere tokens de acesso pessoal para integrar com a API do Horas PJ. O token é exibido uma única vez — guarde-o em segurança.</p>
+
+                <div class="space-y-5">
+                    <!-- Nome do token -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Nome do Token</label>
+                        <input type="text" x-model="newTokenName" placeholder="Ex: Integração Zapier"
+                            @keydown.enter="createToken()"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
+                    </div>
+
+                    <!-- Tipo de acesso -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-3">Permissões</label>
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="access-type" value="full" x-model="accessMode"
+                                    class="w-4 h-4 text-cyan-500 bg-gray-800 border-gray-700 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                <span class="text-gray-300">Acesso Total</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="access-type" value="specific" x-model="accessMode"
+                                    class="w-4 h-4 text-cyan-500 bg-gray-800 border-gray-700 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                <span class="text-gray-300">Permissões Específicas</span>
+                            </label>
+                        </div>
+
+                        <!-- Checkboxes de permissões -->
+                        <div x-show="accessMode === 'specific'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-800/40 border border-gray-700/50 rounded-lg p-4" style="display:none">
+                            <!-- Lançamentos -->
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Lançamentos</p>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="time-entries:read" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Leitura <code class="text-xs text-cyan-400">time-entries:read</code></span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="time-entries:write" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Escrita <code class="text-xs text-cyan-400">time-entries:write</code></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Projetos -->
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Projetos</p>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="projects:read" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Leitura <code class="text-xs text-cyan-400">projects:read</code></span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="projects:write" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Escrita <code class="text-xs text-cyan-400">projects:write</code></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Empresas -->
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Empresas</p>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="companies:read" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Leitura <code class="text-xs text-cyan-400">companies:read</code></span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="companies:write" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Escrita <code class="text-xs text-cyan-400">companies:write</code></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Configurações -->
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Configurações</p>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="settings:read" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Leitura <code class="text-xs text-cyan-400">settings:read</code></span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="settings:write" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Escrita <code class="text-xs text-cyan-400">settings:write</code></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Tracking -->
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tracking</p>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="tracking" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Controle <code class="text-xs text-cyan-400">tracking</code></span>
+                                    </label>
+                                </div>
+                            </div>
+                            @if($isPremium)
+                            <!-- Sobreaviso (Premium) -->
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Sobreaviso <span class="text-cyan-400 font-normal normal-case ml-1">Premium</span></p>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="on-call:read" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Leitura <code class="text-xs text-cyan-400">on-call:read</code></span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" value="on-call:write" x-model="selectedAbilities"
+                                            class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-gray-900"/>
+                                        <span class="text-sm text-gray-300">Escrita <code class="text-xs text-cyan-400">on-call:write</code></span>
+                                    </label>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Token gerado (exibição única) -->
+                    <div x-show="newToken" x-cloak class="bg-emerald-900/20 border border-emerald-700/50 rounded-lg p-4">
+                        <p class="text-sm font-semibold text-emerald-400 mb-2">Token gerado — copie agora, ele não será exibido novamente</p>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 text-xs text-emerald-300 bg-gray-900 border border-gray-700 rounded px-3 py-2 break-all font-mono" x-text="newToken"></code>
+                            <button @click="copyToken()" class="shrink-0 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg transition-colors">
+                                Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button @click="createToken()" :disabled="loading"
+                            class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+                            <span x-show="loading">
+                                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </span>
+                            <span x-show="!loading">Gerar Token</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de tokens -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Tokens Ativos</h3>
+                <div id="tokens-list" class="space-y-3">
+                    @forelse($apiTokens as $token)
+                    <div data-token-id="{{ $token->id }}" class="flex items-start justify-between bg-gray-800/40 border border-gray-700/50 rounded-lg px-4 py-3 gap-4">
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-white">{{ $token->name }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                Criado {{ $token->created_at->diffForHumans() }}
+                                &middot;
+                                {{ $token->last_used_at ? 'Último uso: '.$token->last_used_at->diffForHumans() : 'Nunca usado' }}
+                            </p>
+                            <div class="flex flex-wrap gap-1 mt-2">
+                                @if(in_array('*', $token->abilities))
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-900/40 text-cyan-300 border border-cyan-700/50">Acesso total</span>
+                                @else
+                                    @foreach($token->abilities as $ability)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-gray-700/60 text-gray-300 border border-gray-600/50">{{ $ability }}</span>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+                        <button onclick="revokeToken({{ $token->id }})" class="shrink-0 text-xs text-red-400 hover:text-red-300 transition-colors mt-0.5">Revogar</button>
+                    </div>
+                    @empty
+                    <div id="no-tokens" class="text-center py-6 text-gray-500 text-sm">Nenhum token criado. Gere um token para integrar via API.</div>
+                    @endforelse
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <a href="/api-docs" target="_blank" class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Ver documentação da API
+                    </a>
+                </div>
+            </div>
+
+        </div>{{-- fim Tab: API --}}
     </div>
 
     <!-- Modal de Aviso -->
@@ -1117,6 +1337,102 @@
 
     @push('scripts')
     <script>
+        // API Tokens (Alpine component)
+        function apiTokens() {
+            return {
+                newTokenName: '',
+                newToken: null,
+                loading: false,
+                accessMode: 'full',
+                selectedAbilities: [],
+
+                init() {},
+
+                getAbilities() {
+                    if (this.accessMode === 'full') return ['*'];
+                    return this.selectedAbilities.length ? [...this.selectedAbilities] : ['*'];
+                },
+
+                async createToken() {
+                    if (!this.newTokenName.trim()) {
+                        showToast('Informe um nome para o token.', TOAST_TYPES.WARNING);
+                        return;
+                    }
+                    if (this.accessMode === 'specific' && this.selectedAbilities.length === 0) {
+                        showToast('Selecione ao menos uma permissão.', TOAST_TYPES.WARNING);
+                        return;
+                    }
+                    this.loading = true;
+                    this.newToken = null;
+                    try {
+                        const abilities = this.getAbilities();
+                        const res = await fetch('/settings/tokens', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                            body: JSON.stringify({ name: this.newTokenName, abilities }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Erro ao criar token.');
+                        this.newToken = data.token;
+                        this.newTokenName = '';
+                        this.accessMode = 'full';
+                        this.selectedAbilities = [];
+                        const list = document.getElementById('tokens-list');
+                        const noTokens = document.getElementById('no-tokens');
+                        if (noTokens) noTokens.remove();
+                        const div = document.createElement('div');
+                        div.setAttribute('data-token-id', data.id || '');
+                        div.className = 'flex items-start justify-between bg-gray-800/40 border border-gray-700/50 rounded-lg px-4 py-3 gap-4';
+                        const badges = abilities.includes('*')
+                            ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-900/40 text-cyan-300 border border-cyan-700/50">Acesso total</span>'
+                            : abilities.map(a => `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-gray-700/60 text-gray-300 border border-gray-600/50">${a}</span>`).join('');
+                        div.innerHTML = `
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-white">${data.name}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Criado agora &middot; Nunca usado</p>
+                                <div class="flex flex-wrap gap-1 mt-2">${badges}</div>
+                            </div>
+                            <button onclick="revokeToken(${data.id})" class="shrink-0 text-xs text-red-400 hover:text-red-300 transition-colors mt-0.5">Revogar</button>
+                        `;
+                        list.prepend(div);
+                        showToast('Token criado com sucesso!', TOAST_TYPES.SUCCESS);
+                    } catch (e) {
+                        showToast(e.message, TOAST_TYPES.ERROR);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                copyToken() {
+                    if (!this.newToken) return;
+                    navigator.clipboard.writeText(this.newToken).then(() => {
+                        showToast('Token copiado!', TOAST_TYPES.SUCCESS);
+                    });
+                },
+            };
+        }
+
+        async function revokeToken(id) {
+            showConfirm('Deseja revogar este token? Esta ação não pode ser desfeita.', async () => {
+                const res  = await fetch(`/settings/tokens/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message, TOAST_TYPES.SUCCESS);
+                    const el = document.querySelector(`[data-token-id="${id}"]`);
+                    if (el) el.remove();
+                    if (!document.querySelector('[data-token-id]')) {
+                        document.getElementById('tokens-list').innerHTML =
+                            '<div id="no-tokens" class="text-center py-6 text-gray-500 text-sm">Nenhum token criado. Gere um token para integrar via API.</div>';
+                    }
+                } else {
+                    showToast(data.message || 'Erro ao revogar.', TOAST_TYPES.ERROR);
+                }
+            }, 'Revogar Token');
+        }
+
         // Rotacionar chevron do historico de alteracoes
         document.getElementById('audit-details').addEventListener('toggle', function () {
             const chevron = document.getElementById('audit-chevron');
