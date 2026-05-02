@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <!-- Modal de Empresa -->
+    <!-- Modal de Empresa (removido — gerenciado em /companies) -->
     <div id="company-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeCompanyModal()"></div>
         <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -471,110 +471,32 @@
             </div>
         </div>
 
-        <!-- Empresas (CNPJs) -->
+        <!-- Empresas → link para o CRM -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                    Empresas (CNPJs)
-                </h2>
-                @if($canAddCompany)
-                    <button onclick="openCompanyModal()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-blue-500/30">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-500/20 p-2 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        Nova Empresa
-                    </button>
-                @else
-                    <button onclick="window.dispatchEvent(new CustomEvent('open-premium-modal'))"
-                        class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm"
-                        title="Limite de {{ $companyLimit }} empresa(s) atingido">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Nova Empresa
-                        <svg class="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </button>
-                @endif
-            </div>
-
-            <div id="companies-list" class="space-y-3">
-                @forelse($companies as $company)
-                    @php
-                        $companyJson = json_encode([
-                            'id'                   => $company->id,
-                            'name'                 => $company->name,
-                            'cnpj'                 => $company->cnpj,
-                            'active'               => (bool) $company->active,
-                            'razao_social'         => $company->razao_social,
-                            'email'                => $company->email,
-                            'telefone'             => $company->telefone,
-                            'cep'                  => $company->cep,
-                            'logradouro'           => $company->logradouro,
-                            'numero'               => $company->numero,
-                            'complemento'          => $company->complemento,
-                            'bairro'               => $company->bairro,
-                            'cidade'               => $company->cidade,
-                            'uf'                   => $company->uf,
-                            'inscricao_municipal'  => $company->inscricao_municipal,
-                            'inscricao_estadual'   => $company->inscricao_estadual,
-                            'responsavel_nome'     => $company->responsavel_nome,
-                            'responsavel_email'    => $company->responsavel_email,
-                            'responsavel_telefone' => $company->responsavel_telefone,
-                        ]);
-                    @endphp
-                    <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors" data-company-id="{{ $company->id }}">
-                        <div class="flex flex-col gap-1 min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                @if($company->active)
-                                    <span class="w-2 h-2 bg-emerald-400 rounded-full flex-shrink-0"></span>
-                                @else
-                                    <span class="w-2 h-2 bg-gray-500 rounded-full flex-shrink-0"></span>
-                                @endif
-                                <span class="text-white font-medium">{{ $company->name }}</span>
-                                <span class="text-gray-400 text-sm font-mono">{{ $company->cnpj }}</span>
-                                @if(!$company->active)
-                                    <span class="text-xs bg-gray-500/20 text-gray-400 px-2 py-1 rounded-full">Inativa</span>
-                                @endif
-                            </div>
-                            @if($company->cidade || $company->email || $company->telefone)
-                                <div class="flex items-center gap-3 flex-wrap pl-4">
-                                    @if($company->cidade)
-                                        <span class="text-gray-500 text-xs">{{ $company->cidade }}{{ $company->uf ? ', ' . $company->uf : '' }}</span>
-                                    @endif
-                                    @if($company->email)
-                                        <span class="text-gray-500 text-xs">{{ $company->email }}</span>
-                                    @elseif($company->telefone)
-                                        <span class="text-gray-500 text-xs">{{ $company->telefone }}</span>
-                                    @endif
-                                </div>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-white">Empresas</h2>
+                        <p class="text-gray-400 text-sm">
+                            {{ $companies->count() }} empresa(s) cadastrada(s)
+                            @if($companyLimit !== null)
+                                · limite: {{ $companyLimit }}
                             @endif
-                        </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            <button onclick='editCompany({{ $companyJson }})'
-                                class="p-2 text-gray-400 hover:text-white transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                            </button>
-                            <button onclick="deleteCompany({{ $company->id }})"
-                                class="p-2 text-gray-400 hover:text-red-400 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
-                        </div>
+                        </p>
                     </div>
-                @empty
-                    <div id="no-companies" class="text-center py-8 text-gray-500">
-                        Nenhuma empresa cadastrada. Cadastre empresas para distribuir o faturamento no dashboard.
-                    </div>
-                @endforelse
+                </div>
+                <a href="{{ route('companies.index') }}"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm hover:shadow-lg hover:shadow-blue-500/30">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                    Gerenciar Empresas
+                </a>
             </div>
         </div>
 

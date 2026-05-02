@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BankAccountController;
@@ -60,14 +61,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projects/{project}', [SettingsController::class, 'updateProject'])->name('projects.update');
     Route::delete('/projects/{project}', [SettingsController::class, 'destroyProject'])->name('projects.destroy');
 
-    // Companies
-    Route::get('/cnpj/{cnpj}', [SettingsController::class, 'lookupCnpj'])->name('cnpj.lookup');
-    Route::get('/cep/{cep}', [SettingsController::class, 'lookupCep'])->name('cep.lookup');
-    Route::post('/companies', [SettingsController::class, 'storeCompany'])->name('companies.store');
-    Route::put('/companies/{company}', [SettingsController::class, 'updateCompany'])->name('companies.update');
-    Route::delete('/companies/{company}', [SettingsController::class, 'destroyCompany'])->name('companies.destroy');
+    // Companies (CRM)
+    Route::get('/cnpj/{cnpj}', [CompanyController::class, 'lookupCnpj'])->name('cnpj.lookup');
+    Route::get('/cep/{cep}', [CompanyController::class, 'lookupCep'])->name('cep.lookup');
+    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+    Route::post('/companies/{company}/projects', [CompanyController::class, 'attachProject'])->name('companies.projects.attach');
+    Route::put('/companies/{company}/projects/{project}', [CompanyController::class, 'updateProjectPercentage'])->name('companies.projects.update');
+    Route::delete('/companies/{company}/projects/{project}', [CompanyController::class, 'detachProject'])->name('companies.projects.detach');
+    Route::post('/companies/{company}/documents', [CompanyController::class, 'storeDocument'])->name('companies.documents.store');
+    Route::get('/companies/{company}/documents/{document}/view', [CompanyController::class, 'viewDocument'])->name('companies.documents.view');
+    Route::get('/companies/{company}/documents/{document}/download', [CompanyController::class, 'downloadDocument'])->name('companies.documents.download');
+    Route::delete('/companies/{company}/documents/{document}', [CompanyController::class, 'destroyDocument'])->name('companies.documents.destroy');
+    Route::post('/companies/{company}/notes', [CompanyController::class, 'storeNote'])->name('companies.notes.store');
+    Route::put('/companies/{company}/notes/{note}', [CompanyController::class, 'updateNote'])->name('companies.notes.update');
+    Route::delete('/companies/{company}/notes/{note}', [CompanyController::class, 'destroyNote'])->name('companies.notes.destroy');
 
-    // Company-Project relationship
+    // Company-Project relationship (settings page — project-centric)
     Route::post('/projects/{project}/companies', [SettingsController::class, 'attachCompany'])->name('projects.companies.attach');
     Route::put('/projects/{project}/companies/{company}', [SettingsController::class, 'updateCompanyPercentage'])->name('projects.companies.update');
     Route::delete('/projects/{project}/companies/{company}', [SettingsController::class, 'detachCompany'])->name('projects.companies.detach');
