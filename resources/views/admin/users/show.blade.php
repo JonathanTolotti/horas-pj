@@ -138,6 +138,60 @@
                         {{ $user->is_admin ? 'Remover Admin' : 'Tornar Admin' }}
                     </button>
                 </div>
+
+                <div class="border-t border-gray-700 pt-4"></div>
+
+                <!-- Cota de Armazenamento -->
+                <div x-data="{ quotaMb: {{ round($storageData['quota_bytes'] / 1048576) }}, loading: false }">
+                    <p class="text-xs text-gray-400 mb-1">Cota de Armazenamento</p>
+                    <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                        <span class="{{ $storageData['text_color'] }} font-medium">{{ $storageData['used_mb'] }} MB</span>
+                        <span>/ {{ $storageData['quota_mb'] }} MB usados</span>
+                        <span class="ml-auto {{ $storageData['text_color'] }}">{{ $storageData['percentage'] }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-800 rounded-full h-1.5 mb-3">
+                        <div class="h-1.5 rounded-full {{ $storageData['color_class'] }} transition-all"
+                             style="width: {{ $storageData['percentage'] }}%"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="flex-1 relative">
+                            <input
+                                type="number"
+                                x-model="quotaMb"
+                                min="1"
+                                max="102400"
+                                class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 pr-10"
+                            >
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">MB</span>
+                        </div>
+                        <button
+                            @click="updateStorageQuota({{ $user->id }}, quotaMb)"
+                            :disabled="loading"
+                            class="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+                        >
+                            <span x-show="!loading">Salvar</span>
+                            <span x-show="loading" x-cloak>...</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2FA -->
+                <div>
+                    <p class="text-xs text-gray-400 mb-2">Autenticação de Dois Fatores</p>
+                    @if($user->two_factor_enabled)
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Ativo</span>
+                        </div>
+                        <button
+                            onclick="disable2fa({{ $user->id }}, this)"
+                            class="w-full px-3 py-2 bg-orange-700 hover:bg-orange-800 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            Desativar 2FA
+                        </button>
+                    @else
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-400">Inativo</span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -269,6 +323,74 @@
                                         </tr>
                                     </tbody>
                                 @endforeach
+                        </table>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tokens de API -->
+            <div class="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-700 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-gray-300">Tokens de API</h2>
+                    @if($tokens->isNotEmpty())
+                        <button
+                            onclick="revokeAllTokens({{ $user->id }})"
+                            class="text-xs text-red-400 hover:text-red-300 transition-colors"
+                        >
+                            Revogar todos
+                        </button>
+                    @endif
+                </div>
+                @if($tokens->isEmpty())
+                    <div class="py-6 text-center text-gray-600 text-sm">Nenhum token cadastrado.</div>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Nome</th>
+                                    <th class="px-4 py-3 text-left hidden md:table-cell">Criado</th>
+                                    <th class="px-4 py-3 text-left hidden md:table-cell">Último uso</th>
+                                    <th class="px-4 py-3 text-left">Escopos</th>
+                                    <th class="px-4 py-3 w-16"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700/50">
+                                @foreach($tokens as $token)
+                                    <tr class="text-gray-300" id="token-row-{{ $token->id }}">
+                                        <td class="px-4 py-3 font-medium text-sm">{{ $token->name }}</td>
+                                        <td class="px-4 py-3 text-xs text-gray-400 hidden md:table-cell">
+                                            {{ $token->created_at->format('d/m/Y H:i') }}
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-gray-400 hidden md:table-cell">
+                                            {{ $token->last_used_at ? $token->last_used_at->diffForHumans() : 'Nunca' }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @php
+                                                $abilities = $token->abilities ?? ['*'];
+                                            @endphp
+                                            @if(in_array('*', $abilities))
+                                                <span class="text-xs px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300">Acesso total</span>
+                                            @else
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($abilities as $ability)
+                                                        <span class="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">{{ $ability }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button
+                                                onclick="revokeToken({{ $user->id }}, {{ $token->id }})"
+                                                class="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-900/20"
+                                                title="Revogar token"
+                                            >
+                                                Revogar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
                 @endif
@@ -502,49 +624,154 @@ function copyToClipboard(text, btn) {
     });
 }
 
-async function toggleAdmin(userId, btn) {
+function toggleAdmin(userId, btn) {
     const isAdmin = btn.dataset.isAdmin === 'true';
-    if (!confirm(isAdmin ? 'Remover permissão de admin deste usuário?' : 'Tornar este usuário admin?')) return;
-
-    try {
-        const res = await fetch(`/admin/users/${userId}/toggle-admin`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast(data.is_admin ? 'Usuário agora é admin.' : 'Admin removido.', TOAST_TYPES.SUCCESS);
-            setTimeout(() => window.location.reload(), 800);
-        } else {
-            showToast('Erro ao alterar permissão.', TOAST_TYPES.ERROR);
-        }
-    } catch (e) {
-        showToast('Erro ao alterar permissão.', TOAST_TYPES.ERROR);
-    }
+    showAdminConfirm(
+        isAdmin ? 'Remover permissão de admin deste usuário?' : 'Tornar este usuário administrador?',
+        async () => {
+            try {
+                const res = await fetch(`/admin/users/${userId}/toggle-admin`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.is_admin ? 'Usuário agora é admin.' : 'Admin removido.', TOAST_TYPES.SUCCESS);
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Erro ao alterar permissão.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao alterar permissão.', TOAST_TYPES.ERROR);
+            }
+        },
+        { title: isAdmin ? 'Remover Admin' : 'Tornar Admin', danger: isAdmin }
+    );
 }
 
-async function activatePremium(userId, months) {
-    if (!confirm(`Ativar/estender ${months} mês(es) de Premium para este usuário?`)) return;
+function activatePremium(userId, months) {
+    showAdminConfirm(
+        `Ativar/estender ${months} mês(es) de Premium para este usuário?`,
+        async () => {
+            try {
+                const res = await fetch(`/admin/users/${userId}/activate-premium`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                    body: JSON.stringify({ months: parseInt(months) }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Premium ativado com sucesso!', TOAST_TYPES.SUCCESS);
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Erro ao ativar premium.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao ativar premium.', TOAST_TYPES.ERROR);
+            }
+        },
+        { title: 'Ativar Premium', danger: false }
+    );
+}
 
-    try {
-        const res = await fetch(`/admin/users/${userId}/activate-premium`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF_TOKEN,
-            },
-            body: JSON.stringify({ months: parseInt(months) }),
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast('Premium ativado com sucesso!', TOAST_TYPES.SUCCESS);
-            setTimeout(() => window.location.reload(), 800);
-        } else {
-            showToast('Erro ao ativar premium.', TOAST_TYPES.ERROR);
-        }
-    } catch (e) {
-        showToast('Erro ao ativar premium.', TOAST_TYPES.ERROR);
-    }
+function updateStorageQuota(userId, quotaMb) {
+    const mb = parseInt(quotaMb);
+    if (!mb || mb < 1) { showToast('Informe um valor válido em MB.', TOAST_TYPES.ERROR); return; }
+    showAdminConfirm(
+        `Definir cota de armazenamento para ${mb} MB?`,
+        async () => {
+            try {
+                const res = await fetch(`/admin/users/${userId}/storage-quota`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                    body: JSON.stringify({ quota_mb: mb }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Cota atualizada para ${mb} MB.`, TOAST_TYPES.SUCCESS);
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Erro ao atualizar cota.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao atualizar cota.', TOAST_TYPES.ERROR);
+            }
+        },
+        { title: 'Atualizar Cota', danger: false }
+    );
+}
+
+function revokeToken(userId, tokenId) {
+    showAdminConfirm(
+        'Revogar este token de API? O usuário perderá acesso imediatamente.',
+        async () => {
+            try {
+                const res = await fetch(`/admin/users/${userId}/tokens/${tokenId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Token revogado.', TOAST_TYPES.SUCCESS);
+                    const row = document.getElementById(`token-row-${tokenId}`);
+                    if (row) row.remove();
+                } else {
+                    showToast('Erro ao revogar token.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao revogar token.', TOAST_TYPES.ERROR);
+            }
+        },
+        { title: 'Revogar Token' }
+    );
+}
+
+function revokeAllTokens(userId) {
+    showAdminConfirm(
+        'Revogar TODOS os tokens deste usuário? Isso encerrará todas as integrações ativas.',
+        async () => {
+            try {
+                const res = await fetch(`/admin/users/${userId}/tokens`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Todos os tokens revogados.', TOAST_TYPES.SUCCESS);
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Erro ao revogar tokens.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao revogar tokens.', TOAST_TYPES.ERROR);
+            }
+        },
+        { title: 'Revogar Todos os Tokens' }
+    );
+}
+
+function disable2fa(userId) {
+    showAdminConfirm(
+        'Desativar o 2FA deste usuário? Ele poderá fazer login sem o código de verificação.',
+        async () => {
+            try {
+                const res = await fetch(`/admin/users/${userId}/disable-2fa`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('2FA desativado com sucesso.', TOAST_TYPES.SUCCESS);
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Erro ao desativar 2FA.', TOAST_TYPES.ERROR);
+                }
+            } catch (e) {
+                showToast('Erro ao desativar 2FA.', TOAST_TYPES.ERROR);
+            }
+        },
+        { title: 'Desativar 2FA' }
+    );
 }
 </script>
 @endpush

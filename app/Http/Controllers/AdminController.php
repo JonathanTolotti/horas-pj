@@ -7,6 +7,7 @@ use App\Models\PaymentLog;
 use App\Models\Subscription;
 use App\Models\TimeEntry;
 use App\Models\User;
+use App\Services\StorageService;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -59,7 +60,7 @@ class AdminController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
-    public function showUser(User $user)
+    public function showUser(User $user, StorageService $storage)
     {
         $user->load('subscription');
         $payments = $user->payments()->latest()->get();
@@ -70,8 +71,43 @@ class AdminController extends Controller
             ->latest()
             ->get()
             ->groupBy('payment_id');
+        $tokens = $user->tokens()->latest()->get();
+        $storageData = $storage->getQuotaData($user);
 
-        return view('admin.users.show', compact('user', 'payments', 'recentEntries', 'totalHours', 'totalEntries', 'paymentLogs'));
+        return view('admin.users.show', compact('user', 'payments', 'recentEntries', 'totalHours', 'totalEntries', 'paymentLogs', 'tokens', 'storageData'));
+    }
+
+    public function updateStorageQuota(Request $request, User $user)
+    {
+        $request->validate([
+            'quota_mb' => 'required|integer|min:1|max:102400',
+        ]);
+
+        $user->update(['storage_quota' => $request->input('quota_mb') * 1048576]);
+
+        return response()->json(['success' => true, 'quota_mb' => $request->input('quota_mb')]);
+    }
+
+    public function revokeToken(User $user, int $tokenId)
+    {
+        $deleted = $user->tokens()->where('id', $tokenId)->delete();
+
+        return response()->json(['success' => $deleted > 0]);
+    }
+
+    public function revokeAllTokens(User $user)
+    {
+        $user->tokens()->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function disable2fa(User $user)
+    {
+        $user->update(['two_factor_enabled' => false]);
+        \DB::table('two_factor_codes')->where('user_id', $user->id)->delete();
+
+        return response()->json(['success' => true]);
     }
 
     public function toggleAdmin(User $user)

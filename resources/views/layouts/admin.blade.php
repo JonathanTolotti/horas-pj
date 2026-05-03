@@ -130,7 +130,26 @@
         </div>
 
         <!-- Toast Container -->
-        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+        <div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none"></div>
+
+        <!-- Confirm Modal -->
+        <div id="admin-confirm-modal" class="fixed inset-0 z-[200] flex items-center justify-center hidden">
+            <div class="absolute inset-0 bg-black/60" onclick="closeAdminConfirm()"></div>
+            <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+                <h3 id="admin-confirm-title" class="text-base font-semibold text-white mb-2"></h3>
+                <p id="admin-confirm-message" class="text-gray-400 text-sm mb-6"></p>
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeAdminConfirm()"
+                        class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="admin-confirm-btn"
+                        class="px-4 py-2 text-white rounded-lg text-sm transition-colors">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Global JS -->
         <script>
@@ -162,6 +181,19 @@
                 container.appendChild(toast);
                 requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });
                 setTimeout(() => { toast.style.transform = 'translateX(100%)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, duration);
+            }
+
+            function showAdminConfirm(message, callback, { title = 'Confirmar', danger = true } = {}) {
+                document.getElementById('admin-confirm-title').textContent = title;
+                document.getElementById('admin-confirm-message').textContent = message;
+                const btn = document.getElementById('admin-confirm-btn');
+                btn.className = `px-4 py-2 text-white rounded-lg text-sm transition-colors ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-cyan-600 hover:bg-cyan-700'}`;
+                btn.onclick = () => { closeAdminConfirm(); callback(); };
+                document.getElementById('admin-confirm-modal').classList.remove('hidden');
+            }
+
+            function closeAdminConfirm() {
+                document.getElementById('admin-confirm-modal').classList.add('hidden');
             }
         </script>
 

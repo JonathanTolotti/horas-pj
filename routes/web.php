@@ -271,6 +271,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
     Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('admin.users.toggle-admin');
     Route::post('/users/{user}/activate-premium', [AdminController::class, 'activatePremium'])->name('admin.users.activate-premium');
+    Route::post('/users/{user}/storage-quota', [AdminController::class, 'updateStorageQuota'])->name('admin.users.storage-quota');
+    Route::delete('/users/{user}/tokens/{tokenId}', [AdminController::class, 'revokeToken'])->name('admin.users.revoke-token');
+    Route::delete('/users/{user}/tokens', [AdminController::class, 'revokeAllTokens'])->name('admin.users.revoke-all-tokens');
+    Route::post('/users/{user}/disable-2fa', [AdminController::class, 'disable2fa'])->name('admin.users.disable-2fa');
 
     // Chamados de suporte (admin)
     Route::get('/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');
