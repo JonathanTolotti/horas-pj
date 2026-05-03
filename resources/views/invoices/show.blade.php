@@ -1,5 +1,4 @@
 <x-app-layout>
-<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 @php
     $statusColors = [
         'rascunho'   => 'bg-gray-700 text-gray-300',
@@ -216,6 +215,9 @@
                         <input type="file" accept=".xml" multiple class="hidden" @change="uploadXml($event)">
                     </label>
                 @endif
+            </div>
+            <div class="px-5 pt-3 pb-1">
+                @include('partials.storage-quota')
             </div>
 
             <div class="divide-y divide-gray-800" id="xmls-list">

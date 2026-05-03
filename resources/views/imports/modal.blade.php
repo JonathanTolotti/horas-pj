@@ -10,6 +10,10 @@
             </div>
             <h3 class="text-lg font-semibold text-white">Importar CSV</h3>
         </div>
+        <div class="mb-4 bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3">
+            @include('partials.storage-quota')
+            <p class="text-xs text-gray-500 mt-1.5">Arquivos CSV são processados e não consomem cota.</p>
+        </div>
 
         <!-- Upload Area -->
         <div id="import-upload-area" class="mb-6">

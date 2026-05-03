@@ -1,5 +1,4 @@
 <x-app-layout>
-<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 

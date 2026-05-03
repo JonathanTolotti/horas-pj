@@ -114,18 +114,21 @@
 
 {{-- NAVBAR --}}
 <nav class="nav-blur fixed top-0 left-0 right-0 z-50">
-    <div class="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 py-2 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <img src="{{ asset('images/logo.png?v=' . filemtime(public_path('images/logo.png'))) }}" alt="Horas PJ" class="h-12 w-auto">
+            <img src="{{ asset('images/logo.png?v=' . filemtime(public_path('images/logo.png'))) }}" alt="Horas PJ" class="h-8 md:h-12 w-auto">
         </div>
         <div class="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" class="text-sm text-slate-400 hover:text-white transition-colors">Funcionalidades</a>
             <a href="#api" class="text-sm text-slate-400 hover:text-white transition-colors">API</a>
             <a href="#planos" class="text-sm text-slate-400 hover:text-white transition-colors">Planos</a>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('login') }}" class="btn-outline text-sm py-2 px-5">Entrar</a>
-            <a href="{{ route('register') }}" class="btn-primary gradient-bg text-white text-sm py-2 px-5">Começar grátis</a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('login') }}" class="btn-outline text-sm py-2 px-3 md:px-5">Entrar</a>
+            <a href="{{ route('register') }}" class="btn-primary gradient-bg text-white text-sm py-2 px-3 md:px-5">
+                <span class="hidden sm:inline">Começar grátis</span>
+                <span class="sm:hidden">Cadastrar</span>
+            </a>
         </div>
     </div>
 </nav>

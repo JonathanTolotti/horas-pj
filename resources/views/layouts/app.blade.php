@@ -168,6 +168,7 @@
         </style>
     </head>
     <body class="font-sans antialiased bg-gray-950 text-gray-100">
+        <div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none"></div>
         <div class="min-h-screen">
             @include('layouts.navigation')
 

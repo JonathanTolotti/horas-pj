@@ -550,7 +550,7 @@
 
             <!-- Aba: Documentos -->
             <div x-show="tab === 'documents'" x-cloak class="mt-5">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-between mb-3">
                     <h2 class="text-lg font-semibold text-white">Documentos</h2>
                     <button onclick="openDocumentModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -558,6 +558,9 @@
                         </svg>
                         Enviar Documento
                     </button>
+                </div>
+                <div class="mb-4 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
+                    @include('partials.storage-quota')
                 </div>
 
                 <div id="documents-list" class="space-y-2">

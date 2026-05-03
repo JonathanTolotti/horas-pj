@@ -6,6 +6,7 @@ use App\Http\Requests\StoreInvoiceXmlRequest;
 use App\Models\Invoice;
 use App\Models\InvoiceAuditLog;
 use App\Models\InvoiceXml;
+use App\Services\StorageService;
 use App\Services\XmlParserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceXmlController extends Controller
 {
-    public function __construct(private XmlParserService $parser) {}
+    public function __construct(
+        private XmlParserService $parser,
+        private StorageService $storage,
+    ) {}
 
     public function store(StoreInvoiceXmlRequest $request, string $invoiceUuid): JsonResponse
     {
@@ -25,11 +29,21 @@ class InvoiceXmlController extends Controller
             return response()->json(['success' => false, 'message' => 'Fatura encerrada não pode ser alterada.'], 403);
         }
 
+        $user = Auth::user();
         $results = [];
         $allParsed = true;
 
         foreach ($request->file('xmls') as $file) {
+            if (!$this->storage->canUpload($user, $file->getSize())) {
+                $quota = $this->storage->getQuotaData($user);
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cota de armazenamento atingida ({$quota['used_mb']} MB / {$quota['quota_mb']} MB). Exclua arquivos para liberar espaço.",
+                ], 422);
+            }
+
             $storagePath = 'invoices/' . Auth::id() . '/' . $invoice->id . '/' . $file->getClientOriginalName();
+            $fileSize    = $file->getSize();
 
             Storage::put($storagePath, file_get_contents($file->getRealPath()));
 
@@ -38,6 +52,7 @@ class InvoiceXmlController extends Controller
             $invoiceXml = $invoice->xmls()->create([
                 'filename'       => $file->getClientOriginalName(),
                 'path'           => $storagePath,
+                'xml_file_size'  => $fileSize,
                 'invoice_number' => $parsed['invoice_number'],
                 'amount'         => $parsed['amount'],
                 'issued_at'      => $parsed['issued_at'],
@@ -48,6 +63,8 @@ class InvoiceXmlController extends Controller
                 'xml_parsed'     => $parsed['xml_parsed'],
                 'parse_error'    => $parsed['parse_error'],
             ]);
+
+            $this->storage->add($user, $fileSize);
 
             if (!$parsed['xml_parsed']) {
                 $allParsed = false;
@@ -89,6 +106,8 @@ class InvoiceXmlController extends Controller
 
         $xml = InvoiceXml::where('invoice_id', $invoice->id)->where('uuid', $xmlUuid)->firstOrFail();
 
+        $freedBytes = (int) $xml->xml_file_size + (int) $xml->danfse_file_size;
+
         Storage::delete($xml->path);
         if ($xml->danfse_path) {
             Storage::delete($xml->danfse_path);
@@ -97,6 +116,8 @@ class InvoiceXmlController extends Controller
         InvoiceAuditLog::record($invoice, 'xml_removido', 'XML removido: ' . $xml->filename);
 
         $xml->delete();
+
+        $this->storage->remove(Auth::user(), $freedBytes);
 
         return response()->json([
             'success'        => true,
@@ -133,20 +154,42 @@ class InvoiceXmlController extends Controller
             'danfse.max'      => 'O arquivo não pode ultrapassar 5 MB.',
         ]);
 
+        $user = Auth::user();
+        $file = $request->file('danfse');
+
+        // Calcula bytes que serão liberados (DANFSe anterior) e adicionados (novo)
+        $removedBytes = (int) $xml->danfse_file_size;
+        $addedBytes   = $file->getSize();
+        $netBytes     = $addedBytes - $removedBytes;
+
+        if ($netBytes > 0 && !$this->storage->canUpload($user, $netBytes)) {
+            $quota = $this->storage->getQuotaData($user);
+            return response()->json([
+                'success' => false,
+                'message' => "Cota de armazenamento atingida ({$quota['used_mb']} MB / {$quota['quota_mb']} MB). Exclua arquivos para liberar espaço.",
+            ], 422);
+        }
+
         // Remove o anterior se existir
         if ($xml->danfse_path) {
             Storage::delete($xml->danfse_path);
         }
 
-        $file = $request->file('danfse');
         $storagePath = 'invoices/' . Auth::id() . '/' . $invoice->id . '/danfse/' . $file->getClientOriginalName();
 
         Storage::put($storagePath, file_get_contents($file->getRealPath()));
 
         $xml->update([
-            'danfse_filename' => $file->getClientOriginalName(),
-            'danfse_path'     => $storagePath,
+            'danfse_filename'  => $file->getClientOriginalName(),
+            'danfse_path'      => $storagePath,
+            'danfse_file_size' => $addedBytes,
         ]);
+
+        if ($netBytes > 0) {
+            $this->storage->add($user, $netBytes);
+        } elseif ($netBytes < 0) {
+            $this->storage->remove($user, abs($netBytes));
+        }
 
         InvoiceAuditLog::record(
             $invoice,
@@ -171,13 +214,17 @@ class InvoiceXmlController extends Controller
 
         $xml = InvoiceXml::where('invoice_id', $invoice->id)->where('uuid', $xmlUuid)->firstOrFail();
 
+        $freedBytes = (int) $xml->danfse_file_size;
+
         if ($xml->danfse_path) {
             Storage::delete($xml->danfse_path);
         }
 
         InvoiceAuditLog::record($invoice, 'danfse_removido', 'DANFSe removido da NF ' . ($xml->invoice_number ?? $xml->filename));
 
-        $xml->update(['danfse_filename' => null, 'danfse_path' => null]);
+        $xml->update(['danfse_filename' => null, 'danfse_path' => null, 'danfse_file_size' => null]);
+
+        $this->storage->remove(Auth::user(), $freedBytes);
 
         return response()->json(['success' => true, 'message' => 'DANFSe removido com sucesso.']);
     }

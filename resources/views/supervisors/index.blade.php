@@ -1,5 +1,4 @@
 <x-app-layout>
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <!-- Modal de Confirmação (padrão do sistema) -->
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">

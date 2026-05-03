@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\CompanyDocument;
 use App\Models\CompanyNote;
 use App\Models\Project;
+use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -304,7 +305,7 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function storeDocument(Request $request, Company $company): JsonResponse
+    public function storeDocument(Request $request, Company $company, StorageService $storage): JsonResponse
     {
         if ($company->user_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'Não autorizado.'], 403);
@@ -317,10 +318,20 @@ class CompanyController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store("company-docs/" . auth()->id(), 'local');
+        $user = auth()->user();
+
+        if (!$storage->canUpload($user, $file->getSize())) {
+            $quota = $storage->getQuotaData($user);
+            return response()->json([
+                'success' => false,
+                'message' => "Cota de armazenamento atingida ({$quota['used_mb']} MB / {$quota['quota_mb']} MB). Exclua arquivos para liberar espaço.",
+            ], 422);
+        }
+
+        $path = $file->store("company-docs/" . $user->id, 'local');
 
         $doc = CompanyDocument::create([
-            'user_id'     => auth()->id(),
+            'user_id'     => $user->id,
             'company_id'  => $company->id,
             'name'        => $request->input('name') ?: $file->getClientOriginalName(),
             'file_path'   => $path,
@@ -328,6 +339,8 @@ class CompanyController extends Controller
             'mime_type'   => $file->getMimeType(),
             'description' => $request->input('description'),
         ]);
+
+        $storage->add($user, $file->getSize());
 
         return response()->json([
             'success'  => true,
@@ -363,14 +376,17 @@ class CompanyController extends Controller
         return Storage::download($document->file_path, $document->name);
     }
 
-    public function destroyDocument(Company $company, CompanyDocument $document): JsonResponse
+    public function destroyDocument(Company $company, CompanyDocument $document, StorageService $storage): JsonResponse
     {
         if ($company->user_id !== auth()->id() || $document->company_id !== $company->id) {
             return response()->json(['success' => false, 'message' => 'Não autorizado.'], 403);
         }
 
+        $fileSize = (int) $document->file_size;
         Storage::delete($document->file_path);
         $document->delete();
+
+        $storage->remove(auth()->user(), $fileSize);
 
         return response()->json(['success' => true, 'message' => 'Documento excluído com sucesso!']);
     }

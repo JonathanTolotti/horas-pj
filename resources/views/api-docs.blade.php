@@ -75,7 +75,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: 1rem;">
             @auth
-                <a href="{{ route('dashboard') }}" style="font-size: 13px; color: #64748b; text-decoration: none; hover: color: #94a3b8;">Dashboard</a>
+                <a href="{{ route('dashboard') }}" style="font-size: 13px; color: #64748b; text-decoration: none;">Dashboard</a>
             @else
                 <a href="{{ route('login') }}" style="font-size: 13px; color: #64748b; text-decoration: none;">Entrar</a>
                 <a href="{{ route('register') }}" style="font-size: 13px; color: #22d3ee; text-decoration: none; background: rgba(34,211,238,0.1); padding: 6px 14px; border-radius: 6px;">Criar conta</a>
