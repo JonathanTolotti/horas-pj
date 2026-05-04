@@ -390,6 +390,74 @@ async function stopTracking() {
 
 // ==================== ENTRIES CRUD ====================
 
+async function launchStandardDay() {
+    const date = document.getElementById('entry-date').value;
+    if (!date) {
+        showToast('Selecione uma data antes de lançar o dia padrão!', TOAST_TYPES.WARNING);
+        return;
+    }
+
+    if (!STANDARD_DAY_PERIODS || STANDARD_DAY_PERIODS.length === 0) {
+        showToast('Nenhum horário padrão configurado. Configure em Ajustes.', TOAST_TYPES.WARNING);
+        return;
+    }
+
+    const btn = document.getElementById('standard-day-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+    }
+
+    let created = 0;
+    const errors = [];
+    let lastStats = null;
+
+    for (const period of STANDARD_DAY_PERIODS) {
+        try {
+            const response = await fetch('/time-entries', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    date: date,
+                    start_time: period.start,
+                    end_time: period.end,
+                    description: STANDARD_DAY_DESCRIPTION || 'Trabalho',
+                    project_id: STANDARD_DAY_PROJECT_ID || null
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                errors.push(data.message || `Erro no período ${period.start}–${period.end}`);
+            } else {
+                addEntryToTable(data.entry);
+                addEntryToCards(data.entry);
+                created++;
+                if (data.stats) lastStats = data.stats;
+            }
+        } catch (e) {
+            errors.push(`Erro no período ${period.start}–${period.end}`);
+        }
+    }
+
+    if (lastStats) updateStats(lastStats);
+
+    if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
+
+    if (created > 0) {
+        showToast(`${created} lançamento${created > 1 ? 's' : ''} criado${created > 1 ? 's' : ''} com sucesso!`, TOAST_TYPES.SUCCESS);
+    }
+    errors.forEach(msg => showToast(msg, TOAST_TYPES.ERROR));
+}
+
 async function addEntry() {
     const date = document.getElementById('entry-date').value;
     const startTime = document.getElementById('entry-start').value;

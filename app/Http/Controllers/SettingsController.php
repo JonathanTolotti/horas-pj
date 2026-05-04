@@ -82,6 +82,38 @@ class SettingsController extends Controller
         ]);
     }
 
+    public function updateStandardDay(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'standard_day_periods'         => 'nullable|array|max:10',
+            'standard_day_periods.*.start' => 'required_with:standard_day_periods|date_format:H:i',
+            'standard_day_periods.*.end'   => 'required_with:standard_day_periods|date_format:H:i',
+            'standard_day_project_id'      => 'nullable|integer',
+            'standard_day_description'     => 'nullable|string|max:500',
+        ]);
+
+        if (!empty($validated['standard_day_project_id'])) {
+            $exists = Project::forUser(auth()->id())
+                ->where('id', $validated['standard_day_project_id'])
+                ->exists();
+            if (!$exists) {
+                $validated['standard_day_project_id'] = null;
+            }
+        }
+
+        $settings = Setting::forUser(auth()->id());
+        $settings->update([
+            'standard_day_periods'     => $validated['standard_day_periods'] ?? null,
+            'standard_day_project_id'  => $validated['standard_day_project_id'] ?? null,
+            'standard_day_description' => $validated['standard_day_description'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Horário padrão salvo com sucesso!',
+        ]);
+    }
+
     public function storeProject(StoreProjectRequest $request): JsonResponse
     {
         $user = auth()->user();

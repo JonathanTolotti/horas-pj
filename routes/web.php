@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [SettingsController::class, 'updateSettings'])->name('settings.update');
+    Route::put('/settings/standard-day', [SettingsController::class, 'updateStandardDay'])->name('settings.standard-day');
     Route::get('/settings/audit-logs', [SettingsController::class, 'auditLogsPartial'])->name('settings.audit-logs');
 
     // API Tokens

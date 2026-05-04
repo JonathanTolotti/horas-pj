@@ -436,6 +436,86 @@
             </form>
         </div>
 
+        <!-- Horário Padrão -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6"
+             x-data="standardDayConfig()">
+            <h2 class="text-xl font-semibold text-white mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Horário Padrão
+            </h2>
+            <p class="text-sm text-gray-400 mb-5">Configure os períodos do seu dia típico para lançar rapidamente no dashboard com um clique.</p>
+
+            <div class="space-y-3 mb-4">
+                <template x-for="(period, index) in periods" :key="index">
+                    <div class="flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-400 mb-1">Início</label>
+                            <input type="text" x-model="period.start" placeholder="08:00" maxlength="5"
+                                @keyup="applyTimeMask($event)"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                                :class="period.start && !isValidTime(period.start) ? 'border-red-500' : 'border-gray-700'"/>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-400 mb-1">Fim</label>
+                            <input type="text" x-model="period.end" placeholder="12:00" maxlength="5"
+                                @keyup="applyTimeMask($event)"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                                :class="period.end && !isValidTime(period.end) ? 'border-red-500' : 'border-gray-700'"/>
+                        </div>
+                        <button type="button" @click="removePeriod(index)"
+                            class="mb-0.5 p-2 text-red-400 hover:text-red-300 transition-colors rounded-lg hover:bg-red-900/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+
+                <div x-show="periods.length === 0" class="text-center py-4 text-gray-500 text-sm">
+                    Nenhum período configurado. Adicione ao menos um período.
+                </div>
+            </div>
+
+            <button type="button" @click="addPeriod()"
+                class="mb-5 flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Adicionar período
+            </button>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Projeto Padrão</label>
+                    <select x-model="projectId"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                        <option value="">Sem projeto</option>
+                        @foreach($projects as $project)
+                            <option value="{{ $project->id }}">{{ $project->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Descrição Padrão</label>
+                    <input type="text" x-model="description" placeholder="Ex: Desenvolvimento"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
+                </div>
+            </div>
+
+            <button type="button" @click="save()" :disabled="saving"
+                class="bg-cyan-600 hover:bg-cyan-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/30">
+                <svg x-show="!saving" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span x-text="saving ? 'Salvando...' : 'Salvar Horário Padrão'"></span>
+            </button>
+        </div>
+
         <!-- Segurança -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6"
              x-data="{ twoFactorEnabled: {{ auth()->user()->two_factor_enabled ? 'true' : 'false' }}, loading: false }">
@@ -2096,6 +2176,87 @@
                     showToast(error.message, TOAST_TYPES.ERROR);
                 }
             }, 'Remover Vinculo');
+        }
+
+        function standardDayConfig() {
+            return {
+                periods: @json($settings->standard_day_periods ?? []),
+                projectId: '{{ $settings->standard_day_project_id ?? '' }}',
+                description: @json($settings->standard_day_description ?? ''),
+                saving: false,
+
+                addPeriod() {
+                    this.periods.push({ start: '', end: '' });
+                },
+
+                removePeriod(index) {
+                    this.periods.splice(index, 1);
+                },
+
+                isValidTime(t) {
+                    if (!/^\d{2}:\d{2}$/.test(t)) return false;
+                    const [h, m] = t.split(':').map(Number);
+                    return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+                },
+
+                applyTimeMask(event) {
+                    const input = event.target;
+                    const digits = input.value.replace(/\D/g, '').substring(0, 4);
+                    const formatted = digits.length > 2
+                        ? digits.substring(0, 2) + ':' + digits.substring(2)
+                        : digits;
+                    if (input.value !== formatted) {
+                        input.value = formatted;
+                        input.dispatchEvent(new Event('input'));
+                    }
+                },
+
+                async save() {
+                    for (let i = 0; i < this.periods.length; i++) {
+                        const p = this.periods[i];
+                        if (!this.isValidTime(p.start)) {
+                            showToast(`Período ${i + 1}: horário de início inválido. Use HH:MM (00:00–23:59).`, TOAST_TYPES.WARNING);
+                            return;
+                        }
+                        if (!this.isValidTime(p.end)) {
+                            showToast(`Período ${i + 1}: horário de fim inválido. Use HH:MM (00:00–23:59).`, TOAST_TYPES.WARNING);
+                            return;
+                        }
+                        if (p.end <= p.start) {
+                            showToast(`Período ${i + 1}: o horário de fim deve ser maior que o início.`, TOAST_TYPES.WARNING);
+                            return;
+                        }
+                    }
+
+                    this.saving = true;
+                    try {
+                        const response = await fetch('/settings/standard-day', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': CSRF_TOKEN,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                standard_day_periods: this.periods.length > 0 ? this.periods : null,
+                                standard_day_project_id: this.projectId || null,
+                                standard_day_description: this.description || null,
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Erro ao salvar horário padrão');
+                        }
+
+                        showToast(data.message, TOAST_TYPES.SUCCESS);
+                    } catch (error) {
+                        showToast(error.message, TOAST_TYPES.ERROR);
+                    }
+                    this.saving = false;
+                }
+            };
         }
     </script>
     @endpush

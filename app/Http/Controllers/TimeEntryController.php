@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Notice;
 use App\Models\OnCallPeriod;
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\SupervisorInvitation;
 use App\Models\TimeEntry;
 use App\Services\TimeCalculatorService;
@@ -77,6 +78,8 @@ class TimeEntryController extends Controller
                 ->count();
         }
 
+        $userSettings = Setting::forUser($user->id);
+
         return view('dashboard', [
             'entries' => $entries,
             'entriesByDay' => $entriesByDay,
@@ -93,6 +96,9 @@ class TimeEntryController extends Controller
             'onCallPeriods' => $onCallPeriods,
             'activeNotices' => $activeNotices,
             'pendingInvitationsCount' => $pendingInvitationsCount,
+            'standardDayPeriods' => $userSettings->standard_day_periods ?? [],
+            'standardDayProjectId' => $userSettings->standard_day_project_id,
+            'standardDayDescription' => $userSettings->standard_day_description ?? '',
         ]);
     }
 

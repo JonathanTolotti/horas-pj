@@ -18,6 +18,9 @@ class Setting extends Model
         'on_call_hourly_rate',
         'auto_save_tracking',
         'billing_cycle_day',
+        'standard_day_periods',
+        'standard_day_project_id',
+        'standard_day_description',
     ];
 
     protected $casts = [
@@ -27,6 +30,8 @@ class Setting extends Model
         'on_call_hourly_rate' => 'decimal:2',
         'auto_save_tracking' => 'boolean',
         'billing_cycle_day' => 'integer',
+        'standard_day_periods' => 'array',
+        'standard_day_project_id' => 'integer',
     ];
 
     public function user(): BelongsTo

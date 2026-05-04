@@ -381,6 +381,16 @@
                         Adicionar
                     </button>
 
+                    @if(!empty($standardDayPeriods))
+                    <button type="button" onclick="launchStandardDay()" id="standard-day-btn"
+                        class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Dia Padrão
+                    </button>
+                    @endif
+
                     <button type="button" onclick="toggleTracking()" id="track-btn"
                         class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/30">
                         <!-- Play Icon -->
@@ -890,6 +900,9 @@
         const CAN_VIEW_BY_DAY = {{ $canViewByDay ? 'true' : 'false' }};
         const CAN_USE_ON_CALL = {{ $canUseOnCall ? 'true' : 'false' }};
         const IS_PREMIUM = {{ $isPremium ? 'true' : 'false' }};
+        const STANDARD_DAY_PERIODS = @json($standardDayPeriods ?? []);
+        const STANDARD_DAY_PROJECT_ID = {!! json_encode($standardDayProjectId) !!};
+        const STANDARD_DAY_DESCRIPTION = @json($standardDayDescription ?? '');
     </script>
     <script src="{{ asset('js/tracking.js') }}?v={{ filemtime(public_path('js/tracking.js')) }}"></script>
     @endpush
