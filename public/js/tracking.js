@@ -296,7 +296,7 @@ function startTrackingUI(startTime) {
     const iconPlay = document.getElementById('track-icon-play');
     const iconPause = document.getElementById('track-icon-pause');
 
-    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
+    btn.classList.remove('bg-cyan-600', 'hover:bg-cyan-700', 'hover:shadow-cyan-500/30');
     btn.classList.add('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
 
     // Toggle icons: hide play, show pause
@@ -351,7 +351,7 @@ async function stopTracking() {
             const iconPause = document.getElementById('track-icon-pause');
 
             btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'hover:shadow-red-500/30');
-            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'hover:shadow-emerald-500/30');
+            btn.classList.add('bg-cyan-600', 'hover:bg-cyan-700', 'hover:shadow-cyan-500/30');
             btnText.textContent = 'Iniciar Tracking';
 
             // Toggle icons: show play, hide pause

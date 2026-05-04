@@ -64,7 +64,7 @@ class AdminController extends Controller
     {
         $user->load('subscription');
         $payments = $user->payments()->latest()->get();
-        $recentEntries = $user->timeEntries()->latest()->limit(10)->get();
+        $recentEntries = $user->timeEntries()->with('project')->latest()->limit(10)->get();
         $totalHours = $user->timeEntries()->sum('hours');
         $totalEntries = $user->timeEntries()->count();
         $paymentLogs = PaymentLog::where('user_id', $user->id)
