@@ -21,6 +21,9 @@ Schedule::call(function () {
         ->update(['status' => 'expired', 'plan' => 'free']);
 })->daily()->name('check-expired-subscriptions');
 
+// Backup diário do banco de dados para o Google Drive
+Schedule::command('db:backup')->dailyAt('02:00')->name('daily-db-backup')->withoutOverlapping();
+
 // Marcar pagamentos Pix expirados a cada minuto
 Schedule::call(function () {
     Payment::where('status', 'pending')

@@ -9,6 +9,7 @@ use App\Models\TimeEntry;
 use App\Models\User;
 use App\Services\StorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class AdminController extends Controller
 {
@@ -24,7 +25,39 @@ class AdminController extends Controller
         ];
         $stats['gratuitos'] = $stats['total_users'] - $stats['premium'] - $stats['trial'];
 
-        return view('admin.dashboard', compact('stats'));
+        $backupStatus = $this->readBackupStatus();
+
+        return view('admin.dashboard', compact('stats', 'backupStatus'));
+    }
+
+    public function runBackup(Request $request)
+    {
+        $exitCode = Artisan::call('db:backup');
+
+        if ($exitCode === 0) {
+            return back()->with('toast_success', 'Backup realizado com sucesso.');
+        }
+
+        return back()->with('toast_error', 'Falha ao executar o backup. Verifique os logs.');
+    }
+
+    private function readBackupStatus(): ?array
+    {
+        $path = storage_path('app/backup-status.json');
+
+        if (!file_exists($path)) {
+            return null;
+        }
+
+        $data = json_decode(file_get_contents($path), true);
+
+        if (isset($data['executed_at'])) {
+            $data['executed_at_formatted'] = \Carbon\Carbon::parse($data['executed_at'])
+                ->setTimezone(config('app.timezone'))
+                ->format('d/m/Y H:i');
+        }
+
+        return $data;
     }
 
     public function users(Request $request)

@@ -284,6 +284,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::post('/tickets/{ticket}/assign', [AdminTicketController::class, 'assign'])->name('admin.tickets.assign');
     Route::put('/tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('admin.tickets.status');
 
+    Route::post('/backup', [AdminController::class, 'runBackup'])->name('admin.backup.run');
+
     Route::get('/changelogs', [ChangelogController::class, 'adminIndex'])->name('admin.changelogs.index');
     Route::post('/changelogs', [ChangelogController::class, 'store'])->name('admin.changelogs.store');
     Route::put('/changelogs/{changelog}', [ChangelogController::class, 'update'])->name('admin.changelogs.update');

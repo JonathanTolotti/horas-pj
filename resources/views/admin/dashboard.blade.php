@@ -107,6 +107,59 @@
 
     </div>
 
+    <!-- Backup -->
+    <div class="bg-gray-900 border border-gray-700 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-white">Backup do Banco de Dados</p>
+                    <p class="text-xs text-gray-500">Automático diariamente às 02:00 — Google Drive</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('admin.backup.run') }}">
+                @csrf
+                <button type="submit"
+                        class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+                        onclick="return confirm('Executar backup agora?')">
+                    Executar agora
+                </button>
+            </form>
+        </div>
+
+        @if($backupStatus)
+            <div class="flex items-center gap-2 text-sm">
+                @if($backupStatus['status'] === 'success')
+                    <span class="inline-flex items-center gap-1.5 text-emerald-400">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Sucesso
+                    </span>
+                    <span class="text-gray-400">—</span>
+                    <span class="text-gray-300">{{ $backupStatus['file'] }}</span>
+                    <span class="text-gray-500">({{ $backupStatus['size_kb'] }} KB)</span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 text-red-400">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        Falhou
+                    </span>
+                    <span class="text-gray-400">—</span>
+                    <span class="text-red-300 text-xs truncate max-w-xs">{{ $backupStatus['error'] }}</span>
+                @endif
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Último backup: {{ $backupStatus['executed_at_formatted'] }}</p>
+        @else
+            <p class="text-sm text-gray-500">Nenhum backup registrado ainda.</p>
+        @endif
+    </div>
+
     <!-- Quick Links -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <a href="{{ route('admin.users') }}"

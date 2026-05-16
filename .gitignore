@@ -26,3 +26,5 @@ nul
 premium.md
 *.sh
 /postman
+/storage/app/backup-status.json
+/storage/app/backups/
