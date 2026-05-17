@@ -80,7 +80,7 @@
 
                 <!-- Export Dropdown -->
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" @click.outside="open = false"
+                    <button id="export-dropdown-btn" @click="open = !open" @click.outside="open = false"
                         class="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg px-3 py-2 text-white text-sm flex items-center gap-2 transition-colors">
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -205,7 +205,7 @@
         </div>
 
         <!-- Cards de Resumo -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Total de Horas -->
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 transition-all">
                 <div class="flex items-center justify-between mb-4">
@@ -294,7 +294,7 @@
 
         <!-- Card de Sobreaviso (se houver) -->
         @if($stats['on_call_hours'] > 0 || $onCallPeriods->count() > 0)
-        <div class="bg-gradient-to-r from-orange-900/30 to-amber-900/30 border border-orange-500/30 rounded-xl p-6">
+        <div id="on-call-card" class="bg-gradient-to-r from-orange-900/30 to-amber-900/30 border border-orange-500/30 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <div class="bg-orange-500/20 p-3 rounded-lg">
@@ -313,7 +313,7 @@
         @endif
 
         <!-- Total Geral -->
-        <div class="bg-gradient-to-r from-cyan-900/40 to-emerald-900/30 border border-cyan-500/30 rounded-xl p-6">
+        <div id="total-final-card" class="bg-gradient-to-r from-cyan-900/40 to-emerald-900/30 border border-cyan-500/30 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-white/70 text-sm font-bold">Total Final do Mês</p>
@@ -334,7 +334,7 @@
 
             <form id="entry-form" onsubmit="return false;">
                 <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                    <div>
+                    <div id="entry-date-wrapper">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Data</label>
                         <input type="date" id="entry-date" name="date"
                             class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"/>
@@ -409,7 +409,7 @@
         </div>
 
         <!-- Tabela de Lançamentos -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden" x-data="{ entriesOpen: true }">
+        <div id="entries-section" class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden" x-data="{ entriesOpen: true }">
             <div class="p-4 sm:p-6 border-b border-gray-800 cursor-pointer" @click="entriesOpen = !entriesOpen">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
@@ -689,7 +689,7 @@
         </div>
 
         <!-- Seção de Sobreaviso -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div id="on-call-section" class="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-semibold text-white flex items-center gap-2">
                     <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -826,7 +826,7 @@
         </div>
 
         <!-- Divisão por Empresa -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div id="company-revenue-section" class="bg-gray-900 border border-gray-800 rounded-xl p-6">
             <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                 <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>

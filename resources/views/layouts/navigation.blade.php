@@ -22,7 +22,7 @@
                 <div class="nav-desktop space-x-8 sm:-my-px sm:ms-10 sm:flex">
 
                     <!-- Dashboard -->
-                    <a href="{{ route('dashboard') }}"
+                    <a id="nav-dashboard-link" href="{{ route('dashboard') }}"
                        class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('dashboard') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
@@ -32,7 +32,7 @@
 
                     <!-- Dropdown Relatórios -->
                     <div x-data="{ openReports: false }" class="relative inline-flex items-center">
-                        <button @click="openReports = !openReports" @click.outside="openReports = false"
+                        <button id="nav-reports-btn" @click="openReports = !openReports" @click.outside="openReports = false"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('reports.*') || request()->routeIs('analytics.*') || request()->routeIs('consolidation.*') || request()->routeIs('invoices.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -75,7 +75,7 @@
                     </div>
 
                     <!-- Empresas -->
-                    <a href="{{ route('companies.index') }}"
+                    <a id="nav-companies-link" href="{{ route('companies.index') }}"
                        class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('companies.*') ? 'border-blue-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -85,7 +85,7 @@
 
                     <!-- Dropdown Configurações (inclui Importar e Supervisores) -->
                     <div x-data="{ openSettings: false }" class="relative inline-flex items-center">
-                        <button @click="openSettings = !openSettings" @click.outside="openSettings = false"
+                        <button id="nav-settings-btn" @click="openSettings = !openSettings" @click.outside="openSettings = false"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('settings') || request()->routeIs('supervisors.*') || request()->routeIs('supervisor.*') ? 'border-cyan-400 text-white' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600' }} text-sm font-medium leading-5 transition duration-150 ease-in-out h-16">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -127,6 +127,16 @@
 
             <!-- Right side: changelog + privacy + profile dropdown -->
             <div class="nav-right sm:flex sm:items-center sm:ms-6 gap-2">
+
+                <!-- Botão Tour -->
+                @auth
+                <button onclick="startTour()" title="Ver tutorial do sistema"
+                    class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </button>
+                @endauth
 
                 <!-- Changelog Bell -->
                 @auth
@@ -223,6 +233,16 @@
 
             <!-- Hamburger (mobile) -->
             <div class="-me-2 flex items-center sm:hidden gap-1">
+                <!-- Tour Button Mobile -->
+                @auth
+                <button onclick="startTour()" title="Ver tutorial do sistema"
+                    class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </button>
+                @endauth
+
                 <!-- Privacy Toggle Mobile -->
                 <button onclick="togglePrivacy()" id="privacy-toggle-mobile" title="Ocultar valores"
                     class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">

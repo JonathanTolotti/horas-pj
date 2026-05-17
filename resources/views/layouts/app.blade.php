@@ -21,6 +21,10 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 
+        <!-- Driver.js — tour interativo -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
+        <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+
         <script>
             // Apply theme immediately to prevent flash (dark is default)
             if (localStorage.getItem('theme') !== 'light') {
@@ -307,6 +311,9 @@
 
         <!-- Global Import Functions -->
         <script src="{{ asset('js/import.js') }}?v={{ @filemtime(public_path('js/import.js')) ?: time() }}"></script>
+
+        <!-- Tour interativo -->
+        <script src="{{ asset('js/tour.js') }}?v={{ @filemtime(public_path('js/tour.js')) ?: time() }}"></script>
 
         @stack('scripts')
     </body>
