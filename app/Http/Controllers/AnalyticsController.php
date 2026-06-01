@@ -234,8 +234,9 @@ class AnalyticsController extends Controller
 
         $totalWeekdays = count($allWeekdays);
 
-        // Média diária = receita real / dias úteis com lançamentos
-        $dailyAvg       = $weekdaysWorked > 0 ? $actualRevenue / $weekdaysWorked : 0;
+        // Média diária = receita de horas / dias úteis com lançamentos
+        // Usa total_revenue (horas × taxa) para não inflar a média com extras/descontos mensais fixos
+        $dailyAvg       = $weekdaysWorked > 0 ? $stats['total_revenue'] / $weekdaysWorked : 0;
         $projectedTotal = $actualRevenue + ($dailyAvg * $remainingWeekdays);
 
         // Monta dados para o gráfico
