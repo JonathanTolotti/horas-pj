@@ -21,6 +21,11 @@
         </style>
     </head>
     <body class="font-sans antialiased bg-gray-950 text-gray-100">
+        @if(config('app.env') !== 'production')
+        <div class="w-full bg-orange-500 text-white text-center text-sm font-semibold py-2 px-4 z-[10000] relative">
+            ⚠️ Ambiente sandbox — este não é o ambiente de produção (APP_ENV={{ config('app.env') }})
+        </div>
+        @endif
         <div x-data="{ sidebarOpen: false }" class="min-h-screen flex">
 
             <!-- Overlay mobile -->

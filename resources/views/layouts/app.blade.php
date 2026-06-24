@@ -172,6 +172,11 @@
         </style>
     </head>
     <body class="font-sans antialiased bg-gray-950 text-gray-100">
+        @if(config('app.env') !== 'production')
+        <div class="w-full bg-orange-500 text-white text-center text-sm font-semibold py-2 px-4 z-[10000] relative">
+            ⚠️ Ambiente sandbox — este não é o ambiente de produção (APP_ENV={{ config('app.env') }})
+        </div>
+        @endif
         <div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none"></div>
         <div class="min-h-screen">
             @include('layouts.navigation')
