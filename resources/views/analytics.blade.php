@@ -342,10 +342,10 @@
                 <div class="bg-gray-800/60 rounded-lg p-4">
                     <div class="text-xs text-gray-400 mb-1">Média por dia útil</div>
                     <div class="text-lg font-bold text-yellow-400" id="proj-daily-avg">R$ 0,00</div>
-                    <div class="text-xs text-gray-500 mt-0.5">com lançamentos</div>
+                    <div class="text-xs text-gray-500 mt-0.5" id="proj-card2-sub">com lançamentos</div>
                 </div>
                 <div class="bg-gray-800/60 rounded-lg p-4">
-                    <div class="text-xs text-gray-400 mb-1">Dias úteis restantes</div>
+                    <div class="text-xs text-gray-400 mb-1" id="proj-card3-label">Dias úteis restantes</div>
                     <div class="text-lg font-bold text-white" id="proj-remaining">0</div>
                     <div class="text-xs text-gray-500 mt-0.5" id="proj-total-weekdays">de 0 no mês</div>
                 </div>
@@ -704,43 +704,174 @@
             }
         }
 
-        // Select de meses para a projeção (últimos 12 meses)
+        // ── Projeção Mensal ──────────────────────────────────────────────────────
+
+        let projectionChartInstance = null;
+        let currentMonthDailyAvg = 0;
+
+        function getCurrentMonthStr() {
+            const now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        }
+
+        function getWeekdaysInMonth(year, monthIdx) {
+            const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+            const result = [];
+            for (let day = 1; day <= daysInMonth; day++) {
+                const d = new Date(year, monthIdx, day);
+                if (d.getDay() !== 0 && d.getDay() !== 6) {
+                    result.push({
+                        date: String(day).padStart(2, '0'),
+                        label: d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }),
+                        revenue: 0,
+                        hours: 0,
+                        type: 'projected',
+                    });
+                }
+            }
+            return result;
+        }
+
+        function renderProjectionChart(chartData) {
+            if (projectionChartInstance) {
+                projectionChartInstance.destroy();
+                projectionChartInstance = null;
+            }
+            const ctx = document.getElementById('projectionChart').getContext('2d');
+            projectionChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(d => d.date),
+                    datasets: [{
+                        label: 'Faturamento',
+                        data: chartData.map(d => d.revenue),
+                        backgroundColor: chartData.map(d =>
+                            d.type === 'actual' ? 'rgba(250, 204, 21, 0.85)' : 'rgba(156, 163, 175, 0.2)'
+                        ),
+                        borderColor: chartData.map(d =>
+                            d.type === 'actual' ? 'rgb(234, 179, 8)' : 'rgba(107, 114, 128, 0.6)'
+                        ),
+                        borderWidth: chartData.map(d => d.type === 'actual' ? 0 : 1),
+                        borderRadius: 4,
+                        barPercentage: 0.75,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (ctx) => chartData[ctx[0].dataIndex].label,
+                                label: (ctx) => {
+                                    const item = chartData[ctx.dataIndex];
+                                    const prefix = item.type === 'projected' ? '(Estimativa) ' : '';
+                                    const lines = [prefix + formatCurrency(item.revenue)];
+                                    if (item.type === 'actual' && item.hours > 0) {
+                                        lines.push('Horas: ' + formatHours(item.hours));
+                                    }
+                                    return lines;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(55, 65, 81, 0.3)' },
+                            ticks: { callback: (value) => 'R$ ' + value.toLocaleString('pt-BR') }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Select: mês atual + próximos 5 meses
         function buildProjectionMonthSelect() {
             const select = document.getElementById('proj-month-select');
             const now = new Date();
             const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                             'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-            for (let i = 0; i < 12; i++) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            for (let i = 0; i <= 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 const value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-                const label = months[d.getMonth()] + '/' + String(d.getFullYear()).slice(2);
+                const label = i === 0
+                    ? 'Mês Atual'
+                    : months[d.getMonth()] + '/' + String(d.getFullYear()).slice(2);
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = label;
                 select.appendChild(option);
             }
 
-            select.addEventListener('change', () => loadProjectionChart(select.value));
+            select.addEventListener('change', () => {
+                if (select.value === getCurrentMonthStr()) {
+                    loadProjectionChart(select.value);
+                } else {
+                    loadFutureMonthProjection(select.value);
+                }
+            });
         }
 
-        // Gráfico de Projeção Mensal
-        let projectionChartInstance = null;
+        // Projeção de mês futuro (sem dados reais — usa média do mês atual)
+        function loadFutureMonthProjection(monthStr) {
+            const [year, month] = monthStr.split('-').map(Number);
+            const monthIdx = month - 1;
+            const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
+            const weekdays = getWeekdaysInMonth(year, monthIdx);
+            const totalWeekdays = weekdays.length;
+            const projectedTotal = currentMonthDailyAvg * totalWeekdays;
+
+            document.getElementById('proj-section-title').textContent =
+                'Projeção de ' + monthNames[monthIdx] + '/' + year;
+
+            document.getElementById('proj-current-revenue').textContent = formatCurrency(0);
+            document.getElementById('proj-weekdays-worked').textContent = 'nenhum lançamento ainda';
+            document.getElementById('proj-daily-avg').textContent = formatCurrency(currentMonthDailyAvg);
+            document.getElementById('proj-card2-sub').textContent = 'base: mês atual';
+            document.getElementById('proj-card3-label').textContent = 'Total de dias úteis';
+            document.getElementById('proj-remaining').textContent = totalWeekdays;
+            document.getElementById('proj-total-weekdays').textContent = 'dias no mês';
+            document.getElementById('proj-total').textContent = formatCurrency(projectedTotal);
+
+            const projCard = document.getElementById('proj-total').closest('.bg-emerald-900\\/30');
+            const projLabel = projCard ? projCard.querySelector('.text-xs') : null;
+            if (projLabel) projLabel.textContent = 'com a média atual';
+
+            document.getElementById('proj-progress-label').textContent =
+                '0 de ' + totalWeekdays + ' dias úteis iniciados';
+            document.getElementById('proj-progress-pct').textContent = '0%';
+            document.getElementById('proj-progress-bar').style.width = '0%';
+
+            const chartData = weekdays.map(wd => ({ ...wd, revenue: currentMonthDailyAvg }));
+            renderProjectionChart(chartData);
+        }
+
+        // Projeção do mês atual (dados reais do backend)
         async function loadProjectionChart(month) {
             try {
                 const url = '/analytics/monthly-projection' + (month ? '?month=' + month : '');
                 const response = await fetch(url);
                 const result = await response.json();
 
-                // Atualiza título da seção
-                const titleEl = document.getElementById('proj-section-title');
-                titleEl.textContent = result.is_past_month ? 'Realizado por Dia Útil' : 'Projeção do Mês Atual';
+                // Armazena a média para uso nas projeções futuras
+                currentMonthDailyAvg = result.daily_average_revenue || 0;
 
-                // Cards de resumo
+                document.getElementById('proj-section-title').textContent = 'Projeção do Mês Atual';
+
                 document.getElementById('proj-current-revenue').textContent = formatCurrency(result.current_revenue);
                 document.getElementById('proj-weekdays-worked').textContent = result.weekdays_worked + ' dias com lançamentos';
                 document.getElementById('proj-daily-avg').textContent = formatCurrency(result.daily_average_revenue);
+                document.getElementById('proj-card2-sub').textContent = 'com lançamentos';
+                document.getElementById('proj-card3-label').textContent = 'Dias úteis restantes';
                 document.getElementById('proj-remaining').textContent = result.remaining_weekdays;
                 document.getElementById('proj-total-weekdays').textContent = 'de ' + result.total_weekdays + ' no mês';
 
@@ -751,7 +882,6 @@
                     projLabel.textContent = result.is_past_month ? 'mês encerrado' : 'se manter a média';
                 }
 
-                // Barra de progresso
                 const pct = result.total_weekdays > 0
                     ? Math.round((result.elapsed_weekdays / result.total_weekdays) * 100)
                     : 0;
@@ -760,67 +890,7 @@
                 document.getElementById('proj-progress-pct').textContent = pct + '%';
                 document.getElementById('proj-progress-bar').style.width = pct + '%';
 
-                const data = result.chart_data;
-
-                if (projectionChartInstance) {
-                    projectionChartInstance.destroy();
-                    projectionChartInstance = null;
-                }
-
-                const ctx = document.getElementById('projectionChart').getContext('2d');
-                projectionChartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.map(d => d.date),
-                        datasets: [{
-                            label: 'Faturamento',
-                            data: data.map(d => d.revenue),
-                            backgroundColor: data.map(d =>
-                                d.type === 'actual' ? 'rgba(250, 204, 21, 0.85)' : 'rgba(156, 163, 175, 0.2)'
-                            ),
-                            borderColor: data.map(d =>
-                                d.type === 'actual' ? 'rgb(234, 179, 8)' : 'rgba(107, 114, 128, 0.6)'
-                            ),
-                            borderWidth: data.map(d => d.type === 'actual' ? 0 : 1),
-                            borderRadius: 4,
-                            barPercentage: 0.75,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    title: (ctx) => data[ctx[0].dataIndex].label,
-                                    label: (ctx) => {
-                                        const item = data[ctx.dataIndex];
-                                        const prefix = item.type === 'projected' ? '(Estimativa) ' : '';
-                                        const lines = [prefix + formatCurrency(item.revenue)];
-                                        if (item.type === 'actual' && item.hours > 0) {
-                                            lines.push('Horas: ' + formatHours(item.hours));
-                                        }
-                                        return lines;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: 'rgba(55, 65, 81, 0.3)' },
-                                ticks: {
-                                    callback: (value) => 'R$ ' + value.toLocaleString('pt-BR')
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { size: 10 } }
-                            }
-                        }
-                    }
-                });
+                renderProjectionChart(result.chart_data);
             } catch (error) {
                 console.error('Erro ao carregar projeção mensal:', error);
             }
