@@ -5,6 +5,17 @@
 /* ─── Alpine.js — evita flash de conteúdo antes da hidratação ─ */
 [x-cloak] { display: none !important; }
 
+/* ─── Descrição colapsável nos lançamentos ──────────────────── */
+.description-clamped {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+
 /* ─── Scrollbar global ────────────────────────────────────── */
 /* Chromium / Safari */
 ::-webkit-scrollbar {

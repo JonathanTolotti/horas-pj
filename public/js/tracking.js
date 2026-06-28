@@ -555,6 +555,7 @@ async function addEntry() {
     }
 }
 
+
 function addEntryToTable(entry) {
     const tbody = document.getElementById('entries-table');
     const emptyRow = document.getElementById('empty-row');
@@ -565,6 +566,7 @@ function addEntryToTable(entry) {
     }
 
     const entryValue = entry.hours * HOURLY_RATE;
+    const totalMinutes = Math.round(parseFloat(entry.hours) * 60);
     const projectHtml = entry.project_name
         ? `<span class="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">${escapeHtml(entry.project_name)}</span>`
         : '<span class="text-gray-500">-</span>';
@@ -582,12 +584,21 @@ function addEntryToTable(entry) {
         <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">${escapeHtml(entry.description)}</td>
         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">${formatCurrency(entryValue)}</td>
         <td class="px-4 py-4 whitespace-nowrap text-sm">
-            <button onclick="removeEntry(${entry.id})"
-                class="text-red-400 hover:text-red-300 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="openTaskNotesModal(${entry.id}, ${totalMinutes}, '${entry.start_time}', '${entry.end_time}')"
+                    class="text-indigo-400 hover:text-indigo-300 transition-colors"
+                    title="Tarefas do lançamento">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </button>
+                <button onclick="removeEntry(${entry.id})"
+                    class="text-red-400 hover:text-red-300 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
         </td>
     `;
 
@@ -605,6 +616,7 @@ function addEntryToCards(entry) {
     }
 
     const entryValue = entry.hours * HOURLY_RATE;
+    const totalMinutes = Math.round(parseFloat(entry.hours) * 60);
     const projectHtml = entry.project_name
         ? `<span class="inline-block bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs mb-2">${escapeHtml(entry.project_name)}</span>`
         : '';
@@ -618,12 +630,21 @@ function addEntryToCards(entry) {
                 <span class="text-white font-medium">${entry.date_formatted}</span>
                 <span class="text-gray-400 font-mono text-sm">${entry.start_time} - ${entry.end_time}</span>
             </div>
-            <button onclick="removeEntry(${entry.id})"
-                class="text-red-400 hover:text-red-300 transition-colors p-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="openTaskNotesModal(${entry.id}, ${totalMinutes}, '${entry.start_time}', '${entry.end_time}')"
+                    class="text-indigo-400 hover:text-indigo-300 transition-colors p-1"
+                    title="Tarefas do lançamento">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </button>
+                <button onclick="removeEntry(${entry.id})"
+                    class="text-red-400 hover:text-red-300 transition-colors p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         ${projectHtml}
         <p class="text-gray-300 text-sm mb-3">${escapeHtml(entry.description)}</p>
