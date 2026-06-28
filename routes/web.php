@@ -22,6 +22,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TimeEntryController;
+use App\Http\Controllers\TaskNoteController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\AdminTicketController;
@@ -52,6 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/time-entries', [TimeEntryController::class, 'store'])->name('time-entries.store');
     Route::delete('/time-entries/{timeEntry}', [TimeEntryController::class, 'destroy'])->name('time-entries.destroy');
     Route::get('/time-entries/stats', [TimeEntryController::class, 'stats'])->name('time-entries.stats');
+    Route::get('/time-entries/{timeEntry}/tasks', [TaskNoteController::class, 'index'])->name('time-entries.tasks.index');
+    Route::post('/time-entries/{timeEntry}/tasks', [TaskNoteController::class, 'store'])->name('time-entries.tasks.store');
+    Route::delete('/time-entries/{timeEntry}/tasks/{taskNote}', [TaskNoteController::class, 'destroy'])->name('time-entries.tasks.destroy');
 
     // Monthly Adjustments
     Route::put('/monthly-adjustments/{month}', [MonthlyAdjustmentController::class, 'update'])

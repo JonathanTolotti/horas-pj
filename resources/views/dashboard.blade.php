@@ -488,12 +488,21 @@
                                     <td class="px-4 py-4 text-sm text-gray-300 max-w-xs truncate">{{ $entry->description }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-emerald-400 sensitive-value">R$ {{ number_format($entry->hours * $stats['hourly_rate'], 2, ',', '.') }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                        <button onclick="removeEntry({{ $entry->id }})"
-                                            class="text-red-400 hover:text-red-300 transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="openTaskNotesModal({{ $entry->id }}, {{ round($entry->hours * 60) }}, '{{ substr($entry->start_time, 0, 5) }}', '{{ substr($entry->end_time, 0, 5) }}')"
+                                                class="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                                title="Tarefas do lançamento">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeEntry({{ $entry->id }})"
+                                                class="text-red-400 hover:text-red-300 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -516,12 +525,21 @@
                                     <span class="text-white font-medium">{{ $entry->date->format('d/m/Y') }}</span>
                                     <span class="text-gray-400 font-mono text-sm">{{ substr($entry->start_time, 0, 5) }} - {{ substr($entry->end_time, 0, 5) }}</span>
                                 </div>
-                                <button onclick="removeEntry({{ $entry->id }})"
-                                    class="text-red-400 hover:text-red-300 transition-colors p-1">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                    </svg>
-                                </button>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openTaskNotesModal({{ $entry->id }}, {{ round($entry->hours * 60) }}, '{{ substr($entry->start_time, 0, 5) }}', '{{ substr($entry->end_time, 0, 5) }}')"
+                                        class="text-indigo-400 hover:text-indigo-300 transition-colors p-1"
+                                        title="Tarefas do lançamento">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="removeEntry({{ $entry->id }})"
+                                        class="text-red-400 hover:text-red-300 transition-colors p-1">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             @if($entry->project)
                                 <span class="inline-block bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded text-xs mb-2">{{ $entry->project->name }}</span>
@@ -1507,6 +1525,286 @@
                 // silencia erros de rede
             }
         }
+    </script>
+    @endpush
+
+    <!-- Modal de Tarefas do Lançamento -->
+    <div id="task-notes-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="min-h-screen px-4 flex items-center justify-center">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" onclick="closeTaskNotesModal()"></div>
+            <div class="relative bg-gray-900 border border-gray-700 rounded-xl w-full max-w-xl my-8 flex flex-col" style="max-height: 88vh;">
+
+                <!-- Cabeçalho -->
+                <div class="flex items-center justify-between p-6 pb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-500/20 p-2 rounded-lg">
+                            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Tarefas do Lançamento</h3>
+                            <p class="text-xs text-gray-500 mt-0.5" id="task-notes-entry-label"></p>
+                        </div>
+                    </div>
+                    <button onclick="closeTaskNotesModal()" class="text-gray-500 hover:text-gray-300 transition-colors p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Formulário de nova tarefa -->
+                <div class="px-6 pb-5">
+                    <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 space-y-3">
+                        <label class="block text-sm font-medium text-indigo-400">Nova tarefa</label>
+                        <input type="text" id="task-notes-input"
+                            placeholder="Descreva a tarefa..."
+                            maxlength="1000"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); saveTaskNote(); }"/>
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-gray-400 shrink-0">Duração (opcional)</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="task-notes-minutes"
+                                        min="1" max="9999" placeholder="0"
+                                        style="-moz-appearance:textfield"
+                                        class="w-16 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white placeholder-gray-500 text-sm text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"/>
+                                    <span class="text-gray-500 text-xs">min</span>
+                                </div>
+                            </div>
+                            <button onclick="saveTaskNote()"
+                                id="task-notes-save-btn"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de progresso -->
+                <div id="task-notes-progress-section" class="px-6 pb-4 hidden">
+                    <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-400">Tempo mapeado</span>
+                            <span id="task-notes-progress-label" class="text-sm font-semibold text-gray-300"></span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                            <div id="task-notes-progress-bar" class="h-2 rounded-full transition-all duration-300 bg-indigo-500" style="width:0%"></div>
+                        </div>
+                        <p id="task-notes-progress-warning" class="text-xs text-amber-400 mt-2 hidden">
+                            A soma das tarefas excede a duração do lançamento.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Lista de tarefas -->
+                <div class="overflow-y-auto flex-1 px-6 pb-6">
+                    <div id="task-notes-loading" class="text-center text-gray-500 py-8 text-sm hidden">
+                        Carregando tarefas...
+                    </div>
+                    <div id="task-notes-empty" class="text-center text-gray-500 py-8 text-sm hidden">
+                        Nenhuma tarefa registrada para este lançamento.
+                    </div>
+                    <ul id="task-notes-list" class="space-y-2"></ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        let taskNotesEntryId = null;
+        let taskNotesTotalMinutes = 0;
+
+        function openTaskNotesModal(entryId, totalMinutes, startTime, endTime) {
+            taskNotesEntryId = entryId;
+            taskNotesTotalMinutes = totalMinutes || 0;
+
+            document.getElementById('task-notes-input').value = '';
+            document.getElementById('task-notes-minutes').value = '';
+            document.getElementById('task-notes-list').innerHTML = '';
+            document.getElementById('task-notes-progress-section').classList.add('hidden');
+
+            const label = startTime && endTime
+                ? `${startTime} – ${endTime} · ${totalMinutes} min no total`
+                : `Lançamento #${entryId}`;
+            document.getElementById('task-notes-entry-label').textContent = label;
+
+            document.getElementById('task-notes-modal').classList.remove('hidden');
+            document.getElementById('task-notes-input').focus();
+            loadTaskNotes();
+        }
+
+        function closeTaskNotesModal() {
+            document.getElementById('task-notes-modal').classList.add('hidden');
+            taskNotesEntryId = null;
+            taskNotesTotalMinutes = 0;
+        }
+
+        async function loadTaskNotes() {
+            const loadingEl = document.getElementById('task-notes-loading');
+            const emptyEl = document.getElementById('task-notes-empty');
+            const listEl = document.getElementById('task-notes-list');
+
+            loadingEl.classList.remove('hidden');
+            emptyEl.classList.add('hidden');
+            listEl.innerHTML = '';
+
+            try {
+                const response = await fetch(`/time-entries/${taskNotesEntryId}/tasks`, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+                });
+                const data = await response.json();
+
+                loadingEl.classList.add('hidden');
+
+                if (data.tasks.length === 0) {
+                    emptyEl.classList.remove('hidden');
+                    return;
+                }
+
+                data.tasks.forEach(task => appendTaskNote(task));
+                updateTaskNotesProgress();
+            } catch (e) {
+                loadingEl.classList.add('hidden');
+                showToast('Erro ao carregar tarefas.', TOAST_TYPES.ERROR);
+            }
+        }
+
+        function appendTaskNote(task) {
+            document.getElementById('task-notes-empty').classList.add('hidden');
+
+            const li = document.createElement('li');
+            li.id = 'task-note-' + task.id;
+            li.className = 'flex items-center gap-3 bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 group';
+            if (task.minutes) li.dataset.minutes = task.minutes;
+
+            const minutesBadge = task.minutes
+                ? `<span class="shrink-0 bg-indigo-500/20 text-indigo-400 text-xs px-2.5 py-1 rounded-full font-medium">${task.minutes} min</span>`
+                : '';
+
+            li.innerHTML = `
+                <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
+                </svg>
+                <span class="text-gray-300 text-sm flex-1 break-words">${escapeHtml(task.content)}</span>
+                ${minutesBadge}
+                <button onclick="deleteTaskNote(${task.id})"
+                    class="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                    title="Remover tarefa">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>`;
+            document.getElementById('task-notes-list').appendChild(li);
+        }
+
+        function updateTaskNotesProgress() {
+            if (taskNotesTotalMinutes <= 0) return;
+
+            let covered = 0;
+            document.querySelectorAll('#task-notes-list li[data-minutes]').forEach(li => {
+                const m = parseInt(li.dataset.minutes, 10);
+                if (m > 0) covered += m;
+            });
+
+            const section = document.getElementById('task-notes-progress-section');
+            if (covered === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+
+            const pct = Math.min(100, (covered / taskNotesTotalMinutes) * 100);
+            const bar = document.getElementById('task-notes-progress-bar');
+            const labelEl = document.getElementById('task-notes-progress-label');
+            const warningEl = document.getElementById('task-notes-progress-warning');
+            const overLimit = covered > taskNotesTotalMinutes;
+
+            bar.style.width = pct + '%';
+            bar.className = 'h-2 rounded-full transition-all duration-300 ' + (overLimit ? 'bg-amber-500' : 'bg-indigo-500');
+            labelEl.textContent = `${covered} / ${taskNotesTotalMinutes} min (${Math.round(pct)}%)`;
+            labelEl.className = 'text-xs font-medium ' + (overLimit ? 'text-amber-400' : 'text-gray-300');
+            warningEl.classList.toggle('hidden', !overLimit);
+        }
+
+        async function saveTaskNote() {
+            const input = document.getElementById('task-notes-input');
+            const minutesInput = document.getElementById('task-notes-minutes');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const minutesRaw = minutesInput.value.trim();
+            const minutes = minutesRaw ? parseInt(minutesRaw, 10) : null;
+
+            const btn = document.getElementById('task-notes-save-btn');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/time-entries/${taskNotesEntryId}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': CSRF_TOKEN,
+                    },
+                    body: JSON.stringify({ content, minutes }),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const msg = data.errors ? Object.values(data.errors).flat()[0] : (data.message || 'Erro ao salvar.');
+                    throw new Error(msg);
+                }
+
+                input.value = '';
+                minutesInput.value = '';
+                appendTaskNote(data.task);
+                updateTaskNotesProgress();
+                showToast('Tarefa adicionada!', TOAST_TYPES.SUCCESS);
+            } catch (e) {
+                showToast(e.message, TOAST_TYPES.ERROR);
+            } finally {
+                btn.disabled = false;
+                input.focus();
+            }
+        }
+
+        async function deleteTaskNote(taskId) {
+            try {
+                const response = await fetch(`/time-entries/${taskNotesEntryId}/tasks/${taskId}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+
+                if (!response.ok) throw new Error('Erro ao remover tarefa.');
+
+                const el = document.getElementById('task-note-' + taskId);
+                if (el) el.remove();
+
+                if (document.getElementById('task-notes-list').children.length === 0) {
+                    document.getElementById('task-notes-empty').classList.remove('hidden');
+                }
+
+                updateTaskNotesProgress();
+                showToast('Tarefa removida.', TOAST_TYPES.SUCCESS);
+            } catch (e) {
+                showToast(e.message, TOAST_TYPES.ERROR);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && taskNotesEntryId !== null) {
+                closeTaskNotesModal();
+            }
+        });
     </script>
     @endpush
 

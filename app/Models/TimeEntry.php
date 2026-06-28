@@ -51,6 +51,11 @@ class TimeEntry extends Model
         return $this->belongsTo(Invoice::class);
     }
 
+    public function taskNotes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TaskNote::class)->orderBy('created_at', 'asc');
+    }
+
     public function isInvoiced(): bool
     {
         return !is_null($this->invoice_id);
