@@ -12,6 +12,7 @@ class TaskNote extends Model
         'time_entry_id',
         'content',
         'minutes',
+        'status',
     ];
 
     public function user(): BelongsTo

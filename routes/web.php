@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/time-entries/stats', [TimeEntryController::class, 'stats'])->name('time-entries.stats');
     Route::get('/time-entries/{timeEntry}/tasks', [TaskNoteController::class, 'index'])->name('time-entries.tasks.index');
     Route::post('/time-entries/{timeEntry}/tasks', [TaskNoteController::class, 'store'])->name('time-entries.tasks.store');
+    Route::patch('/time-entries/{timeEntry}/tasks/{taskNote}/status', [TaskNoteController::class, 'updateStatus'])->name('time-entries.tasks.status');
     Route::delete('/time-entries/{timeEntry}/tasks/{taskNote}', [TaskNoteController::class, 'destroy'])->name('time-entries.tasks.destroy');
 
     // Monthly Adjustments

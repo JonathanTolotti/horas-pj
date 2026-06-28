@@ -1682,18 +1682,47 @@
 
             const li = document.createElement('li');
             li.id = 'task-note-' + task.id;
-            li.className = 'flex items-center gap-3 bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 group';
             if (task.minutes) li.dataset.minutes = task.minutes;
 
+            applyTaskNoteDOM(li, task);
+            document.getElementById('task-notes-list').appendChild(li);
+        }
+
+        function applyTaskNoteDOM(li, task) {
+            const isDone = task.status === 'done';
+            li.dataset.status = task.status || 'pending';
+
+            li.className = isDone
+                ? 'flex items-center gap-3 rounded-lg px-4 py-3 group border bg-emerald-900/20 border-emerald-700/30 transition-all duration-200'
+                : 'flex items-center gap-3 rounded-lg px-4 py-3 group border bg-gray-800/50 border-gray-700 transition-all duration-200';
+
+            const checkIcon = isDone
+                ? `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>`
+                : `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+
+            const checkBtnClass = isDone
+                ? 'text-emerald-400 hover:text-emerald-300 shrink-0 transition-colors cursor-pointer'
+                : 'text-gray-500 hover:text-indigo-400 shrink-0 transition-colors cursor-pointer';
+
+            const textClass = isDone
+                ? 'text-gray-400 text-sm flex-1 break-words'
+                : 'text-gray-300 text-sm flex-1 break-words';
+
+            const minutesBadgeClass = isDone
+                ? 'shrink-0 bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-medium'
+                : 'shrink-0 bg-indigo-500/20 text-indigo-400 text-xs px-2.5 py-1 rounded-full font-medium';
+
             const minutesBadge = task.minutes
-                ? `<span class="shrink-0 bg-indigo-500/20 text-indigo-400 text-xs px-2.5 py-1 rounded-full font-medium">${task.minutes} min</span>`
+                ? `<span data-role="badge" class="${minutesBadgeClass}">${task.minutes} min</span>`
                 : '';
 
             li.innerHTML = `
-                <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
-                </svg>
-                <span class="text-gray-300 text-sm flex-1 break-words">${escapeHtml(task.content)}</span>
+                <button data-role="check" onclick="toggleTaskNoteStatus(${task.id})"
+                    class="${checkBtnClass}"
+                    title="${isDone ? 'Marcar como pendente' : 'Marcar como concluída'}">
+                    ${checkIcon}
+                </button>
+                <span data-role="text" class="${textClass}">${escapeHtml(task.content)}</span>
                 ${minutesBadge}
                 <button onclick="deleteTaskNote(${task.id})"
                     class="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
@@ -1702,7 +1731,36 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>`;
-            document.getElementById('task-notes-list').appendChild(li);
+        }
+
+        async function toggleTaskNoteStatus(taskId) {
+            const li = document.getElementById('task-note-' + taskId);
+            if (!li) return;
+
+            const prevStatus = li.dataset.status;
+            const newStatus = prevStatus === 'pending' ? 'done' : 'pending';
+
+            // Optimistic update — preservar minutes no data-attribute
+            const minutes = li.dataset.minutes ? parseInt(li.dataset.minutes, 10) : null;
+            applyTaskNoteDOM(li, { id: taskId, content: li.querySelector('[data-role="text"]').textContent, minutes, status: newStatus });
+
+            try {
+                const response = await fetch(`/time-entries/${taskNotesEntryId}/tasks/${taskId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                });
+
+                if (!response.ok) throw new Error('Erro ao atualizar status.');
+
+                const data = await response.json();
+                if (data.status !== newStatus) {
+                    applyTaskNoteDOM(li, { id: taskId, content: li.querySelector('[data-role="text"]').textContent, minutes, status: data.status });
+                }
+            } catch (e) {
+                // Reverter em caso de erro
+                applyTaskNoteDOM(li, { id: taskId, content: li.querySelector('[data-role="text"]').textContent, minutes, status: prevStatus });
+                showToast(e.message, TOAST_TYPES.ERROR);
+            }
         }
 
         function updateTaskNotesProgress() {

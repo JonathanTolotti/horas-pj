@@ -13,7 +13,7 @@ class TaskNoteController extends Controller
     {
         $this->authorizeEntry($timeEntry);
 
-        $tasks = $timeEntry->taskNotes()->get(['id', 'content', 'minutes', 'created_at']);
+        $tasks = $timeEntry->taskNotes()->get(['id', 'content', 'minutes', 'status', 'created_at']);
 
         return response()->json(['tasks' => $tasks]);
     }
@@ -41,8 +41,23 @@ class TaskNoteController extends Controller
 
         return response()->json([
             'success' => true,
-            'task' => ['id' => $task->id, 'content' => $task->content, 'minutes' => $task->minutes, 'created_at' => $task->created_at],
+            'task' => ['id' => $task->id, 'content' => $task->content, 'minutes' => $task->minutes, 'status' => $task->status, 'created_at' => $task->created_at],
         ], 201);
+    }
+
+    public function updateStatus(TimeEntry $timeEntry, TaskNote $taskNote): JsonResponse
+    {
+        $this->authorizeEntry($timeEntry);
+
+        if ($taskNote->time_entry_id !== $timeEntry->id || $taskNote->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $taskNote->update([
+            'status' => $taskNote->status === 'pending' ? 'done' : 'pending',
+        ]);
+
+        return response()->json(['success' => true, 'status' => $taskNote->status]);
     }
 
     public function destroy(TimeEntry $timeEntry, TaskNote $taskNote): JsonResponse

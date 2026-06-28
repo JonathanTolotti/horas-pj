@@ -359,6 +359,9 @@ html:not(.dark) .text-purple-400  { color: #6d28d9; }
 html:not(.dark) .bg-amber-500\/20  { background-color: rgb(255 251 235); }
 html:not(.dark) .text-amber-400    { color: #92400e; }
 html:not(.dark) .bg-emerald-500\/20 { background-color: rgb(236 253 245); }
+html:not(.dark) .bg-emerald-500\/10 { background-color: rgb(236 253 245 / 0.6); }
+html:not(.dark) .bg-emerald-900\/20 { background-color: rgb(209 250 229 / 0.5); }
+html:not(.dark) .border-emerald-700\/30 { border-color: rgba(4, 120, 87, 0.25); }
 html:not(.dark) .text-emerald-400  { color: #047857; }
 html:not(.dark) .bg-orange-500\/10  { background-color: rgb(255 247 237); }
 html:not(.dark) .border-orange-500\/20 { border-color: #fdba74; }
