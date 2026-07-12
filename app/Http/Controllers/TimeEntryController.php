@@ -38,6 +38,7 @@ class TimeEntryController extends Controller
         $baseQuery = TimeEntry::forUser(auth()->id())
             ->forMonth($monthReference, $cycleDay)
             ->with('project')
+            ->withCount('taskNotes')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc');
 

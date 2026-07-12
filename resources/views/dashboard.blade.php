@@ -490,8 +490,10 @@
                                     <td class="px-4 py-4 whitespace-nowrap text-sm">
                                         <div class="flex items-center gap-2">
                                             <button onclick="openTaskNotesModal({{ $entry->id }}, {{ round($entry->hours * 60) }}, '{{ substr($entry->start_time, 0, 5) }}', '{{ substr($entry->end_time, 0, 5) }}')"
-                                                class="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                                class="inline-flex items-end gap-0.5 text-indigo-400 hover:text-indigo-300 transition-colors"
+                                                data-task-btn="{{ $entry->id }}"
                                                 title="Tarefas do lançamento">
+                                                <span class="task-count-badge {{ $entry->task_notes_count > 0 ? '' : 'hidden' }} min-w-[15px] h-3.5 px-0.5 bg-indigo-500 text-white text-[9px] font-bold rounded-full inline-flex items-center justify-center leading-none mb-px">{{ $entry->task_notes_count ?: '' }}</span>
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                                 </svg>
@@ -527,8 +529,10 @@
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <button onclick="openTaskNotesModal({{ $entry->id }}, {{ round($entry->hours * 60) }}, '{{ substr($entry->start_time, 0, 5) }}', '{{ substr($entry->end_time, 0, 5) }}')"
-                                        class="text-indigo-400 hover:text-indigo-300 transition-colors p-1"
+                                        class="inline-flex items-end gap-0.5 text-indigo-400 hover:text-indigo-300 transition-colors p-1"
+                                        data-task-btn="{{ $entry->id }}"
                                         title="Tarefas do lançamento">
+                                        <span class="task-count-badge {{ $entry->task_notes_count > 0 ? '' : 'hidden' }} min-w-[15px] h-3.5 px-0.5 bg-indigo-500 text-white text-[9px] font-bold rounded-full inline-flex items-center justify-center leading-none mb-px">{{ $entry->task_notes_count ?: '' }}</span>
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                         </svg>
@@ -1623,6 +1627,24 @@
         let taskNotesEntryId = null;
         let taskNotesTotalMinutes = 0;
 
+        function setEntryTaskBadge(entryId, count) {
+            document.querySelectorAll(`[data-task-btn="${entryId}"]`).forEach(btn => {
+                const badge = btn.querySelector('.task-count-badge');
+                if (!badge) return;
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+        }
+
+        function syncEntryTaskBadge() {
+            const count = document.querySelectorAll('#task-notes-list li').length;
+            setEntryTaskBadge(taskNotesEntryId, count);
+        }
+
         function openTaskNotesModal(entryId, totalMinutes, startTime, endTime) {
             taskNotesEntryId = entryId;
             taskNotesTotalMinutes = totalMinutes || 0;
@@ -1667,11 +1689,13 @@
 
                 if (data.tasks.length === 0) {
                     emptyEl.classList.remove('hidden');
+                    syncEntryTaskBadge();
                     return;
                 }
 
                 data.tasks.forEach(task => appendTaskNote(task));
                 updateTaskNotesProgress();
+                syncEntryTaskBadge();
             } catch (e) {
                 loadingEl.classList.add('hidden');
                 showToast('Erro ao carregar tarefas.', TOAST_TYPES.ERROR);
@@ -1859,6 +1883,7 @@
                 minutesInput.value = '';
                 appendTaskNote(data.task);
                 updateTaskNotesProgress();
+                syncEntryTaskBadge();
                 showToast('Tarefa adicionada!', TOAST_TYPES.SUCCESS);
             } catch (e) {
                 showToast(e.message, TOAST_TYPES.ERROR);
@@ -1885,6 +1910,7 @@
                 }
 
                 updateTaskNotesProgress();
+                syncEntryTaskBadge();
                 showToast('Tarefa removida.', TOAST_TYPES.SUCCESS);
             } catch (e) {
                 showToast(e.message, TOAST_TYPES.ERROR);
