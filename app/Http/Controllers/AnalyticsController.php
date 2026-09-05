@@ -213,6 +213,11 @@ class AnalyticsController extends Controller
 
         $weekdaysWorked = count($dailyHours);
 
+        // Um dia útil é considerado "realizado" quando já passou OU quando já possui
+        // lançamento (ex.: lançamento futuro pré-registrado). Isso evita que o mesmo
+        // dia entre tanto no valor já faturado quanto na projeção dos dias restantes.
+        $isDayDone = fn (string $dateStr) => $dateStr <= $today || isset($dailyHours[$dateStr]);
+
         // Enumera todos os dias úteis do mês
         $cursor            = $monthStart->copy();
         $allWeekdays       = [];
@@ -223,7 +228,7 @@ class AnalyticsController extends Controller
             if ($cursor->isWeekday()) {
                 $dateStr = $cursor->toDateString();
                 $allWeekdays[] = $dateStr;
-                if ($dateStr <= $today) {
+                if ($isDayDone($dateStr)) {
                     $elapsedWeekdays++;
                 } else {
                     $remainingWeekdays++;
@@ -243,7 +248,7 @@ class AnalyticsController extends Controller
         $chartData = [];
         foreach ($allWeekdays as $dateStr) {
             $carbon = Carbon::parse($dateStr);
-            $isPast = $dateStr <= $today;
+            $isPast = $isDayDone($dateStr);
             $hours  = $dailyHours[$dateStr] ?? 0;
 
             $chartData[] = [
