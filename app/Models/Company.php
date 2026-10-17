@@ -19,6 +19,7 @@ class Company extends Model
         'name',
         'cnpj',
         'active',
+        'billing_group_id',
         'razao_social',
         'email',
         'telefone',
@@ -58,6 +59,11 @@ class Company extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function billingGroup(): BelongsTo
+    {
+        return $this->belongsTo(BillingGroup::class);
     }
 
     public function projects(): BelongsToMany

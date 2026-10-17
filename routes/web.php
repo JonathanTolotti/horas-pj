@@ -5,6 +5,8 @@ use App\Http\Controllers\TokenController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\BillingGroupController;
+use App\Http\Controllers\InvoicePoolController;
 use App\Http\Controllers\ConsolidationController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceEntryController;
@@ -267,6 +269,24 @@ Route::middleware(['auth', 'verified', 'premium:billing'])->group(function () {
         Route::post('/{invoiceUuid}/xmls/{xmlUuid}/danfse', [InvoiceXmlController::class, 'uploadDanfse'])->name('xmls.danfse.upload');
         Route::delete('/{invoiceUuid}/xmls/{xmlUuid}/danfse', [InvoiceXmlController::class, 'destroyDanfse'])->name('xmls.danfse.destroy');
         Route::get('/{invoiceUuid}/xmls/{xmlUuid}/danfse', [InvoiceXmlController::class, 'viewDanfse'])->name('xmls.danfse.view');
+    });
+
+    // Pool de Notas Fiscais
+    Route::prefix('invoice-pool')->name('invoice-pool.')->group(function () {
+        Route::get('/', [InvoicePoolController::class, 'index'])->name('index');
+        Route::post('/', [InvoicePoolController::class, 'store'])->name('store');
+        Route::get('/status', [InvoicePoolController::class, 'status'])->name('status');
+        Route::put('/revenue-limit', [InvoicePoolController::class, 'updateLimit'])->name('revenue-limit');
+        Route::post('/{uuid}/retry', [InvoicePoolController::class, 'retry'])->name('retry');
+        Route::get('/{uuid}/download', [InvoicePoolController::class, 'download'])->name('download');
+        Route::delete('/{uuid}', [InvoicePoolController::class, 'destroy'])->name('destroy');
+    });
+
+    // Grupos de Faturamento
+    Route::prefix('billing-groups')->name('billing-groups.')->group(function () {
+        Route::post('/', [BillingGroupController::class, 'store'])->name('store');
+        Route::put('/{uuid}', [BillingGroupController::class, 'update'])->name('update');
+        Route::delete('/{uuid}', [BillingGroupController::class, 'destroy'])->name('destroy');
     });
 });
 

@@ -21,6 +21,7 @@ class Setting extends Model
         'standard_day_periods',
         'standard_day_project_id',
         'standard_day_description',
+        'annual_revenue_limit',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Setting extends Model
         'billing_cycle_day' => 'integer',
         'standard_day_periods' => 'array',
         'standard_day_project_id' => 'integer',
+        'annual_revenue_limit' => 'decimal:2',
     ];
 
     public function user(): BelongsTo

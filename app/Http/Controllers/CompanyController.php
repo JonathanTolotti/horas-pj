@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
 use App\Models\AuditLog;
+use App\Models\BillingGroup;
 use App\Models\Company;
 use App\Models\CompanyDocument;
 use App\Models\CompanyNote;
@@ -20,13 +21,16 @@ class CompanyController extends Controller
     public function index(): View
     {
         $user = auth()->user();
-        $companies = Company::forUser($user->id)->with('projects')->orderBy('name')->get();
+        $companies = Company::forUser($user->id)->with(['projects', 'billingGroup'])->orderBy('name')->get();
+        $billingGroups = BillingGroup::forUser($user->id)->with('companies')->orderBy('name')->get();
 
         $companyLimit = $user->getLimit('companies');
         $canAddCompany = $companyLimit === null || $companies->count() < $companyLimit;
 
         return view('companies.index', [
             'companies'    => $companies,
+            'billingGroups' => $billingGroups,
+            'canUseBilling' => $user->canUseFeature('billing'),
             'canAddCompany' => $canAddCompany,
             'companyLimit'  => $companyLimit,
             'isPremium'     => $user->isPremium(),

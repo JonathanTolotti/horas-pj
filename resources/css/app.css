@@ -504,3 +504,10 @@ html:not(.dark) .driver-popover-close-btn {
     color: #94a3b8 !important;
 }
 
+
+/* Pool de Notas Fiscais */
+html:not(.dark) .bg-gray-800\/40 { background-color: rgb(241 245 249 / 0.6); }
+html:not(.dark) .hover\:bg-gray-800\/30:hover,
+html:not(.dark) .hover\:bg-gray-800\/40:hover { background-color: #f1f5f9; }
+html:not(.dark) .border-red-500\/30 { border-color: #fca5a5; }
+html:not(.dark) .border-blue-500\/30 { border-color: #93c5fd; }

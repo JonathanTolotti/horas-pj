@@ -23,6 +23,7 @@ class Invoice extends Model
         'uuid',
         'user_id',
         'company_id',
+        'billing_group_id',
         'bank_account_id',
         'title',
         'reference_month',
@@ -47,6 +48,11 @@ class Invoice extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function billingGroup(): BelongsTo
+    {
+        return $this->belongsTo(BillingGroup::class);
     }
 
     public function bankAccount(): BelongsTo

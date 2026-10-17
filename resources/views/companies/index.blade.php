@@ -174,6 +174,49 @@
         </div>
     </div>
 
+    @if($canUseBilling)
+    <!-- Modal de Grupo de Faturamento -->
+    <div id="group-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeGroupModal()"></div>
+        <div class="relative bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold text-white mb-1" id="group-modal-title">Novo Grupo de Faturamento</h3>
+            <p class="text-xs text-gray-400 mb-5">Notas emitidas para qualquer CNPJ do grupo entram na mesma fatura do mês.</p>
+            <input type="hidden" id="group-id" value="">
+            <div class="space-y-4">
+                <div>
+                    <label for="group-name" class="block text-sm font-medium text-gray-400 mb-1.5">Nome do grupo <span class="text-red-400">*</span></label>
+                    <input type="text" id="group-name" maxlength="150" placeholder="Ex: Grupo Alpha"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+                </div>
+                <fieldset>
+                    <legend class="block text-sm font-medium text-gray-400 mb-1.5">Empresas (CNPJs) do grupo <span class="text-red-400">*</span></legend>
+                    <div class="space-y-1 max-h-56 overflow-y-auto bg-gray-800 border border-gray-700 rounded-lg p-2">
+                        @foreach($companies as $company)
+                            <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-700 cursor-pointer">
+                                <input type="checkbox" class="group-company w-4 h-4 rounded bg-gray-800 border-gray-600 text-blue-500 focus:ring-blue-500"
+                                       value="{{ $company->id }}" data-name="{{ $company->name }}" onchange="refreshPrimaryOptions()">
+                                <span class="text-sm text-gray-300">{{ $company->name }}</span>
+                                <span class="text-xs font-mono text-gray-500 ml-auto">{{ $company->cnpj }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Uma empresa só pode estar em um grupo; ao selecioná-la aqui, ela sai do grupo anterior.</p>
+                </fieldset>
+                <div>
+                    <label for="group-primary" class="block text-sm font-medium text-gray-400 mb-1.5">Empresa principal da fatura</label>
+                    <select id="group-primary"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                    <p class="text-xs text-gray-500 mt-1">Usada como destinatária ao criar faturas automaticamente.</p>
+                </div>
+            </div>
+            <div class="flex gap-3 justify-end pt-5 mt-5 border-t border-gray-700">
+                <button type="button" onclick="closeGroupModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Cancelar</button>
+                <button type="button" onclick="saveGroup()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">Salvar</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
 
         <!-- Header -->
@@ -204,6 +247,47 @@
                 </button>
             @endif
         </div>
+
+        @if($canUseBilling && $companies->isNotEmpty())
+        <!-- Grupos de Faturamento -->
+        <section class="bg-gray-900 border border-gray-800 rounded-xl p-5" aria-labelledby="groups-title">
+            <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+                <div>
+                    <h2 id="groups-title" class="text-white font-semibold">Grupos de faturamento</h2>
+                    <p class="text-xs text-gray-400">Agrupe CNPJs de um mesmo cliente para que as notas caiam na mesma fatura.</p>
+                </div>
+                <button type="button" onclick="openGroupModal()" class="text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition-colors">+ Novo grupo</button>
+            </div>
+            @forelse($billingGroups as $group)
+                @php
+                    $groupPayload = ['id' => $group->uuid, 'name' => $group->name, 'primary' => $group->primary_company_id, 'companies' => $group->companies->pluck('id')];
+                @endphp
+                <div class="flex items-center gap-3 py-2.5 border-t border-gray-800 flex-wrap">
+                    <span class="text-white font-medium">{{ $group->name }}</span>
+                    <div class="flex flex-wrap gap-1.5 flex-1">
+                        @foreach($group->companies as $gc)
+                            <span class="text-xs bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded-full">
+                                {{ $gc->name }}@if($gc->id === $group->primary_company_id) ★@endif
+                            </span>
+                        @endforeach
+                    </div>
+                    <div class="flex gap-1">
+                        <button type="button"
+                            onclick='openGroupModal(@json($groupPayload))'
+                            class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg" title="Editar grupo" aria-label="Editar grupo {{ $group->name }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                        <button type="button" onclick="deleteGroup('{{ $group->uuid }}')"
+                            class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg" title="Excluir grupo" aria-label="Excluir grupo {{ $group->name }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <p class="text-sm text-gray-500 border-t border-gray-800 pt-3">Nenhum grupo criado. Empresas sem grupo têm uma fatura própria por mês.</p>
+            @endforelse
+        </section>
+        @endif
 
         <!-- Busca e Filtro -->
         <div class="flex flex-col sm:flex-row gap-3">
@@ -284,6 +368,9 @@
                         @endif
                         @if(!$company->active)
                             <span class="text-xs bg-gray-700/60 text-gray-400 px-1.5 py-0.5 rounded-full">Inativa</span>
+                        @endif
+                        @if($company->billingGroup)
+                            <span class="text-xs bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded-full" title="Grupo de faturamento">{{ $company->billingGroup->name }}</span>
                         @endif
                     </div>
                     <p class="text-gray-500 text-xs font-mono mt-0.5">{{ $company->cnpj }}</p>
@@ -563,8 +650,81 @@
             input.value = v;
         }
 
+        // Grupos de faturamento
+        function openGroupModal(data = null) {
+            const modal = document.getElementById('group-modal');
+            if (!modal) return;
+            document.getElementById('group-modal-title').textContent = data ? 'Editar Grupo de Faturamento' : 'Novo Grupo de Faturamento';
+            document.getElementById('group-id').value = data ? data.id : '';
+            document.getElementById('group-name').value = data ? data.name : '';
+            const selected = (data?.companies || []).map(Number);
+            document.querySelectorAll('.group-company').forEach(cb => cb.checked = selected.includes(Number(cb.value)));
+            refreshPrimaryOptions(data?.primary);
+            modal.classList.remove('hidden');
+        }
+
+        function closeGroupModal() {
+            document.getElementById('group-modal')?.classList.add('hidden');
+        }
+
+        function refreshPrimaryOptions(preselect = null) {
+            const select = document.getElementById('group-primary');
+            const current = preselect ?? select.value;
+            select.innerHTML = '';
+            document.querySelectorAll('.group-company:checked').forEach(cb => {
+                const opt = document.createElement('option');
+                opt.value = cb.value;
+                opt.textContent = cb.dataset.name;
+                if (String(cb.value) === String(current)) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        async function saveGroup() {
+            const id = document.getElementById('group-id').value;
+            const name = document.getElementById('group-name').value.trim();
+            const companyIds = Array.from(document.querySelectorAll('.group-company:checked')).map(cb => Number(cb.value));
+            if (!name) { showToast('Informe o nome do grupo.', TOAST_TYPES.WARNING); return; }
+            if (!companyIds.length) { showToast('Selecione pelo menos uma empresa.', TOAST_TYPES.WARNING); return; }
+
+            try {
+                const res = await fetch(id ? `/billing-groups/${id}` : '/billing-groups', {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        company_ids: companyIds,
+                        primary_company_id: Number(document.getElementById('group-primary').value) || null,
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Erro ao salvar grupo');
+                showToast(data.message, TOAST_TYPES.SUCCESS);
+                location.reload();
+            } catch (error) {
+                showToast(error.message, TOAST_TYPES.ERROR);
+            }
+        }
+
+        function deleteGroup(id) {
+            showConfirm('Deseja excluir este grupo? As empresas e faturas continuam existindo, apenas sem grupo.', async () => {
+                try {
+                    const res = await fetch(`/billing-groups/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'Erro ao excluir grupo');
+                    showToast(data.message, TOAST_TYPES.SUCCESS);
+                    location.reload();
+                } catch (error) {
+                    showToast(error.message, TOAST_TYPES.ERROR);
+                }
+            }, 'Excluir Grupo');
+        }
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeCompanyModal();
+            if (e.key === 'Escape') { closeCompanyModal(); closeGroupModal(); }
         });
     </script>
     @endpush

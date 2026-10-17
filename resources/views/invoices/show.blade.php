@@ -45,6 +45,10 @@
                         <span class="text-gray-600">·</span>
                         <span>{{ $invoice->company->name }}</span>
                     @endif
+                    @if($invoice->billingGroup)
+                        <span class="text-gray-600">·</span>
+                        <span class="text-xs bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded-full">Grupo: {{ $invoice->billingGroup->name }}</span>
+                    @endif
                     @if($invoice->bankAccount)
                         <span class="text-gray-600">·</span>
                         <span>{{ $invoice->bankAccount->bank_name }} – {{ $invoice->bankAccount->account_number }}</span>

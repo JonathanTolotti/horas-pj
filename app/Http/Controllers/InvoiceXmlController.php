@@ -49,20 +49,28 @@ class InvoiceXmlController extends Controller
 
             $parsed = $this->parser->parse($storagePath);
 
-            $invoiceXml = $invoice->xmls()->create([
-                'filename'       => $file->getClientOriginalName(),
-                'path'           => $storagePath,
-                'xml_file_size'  => $fileSize,
-                'invoice_number' => $parsed['invoice_number'],
-                'amount'         => $parsed['amount'],
-                'issued_at'      => $parsed['issued_at'],
-                'provider_cnpj'  => $parsed['provider_cnpj'],
-                'recipient_cnpj' => $parsed['recipient_cnpj'],
-                'provider_name'  => $parsed['provider_name'],
-                'recipient_name' => $parsed['recipient_name'],
-                'xml_parsed'     => $parsed['xml_parsed'],
-                'parse_error'    => $parsed['parse_error'],
-            ]);
+            if ($parsed['access_key'] && InvoiceXml::forUser($user->id)->where('access_key', $parsed['access_key'])->exists()) {
+                Storage::delete($storagePath);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A nota ' . $file->getClientOriginalName() . ' já foi importada anteriormente.',
+                ], 422);
+            }
+
+            $invoiceXml = $invoice->xmls()->create(array_merge(
+                collect($parsed)->except(['xml_parsed', 'parse_error'])->all(),
+                [
+                    'user_id'       => $user->id,
+                    'company_id'    => $invoice->company_id,
+                    'status'        => InvoiceXml::STATUS_PROCESSED,
+                    'processed_at'  => now(),
+                    'filename'      => $file->getClientOriginalName(),
+                    'path'          => $storagePath,
+                    'xml_file_size' => $fileSize,
+                    'xml_parsed'    => $parsed['xml_parsed'],
+                    'parse_error'   => $parsed['parse_error'],
+                ],
+            ));
 
             $this->storage->add($user, $fileSize);
 

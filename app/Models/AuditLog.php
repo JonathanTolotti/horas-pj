@@ -28,7 +28,7 @@ class AuditLog extends Model
 
     const SETTING_EXCLUDED_FIELDS = ['id', 'user_id', 'updated_at', 'created_at'];
 
-    const MONETARY_FIELDS = ['hourly_rate', 'extra_value', 'discount_value', 'on_call_hourly_rate'];
+    const MONETARY_FIELDS = ['hourly_rate', 'extra_value', 'discount_value', 'on_call_hourly_rate', 'annual_revenue_limit'];
 
     const PERCENTAGE_FIELDS = ['percentage'];
 
@@ -37,6 +37,7 @@ class AuditLog extends Model
         'extra_value'         => 'Adicional mensal',
         'discount_value'      => 'Desconto mensal',
         'on_call_hourly_rate' => 'Valor/hora sobreaviso',
+        'annual_revenue_limit' => 'Limite anual de faturamento',
         'auto_save_tracking'  => 'Salvar tracking automaticamente',
         'billing_cycle_day'   => 'Dia início do ciclo',
         'name'                => 'Nome',

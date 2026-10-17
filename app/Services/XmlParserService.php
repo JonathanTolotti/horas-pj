@@ -14,15 +14,24 @@ class XmlParserService
     public function parse(string $storagePath): array
     {
         $result = [
-            'invoice_number'  => null,
-            'amount'          => null,
-            'issued_at'       => null,
-            'provider_cnpj'   => null,
-            'recipient_cnpj'  => null,
-            'provider_name'   => null,
-            'recipient_name'  => null,
-            'xml_parsed'      => false,
-            'parse_error'     => null,
+            'invoice_number'      => null,
+            'series'              => null,
+            'access_key'          => null,
+            'competence'          => null,
+            'amount'              => null,
+            'gross_amount'        => null,
+            'iss_amount'          => null,
+            'iss_retained'        => null,
+            'service_code'        => null,
+            'service_description' => null,
+            'municipality_code'   => null,
+            'issued_at'           => null,
+            'provider_cnpj'       => null,
+            'recipient_cnpj'      => null,
+            'provider_name'       => null,
+            'recipient_name'      => null,
+            'xml_parsed'          => false,
+            'parse_error'         => null,
         ];
 
         try {
@@ -33,7 +42,13 @@ class XmlParserService
                 return $result;
             }
 
-            $xml = @simplexml_load_string($contents, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING);
+            // Bloqueia DTD/entidades externas (XXE) antes de carregar
+            if (preg_match('/<!DOCTYPE|<!ENTITY/i', $contents)) {
+                $result['parse_error'] = 'XML com DOCTYPE/entidades não é permitido.';
+                return $result;
+            }
+
+            $xml = @simplexml_load_string($contents, 'SimpleXMLElement', LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
 
             if ($xml === false) {
                 $result['parse_error'] = 'XML inválido ou corrompido.';
@@ -59,6 +74,12 @@ class XmlParserService
             }
 
             $result = array_merge($result, $parsed['data']);
+
+            // Competência: fallback para o mês de emissão
+            if (empty($result['competence']) && !empty($result['issued_at'])) {
+                $result['competence'] = substr($result['issued_at'], 0, 7);
+            }
+
             $result['xml_parsed'] = true;
             $result['parse_error'] = null;
 
@@ -89,10 +110,21 @@ class XmlParserService
 
         $data = [];
 
+        // Chave de acesso (atributo Id="NFe" + 44 dígitos)
+        $id = $this->digitsOnly((string) ($info['Id'] ?? ''));
+        if ($id !== '') {
+            $data['access_key'] = $id;
+        }
+
         // Invoice number (nNF)
         $nNF = $info->xpath('.//nfe:ide/nfe:nNF') ?: $info->xpath('.//*[local-name()="nNF"]');
         if (!empty($nNF)) {
             $data['invoice_number'] = (string) $nNF[0];
+        }
+
+        $serie = $info->xpath('.//*[local-name()="ide"]/*[local-name()="serie"]');
+        if (!empty($serie)) {
+            $data['series'] = (string) $serie[0];
         }
 
         // Issue date (dhEmi or dEmi)
@@ -110,6 +142,16 @@ class XmlParserService
         $vNF = $info->xpath('.//nfe:total/nfe:ICMSTot/nfe:vNF') ?: $info->xpath('.//*[local-name()="vNF"]');
         if (!empty($vNF)) {
             $data['amount'] = (float) $vNF[0];
+        }
+
+        $vProd = $info->xpath('.//*[local-name()="ICMSTot"]/*[local-name()="vProd"]');
+        if (!empty($vProd)) {
+            $data['gross_amount'] = (float) $vProd[0];
+        }
+
+        $cMun = $info->xpath('.//*[local-name()="ide"]/*[local-name()="cMunFG"]');
+        if (!empty($cMun)) {
+            $data['municipality_code'] = (string) $cMun[0];
         }
 
         // Provider (emitente)
@@ -149,10 +191,21 @@ class XmlParserService
 
         $data = [];
 
+        // Chave de acesso (atributo Id="NFS" + 50 dígitos)
+        $id = $this->digitsOnly((string) ($infNFSe[0]['Id'] ?? ''));
+        if ($id !== '') {
+            $data['access_key'] = $id;
+        }
+
         // Número da NFS-e
         $nNFSe = @$xml->xpath('//*[local-name()="nNFSe"]');
         if (!empty($nNFSe)) {
             $data['invoice_number'] = (string) $nNFSe[0];
+        }
+
+        $serie = @$xml->xpath('//*[local-name()="infDPS"]/*[local-name()="serie"]');
+        if (!empty($serie)) {
+            $data['series'] = (string) $serie[0];
         }
 
         // Data de emissão — prefere dhEmi dentro de infDPS, fallback dhProc
@@ -167,16 +220,50 @@ class XmlParserService
             }
         }
 
+        // Competência (dCompet = AAAA-MM-DD)
+        $dCompet = @$xml->xpath('//*[local-name()="dCompet"]');
+        if (!empty($dCompet)) {
+            $data['competence'] = substr((string) $dCompet[0], 0, 7);
+        }
+
         // Valor — prefere vLiq no bloco valores do infNFSe, fallback vServ
         $vLiq = @$xml->xpath('//*[local-name()="infNFSe"]/*[local-name()="valores"]/*[local-name()="vLiq"]')
                ?: @$xml->xpath('//*[local-name()="vLiq"]');
+        $vServ = @$xml->xpath('//*[local-name()="vServ"]');
         if (!empty($vLiq)) {
             $data['amount'] = (float) $vLiq[0];
-        } else {
-            $vServ = @$xml->xpath('//*[local-name()="vServ"]');
-            if (!empty($vServ)) {
-                $data['amount'] = (float) $vServ[0];
-            }
+        } elseif (!empty($vServ)) {
+            $data['amount'] = (float) $vServ[0];
+        }
+
+        if (!empty($vServ)) {
+            $data['gross_amount'] = (float) $vServ[0];
+        }
+
+        $vISSQN = @$xml->xpath('//*[local-name()="vISSQN"]');
+        if (!empty($vISSQN)) {
+            $data['iss_amount'] = (float) $vISSQN[0];
+        }
+
+        // tpRetISSQN: 1 = não retido, 2 = retido pelo tomador, 3 = retido pelo intermediário
+        $tpRet = @$xml->xpath('//*[local-name()="tpRetISSQN"]');
+        if (!empty($tpRet)) {
+            $data['iss_retained'] = in_array((string) $tpRet[0], ['2', '3'], true);
+        }
+
+        $cTribNac = @$xml->xpath('//*[local-name()="cTribNac"]');
+        if (!empty($cTribNac)) {
+            $data['service_code'] = (string) $cTribNac[0];
+        }
+
+        $xDescServ = @$xml->xpath('//*[local-name()="xDescServ"]');
+        if (!empty($xDescServ)) {
+            $data['service_description'] = trim((string) $xDescServ[0]);
+        }
+
+        $cLocIncid = @$xml->xpath('//*[local-name()="cLocIncid"]');
+        if (!empty($cLocIncid)) {
+            $data['municipality_code'] = (string) $cLocIncid[0];
         }
 
         // Prestador (emit)
@@ -227,6 +314,11 @@ class XmlParserService
             }
         }
 
+        $competencia = @$xml->xpath('//*[local-name()="Competencia"]');
+        if (!empty($competencia)) {
+            $data['competence'] = substr((string) $competencia[0], 0, 7);
+        }
+
         // Amount (ValorServicos or ValorLiquidoNfse)
         foreach (['//*[local-name()="ValorLiquidoNfse"]', '//*[local-name()="ValorServicos"]'] as $xpath) {
             $nodes = @$xml->xpath($xpath);
@@ -234,6 +326,37 @@ class XmlParserService
                 $data['amount'] = (float) $nodes[0];
                 break;
             }
+        }
+
+        $valorServicos = @$xml->xpath('//*[local-name()="ValorServicos"]');
+        if (!empty($valorServicos)) {
+            $data['gross_amount'] = (float) $valorServicos[0];
+        }
+
+        $valorIss = @$xml->xpath('//*[local-name()="ValorIss"]');
+        if (!empty($valorIss)) {
+            $data['iss_amount'] = (float) $valorIss[0];
+        }
+
+        // IssRetido: 1 = sim, 2 = não
+        $issRetido = @$xml->xpath('//*[local-name()="IssRetido"]');
+        if (!empty($issRetido)) {
+            $data['iss_retained'] = (string) $issRetido[0] === '1';
+        }
+
+        $itemLista = @$xml->xpath('//*[local-name()="ItemListaServico"]');
+        if (!empty($itemLista)) {
+            $data['service_code'] = (string) $itemLista[0];
+        }
+
+        $discriminacao = @$xml->xpath('//*[local-name()="Discriminacao"]');
+        if (!empty($discriminacao)) {
+            $data['service_description'] = trim((string) $discriminacao[0]);
+        }
+
+        $codigoMunicipio = @$xml->xpath('//*[local-name()="Servico"]/*[local-name()="CodigoMunicipio"]');
+        if (!empty($codigoMunicipio)) {
+            $data['municipality_code'] = (string) $codigoMunicipio[0];
         }
 
         // Provider CNPJ (Prestador)
@@ -260,7 +383,22 @@ class XmlParserService
             $data['recipient_name'] = (string) $recipientName[0];
         }
 
+        // ABRASF não tem chave nacional: usa CNPJ do prestador + número + código de verificação
+        if (!empty($data['invoice_number'])) {
+            $codigoVerificacao = @$xml->xpath('//*[local-name()="CodigoVerificacao"]');
+            $data['access_key'] = substr(implode('-', array_filter([
+                $this->digitsOnly($data['provider_cnpj'] ?? ''),
+                $data['invoice_number'],
+                !empty($codigoVerificacao) ? preg_replace('/[^A-Za-z0-9]/', '', (string) $codigoVerificacao[0]) : null,
+            ])), 0, 60);
+        }
+
         return ['found' => !empty($data), 'data' => $data];
+    }
+
+    private function digitsOnly(string $value): string
+    {
+        return preg_replace('/\D/', '', $value);
     }
 
     private function formatCnpj(string $cnpj): string
