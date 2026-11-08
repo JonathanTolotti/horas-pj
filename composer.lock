@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b3defe6761da1fd7c9cf773344e42bbe",
+    "content-hash": "ac4c4e904b64d9501c0d4bc47354656b",
     "packages": [
         {
             "name": "a2insights/jxrml-template-engine",
@@ -10477,9 +10477,12 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.2",
+        "php": "^8.4",
         "ext-zip": "*"
     },
     "platform-dev": {},
+    "platform-overrides": {
+        "php": "8.4.1"
+    },
     "plugin-api-version": "2.6.0"
 }

@@ -51,13 +51,30 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Em produção alguns índices podem não existir (criação parcial no MySQL);
+        // por isso cada remoção é condicional.
+        $indexes = [
+            'invoice_xmls_user_id_access_key_unique' => 'dropUnique',
+            'invoice_xmls_user_id_competence_index' => 'dropIndex',
+            'invoice_xmls_user_id_status_index' => 'dropIndex',
+        ];
+
         Schema::table('invoice_xmls', function (Blueprint $table) {
-            $table->dropUnique(['user_id', 'access_key']);
-            $table->dropIndex(['user_id', 'competence']);
-            $table->dropIndex(['user_id', 'status']);
-            $table->dropConstrainedForeignId('user_id');
-            $table->dropConstrainedForeignId('company_id');
+            $table->dropForeign(['user_id']);
+            $table->dropForeign(['company_id']);
+        });
+
+        Schema::table('invoice_xmls', function (Blueprint $table) use ($indexes) {
+            foreach ($indexes as $name => $method) {
+                if (Schema::hasIndex('invoice_xmls', $name)) {
+                    $table->{$method}($name);
+                }
+            }
+        });
+
+        Schema::table('invoice_xmls', function (Blueprint $table) {
             $table->dropColumn([
+                'user_id', 'company_id',
                 'status', 'access_key', 'competence', 'series', 'gross_amount', 'iss_amount',
                 'iss_retained', 'service_code', 'service_description', 'municipality_code',
                 'attempts', 'processed_at',
