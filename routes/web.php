@@ -279,6 +279,7 @@ Route::middleware(['auth', 'verified', 'premium:billing'])->group(function () {
         Route::put('/revenue-limit', [InvoicePoolController::class, 'updateLimit'])->name('revenue-limit');
         Route::post('/{uuid}/retry', [InvoicePoolController::class, 'retry'])->name('retry');
         Route::get('/{uuid}/download', [InvoicePoolController::class, 'download'])->name('download');
+        Route::get('/{uuid}/danfse', [InvoicePoolController::class, 'danfse'])->name('danfse');
         Route::delete('/{uuid}', [InvoicePoolController::class, 'destroy'])->name('destroy');
     });
 

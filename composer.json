@@ -11,10 +11,13 @@
     "require": {
         "php": "^8.2",
         "ext-zip": "*",
+        "a2insights/jxrml-template-engine": "dev-main#982343b18a727bf7c83016b9380178705fc327a0",
         "barryvdh/laravel-dompdf": "^3.1",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "nfse-nacional/danfse-php": "dev-main#c45ade6cb2f492ec674eb7a783eeed48d3904d7a",
+        "quilhasoft/jasperphp": "dev-master"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -8,6 +8,7 @@ use App\Models\InvoiceXml;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\DanfseService;
 use App\Services\XmlParserService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
@@ -244,6 +245,45 @@ describe('Processamento e vínculo', function () {
     });
 });
 
+describe('DANFSe', function () {
+    test('converte o XML nacional no payload da biblioteca', function () {
+        $payload = app(DanfseService::class)->toPayload(nfseXml(poolKey(1), '06367953000179', '2026-04', 1200, 1100));
+
+        $inf = $payload['infNfse'];
+        expect($inf['numeroNfse'])->toBe('42')
+            ->and($inf['emitente']['cnpj'])->toBe('11222333000181')
+            ->and($inf['valores']['valorLiquido'])->toBe('1100')
+            ->and($inf['dps']['infDps']['dataCompetencia'])->toBe('2026-04-01')
+            ->and($inf['dps']['infDps']['tomador']['cnpj'])->toBe('06367953000179')
+            ->and($inf['dps']['infDps']['servico']['codigoServico']['codigoTributacaoNacional'])->toBe('010701')
+            ->and($inf['dps']['infDps']['valores']['valorServicoPrestado']['valorServico'])->toBe('1200')
+            ->and($inf['dps']['infDps']['valores']['tributacao']['tipoRetencaoIssqn'])->toBe('Não Retido');
+    });
+
+    test('gera o PDF do DANFSe para nota processada', function () {
+        $this->actingAs($this->user)->post('/invoice-pool', [
+            'xmls' => [nfseFile(poolKey(1), '06367953000179')],
+        ], ['Accept' => 'application/json']);
+        $xml = InvoiceXml::first();
+
+        $response = $this->actingAs($this->user)->get("/invoice-pool/{$xml->uuid}/danfse");
+
+        $response->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        expect(str_starts_with($response->getContent(), '%PDF'))->toBeTrue();
+    });
+
+    test('não gera DANFSe para nota fora do padrão nacional', function () {
+        $xml = InvoiceXml::create([
+            'user_id' => $this->user->id, 'status' => 'processed', 'xml_parsed' => true,
+            'access_key' => '11222333000181-42-ABC', 'filename' => 'abrasf.xml', 'path' => 'abrasf.xml',
+        ]);
+        Storage::put('abrasf.xml', '<CompNfse><Nfse><InfNfse><Numero>42</Numero></InfNfse></Nfse></CompNfse>');
+
+        expect($xml->supportsDanfse())->toBeFalse();
+        $this->actingAs($this->user)->get("/invoice-pool/{$xml->uuid}/danfse")->assertNotFound();
+    });
+});
+
 describe('Faturamento anual', function () {
     test('soma o valor bruto por competência e compara ao limite', function () {
         Setting::forUser($this->user->id)->update(['annual_revenue_limit' => 10000]);
@@ -288,6 +328,7 @@ describe('Isolamento', function () {
         ]);
 
         $this->actingAs($other)->get("/invoice-pool/{$xml->uuid}/download")->assertNotFound();
+        $this->actingAs($other)->get("/invoice-pool/{$xml->uuid}/danfse")->assertNotFound();
         $this->actingAs($other)->deleteJson("/invoice-pool/{$xml->uuid}")->assertNotFound();
     });
 

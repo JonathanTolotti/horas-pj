@@ -8,10 +8,12 @@ use App\Jobs\ProcessInvoiceXml;
 use App\Models\InvoiceAuditLog;
 use App\Models\InvoiceXml;
 use App\Models\Setting;
+use App\Services\DanfseService;
 use App\Services\InvoicePoolService;
 use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,6 +25,7 @@ class InvoicePoolController extends Controller
     public function __construct(
         private InvoicePoolService $pool,
         private StorageService $storage,
+        private DanfseService $danfse,
     ) {}
 
     public function index(Request $request): View
@@ -207,6 +210,27 @@ class InvoicePoolController extends Controller
         abort_unless(Storage::exists($xml->path), 404);
 
         return Storage::download($xml->path, $xml->filename);
+    }
+
+    public function danfse(string $uuid): Response
+    {
+        $xml = InvoiceXml::forUser(Auth::id())->where('uuid', $uuid)->with('company')->firstOrFail();
+
+        abort_unless($xml->supportsDanfse() && Storage::exists($xml->path), 404);
+
+        try {
+            $pdf = $this->danfse->render($xml);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(422, 'Não foi possível gerar o DANFSe desta nota.');
+        }
+
+        $filename = 'DANFSe-' . ($xml->invoice_number ?? $xml->access_key) . '.pdf';
+
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 
     public function updateLimit(UpdateRevenueLimitRequest $request): JsonResponse

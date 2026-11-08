@@ -106,6 +106,18 @@ class InvoiceXml extends Model
         return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
     }
 
+    /**
+     * DANFSe só existe para NFS-e Nacional, cuja chave de acesso tem 50 dígitos
+     * (NF-e tem 44; ABRASF usa chave composta com hífens).
+     */
+    public function supportsDanfse(): bool
+    {
+        return (bool) $this->xml_parsed
+            && is_string($this->access_key)
+            && strlen($this->access_key) === 50
+            && ctype_digit($this->access_key);
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {
