@@ -135,6 +135,14 @@
             <!-- Right side: changelog + privacy + profile dropdown -->
             <div class="nav-right sm:flex sm:items-center sm:ms-6 gap-2">
 
+                <!-- Painel Beta -->
+                @auth
+                <a href="{{ route('dashboard.beta') }}" title="Experimentar o novo painel"
+                   class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors {{ request()->routeIs('dashboard.beta') ? 'border-amber-400 text-amber-300 bg-amber-500/10' : 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500' }}">
+                    Beta
+                </a>
+                @endauth
+
                 <!-- Botão Tour -->
                 @auth
                 <button onclick="startTour()" title="Ver tutorial do sistema"
@@ -240,6 +248,14 @@
 
             <!-- Hamburger (mobile) -->
             <div class="-me-2 flex items-center sm:hidden gap-1">
+                <!-- Painel Beta Mobile -->
+                @auth
+                <a href="{{ route('dashboard.beta') }}" title="Experimentar o novo painel"
+                   class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors {{ request()->routeIs('dashboard.beta') ? 'border-amber-400 text-amber-300 bg-amber-500/10' : 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500' }}">
+                    Beta
+                </a>
+                @endauth
+
                 <!-- Tour Button Mobile -->
                 @auth
                 <button onclick="startTour()" title="Ver tutorial do sistema"

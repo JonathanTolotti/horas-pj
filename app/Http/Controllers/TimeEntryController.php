@@ -103,6 +103,117 @@ class TimeEntryController extends Controller
         ]);
     }
 
+    /**
+     * Painel novo (Beta): mesma base de dados do dashboard clássico,
+     * organizado como uma folha de ponto do ciclo.
+     */
+    public function beta(Request $request): View
+    {
+        $userId = auth()->id();
+        $user = auth()->user();
+        $currentPeriod = $this->calculator->getCurrentPeriod($userId);
+        $monthReference = $request->session()->get('month_reference', $currentPeriod);
+
+        $months = $this->getAvailableMonths();
+        $allowedMonths = array_column($months, 'value');
+
+        if ($request->has('month') && in_array($request->input('month'), $allowedMonths, true)) {
+            $monthReference = $request->input('month');
+            $request->session()->put('month_reference', $monthReference);
+        }
+
+        $cycleDay = $this->calculator->getCycleDay($userId);
+        [$cycleStart, $cycleEnd] = $this->calculator->getPeriodDateRange($monthReference, $cycleDay);
+
+        $entries = TimeEntry::forUser($userId)
+            ->forMonth($monthReference, $cycleDay)
+            ->with('project')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        $stats = $this->calculator->getMonthlyStats($userId, $monthReference);
+        $settings = Setting::forUser($userId);
+        $today = Carbon::today();
+
+        // Horas por dia do ciclo (faixa de dias do topo)
+        $hoursByDate = $entries->groupBy(fn ($e) => $e->date->format('Y-m-d'))
+            ->map(fn ($day) => round((float) $day->sum('hours'), 2));
+
+        $canUseOnCall = $user->canUseFeature('on_call');
+        $onCallPeriods = OnCallPeriod::forUser($userId)
+            ->forMonth($monthReference, $cycleDay)
+            ->with('project')
+            ->orderBy('start_datetime', 'desc')
+            ->get();
+
+        // Projeção do ciclo (mesma regra do Analytics, feature premium 'analytics')
+        $canProject = $user->canUseFeature('analytics');
+        $projection = $canProject ? $this->calculator->getCycleProjection($userId, $monthReference) : null;
+        $projectedDates = $projection ? array_flip($projection['remaining_dates']) : [];
+
+        $days = [];
+        for ($d = $cycleStart->copy(); $d->lte($cycleEnd); $d->addDay()) {
+            $key = $d->format('Y-m-d');
+            $dayStart = $d->copy()->startOfDay();
+            $dayEnd = $d->copy()->endOfDay();
+            $days[] = [
+                'projected' => isset($projectedDates[$key]),
+                'on_call' => $onCallPeriods->contains(
+                    fn ($p) => $p->start_datetime->lte($dayEnd) && $p->end_datetime->gt($dayStart)
+                ),
+                'key' => $key,
+                'day' => $d->day,
+                'weekday' => $d->isoFormat('ddd'),
+                'label' => ucfirst($d->isoFormat('dddd, DD/MM')),
+                'hours' => $hoursByDate[$key] ?? 0,
+                'weekend' => $d->isWeekend(),
+                'today' => $d->isSameDay($today),
+                'future' => $d->gt($today),
+            ];
+        }
+
+        $isCurrentCycle = $today->between($cycleStart, $cycleEnd);
+        $workdaysLeft = 0;
+        if ($isCurrentCycle) {
+            for ($d = $today->copy()->addDay(); $d->lte($cycleEnd); $d->addDay()) {
+                if (! $d->isWeekend()) {
+                    $workdaysLeft++;
+                }
+            }
+        }
+
+        $currentLabel = collect($months)->firstWhere('value', $monthReference)['label']
+            ?? $this->calculator->getPeriodLabel($monthReference, $cycleDay);
+
+        return view('dashboard-beta', [
+            'entriesByDay' => $entries->groupBy(fn ($e) => $e->date->format('Y-m-d')),
+            'entriesCount' => $entries->count(),
+            'days' => $days,
+            'daysWorked' => $hoursByDate->filter(fn ($h) => $h > 0)->count(),
+            'stats' => $stats,
+            'currentMonth' => $monthReference,
+            'currentLabel' => $currentLabel,
+            'months' => $months,
+            'cycleStart' => $cycleStart,
+            'cycleEnd' => $cycleEnd,
+            'isCurrentCycle' => $isCurrentCycle,
+            'workdaysLeft' => $workdaysLeft,
+            'projects' => Project::forUser($userId)->active()->orderBy('name')->get(),
+            'defaultProjectId' => Project::getDefault($userId)?->id,
+            'isPremium' => $user->isPremium(),
+            'canUseOnCall' => $canUseOnCall,
+            'canProject' => $canProject,
+            'projection' => $projection,
+            'todayHours' => (float) TimeEntry::forUser($userId)->whereDate('date', $today)->sum('hours'),
+            'autoSaveTracking' => (bool) $settings->auto_save_tracking,
+            'onCallPeriods' => $onCallPeriods,
+            'standardDayPeriods' => $settings->standard_day_periods ?? [],
+            'standardDayProjectId' => $settings->standard_day_project_id,
+            'standardDayDescription' => $settings->standard_day_description ?? '',
+        ]);
+    }
+
     public function store(StoreTimeEntryRequest $request): JsonResponse
     {
         $validated = $request->validated();

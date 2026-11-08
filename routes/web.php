@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [TimeEntryController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/beta', [TimeEntryController::class, 'beta'])->name('dashboard.beta');
     Route::post('/time-entries', [TimeEntryController::class, 'store'])->name('time-entries.store');
     Route::delete('/time-entries/{timeEntry}', [TimeEntryController::class, 'destroy'])->name('time-entries.destroy');
     Route::get('/time-entries/stats', [TimeEntryController::class, 'stats'])->name('time-entries.stats');

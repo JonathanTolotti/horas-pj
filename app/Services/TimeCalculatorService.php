@@ -304,6 +304,63 @@ class TimeCalculatorService
     }
 
     /**
+     * Projeção de faturamento do ciclo (mesma regra da projeção do Analytics, mas respeitando o dia de ciclo).
+     * Média = receita de horas / dias úteis com lançamento; projeção = total atual + média × dias úteis restantes.
+     * Um dia útil conta como realizado se já passou (hoje incluso) ou se já tem lançamento.
+     */
+    public function getCycleProjection(int $userId, string $monthReference): array
+    {
+        $cycleDay = $this->getCycleDay($userId);
+        [$start, $end] = $this->getPeriodDateRange($monthReference, $cycleDay);
+        $today = now()->toDateString();
+
+        $stats = $this->getMonthlyStats($userId, $monthReference);
+
+        $dailyHours = [];
+        TimeEntry::forUser($userId)->forMonth($monthReference, $cycleDay)->get()
+            ->each(function ($entry) use (&$dailyHours) {
+                if ($entry->date->isWeekday()) {
+                    $key = $entry->date->toDateString();
+                    $dailyHours[$key] = ($dailyHours[$key] ?? 0) + (float) $entry->hours;
+                }
+            });
+
+        $weekdaysWorked = count($dailyHours);
+        $elapsed = 0;
+        $remainingDates = [];
+
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            if (! $d->isWeekday()) {
+                continue;
+            }
+            $key = $d->toDateString();
+            if ($key <= $today || isset($dailyHours[$key])) {
+                $elapsed++;
+            } else {
+                $remainingDates[] = $key;
+            }
+        }
+
+        $totalWeekdays = $elapsed + count($remainingDates);
+        $dailyAverage = $weekdaysWorked > 0 ? $stats['total_revenue'] / $weekdaysWorked : 0;
+        $averageHours = $weekdaysWorked > 0 ? array_sum($dailyHours) / $weekdaysWorked : 0;
+        $actual = (float) $stats['total_final_with_on_call'];
+
+        return [
+            'current_revenue' => round($actual, 2),
+            'weekdays_worked' => $weekdaysWorked,
+            'elapsed_weekdays' => $elapsed,
+            'remaining_weekdays' => count($remainingDates),
+            'total_weekdays' => $totalWeekdays,
+            'daily_average_revenue' => round($dailyAverage, 2),
+            'daily_average_hours' => round($averageHours, 2),
+            'projected_total' => round($actual + $dailyAverage * count($remainingDates), 2),
+            'remaining_dates' => $remainingDates,
+            'is_past' => $end->toDateString() < $today,
+        ];
+    }
+
+    /**
      * Dado uma data e o dia de início do ciclo, retorna o período (YYYY-MM) ao qual a data pertence.
      * Ex: cycleDay=15, date=2026-03-10 → '2026-02' (período de fev 15 a mar 14)
      *     cycleDay=15, date=2026-03-20 → '2026-03' (período de mar 15 a abr 14)
